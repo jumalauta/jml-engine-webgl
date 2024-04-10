@@ -1,0 +1,20 @@
+{
+  "name": "jml-engine-webgl",
+  "version": "1.0.0",
+  "description": "JML Demo Engine",
+  "main": "index.js",
+  "private": "true",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.163.0"
+  },
+  "devDependencies": {
+    "clipboard": "^2.0.11",
+    "dat.gui": "^0.7.9",
+    "vite": "^5.2.7"
+  }
+}

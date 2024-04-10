@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+		<title>JML Engine</title>
+		<style>
+    #editor { 
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 70%;
+    }
+    #panel { 
+        position: absolute;
+        top: 80%;
+        right: 30%;
+        bottom: 0;
+        left: 0;
+    }
+    #panel-console {
+        max-height: 100%;
+        overflow: auto;
+    }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black/*#272822 ace/theme/monokai bg*/;
+            color: #e0ffe0 /*ace/theme/monokai text*/;
+        }
+        button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 5em;
+            width: 5em;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+            font-size: xx-large;
+        }
+        canvas {
+            /*width: 70%;
+            height:70%;*/
+            /*width: 70%;
+            height:70%;*/
+            margin: 0px auto;
+        }
+		</style>
+	</head>
+	<body>
+		<!--script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script-->
+
+		<!--audio id="music" src="music.mp3"></audio-->
+		<canvas id="canvas" hidden></canvas>
+		<button onclick="startDemo()" id="start">Start</button>	
+
+        <script type="module" src="/main.js"></script>
+
+        <!--div id="editor">function foo(items) {
+            var x = "All this is syntax highlighted";
+            return x;
+        }</div>
+        <div id="panel">
+            <button onclick='document.getElementById("panel-console").innerHTML="";'>Clear</button>
+            <div id="panel-console"></div>
+        </div>
+            
+        <script src="/ace-builds/src/ace.js" type="text/javascript" charset="utf-8"></script>
+        <script>            
+
+            // editor multiple tabs example: https://codepen.io/zymawy/pen/QRLXNE
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.session.setMode("ace/mode/javascript");
+            editor.commands.addCommand({
+                name: 'myCommand',
+                bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+                exec: function(editor) {
+                    alert('save event!');
+                },
+                readOnly: true, // false if this command should not apply in readOnly mode
+                // multiSelectAction: "forEach", optional way to control behavior with multiple cursors
+                // scrollIntoView: "cursor", control how cursor is scolled into view after the command
+            });
+        </script-->
+    </body>
+</html>

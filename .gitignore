@@ -1,3 +1,10 @@
+# Custom on top of GitHub defaults
+*.BAK
+ace-builds
+dist
+data
+testdata
+
 # Logs
 logs
 *.log
