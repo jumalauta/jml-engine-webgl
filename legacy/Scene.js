@@ -7,7 +7,7 @@ import { Model } from './Model.js';
 import { Text } from './Text.js';
 import { Fbo } from './Fbo.js';
 import { windowSetTitle, loggerError, loggerDebug, loggerWarning } from './Bindings.js';
-import {getScene, getCamera, pushView, popView} from '../main.js';
+import {getScene, getCamera, pushView, popView} from '../DemoRenderer.js';
 
 import * as THREE from 'three';
 

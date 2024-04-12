@@ -1,9 +1,10 @@
 import { Loader } from './Loader.js';
 import { Player } from './Player.js';
-import { animate, loadingBar, Demo } from '../main.js';
+import { animate, Demo } from '../main.js';
 import { loggerDebug, loggerWarning } from './Bindings.js';
 import { Music } from './Music.js';
 import { Sync } from './Sync.js';
+import { LoadingBar } from '../LoadingBar.js';
 
 /** @constructor */
 var Effect = function()
@@ -44,6 +45,7 @@ Effect.init = function(effectName)
 
         let promiseCount = effect.loader.promises.length;
 
+        const loadingBar = new LoadingBar();
         if (loadingBar.percent <= 0.0) {
             animate();
         }

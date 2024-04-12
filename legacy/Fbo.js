@@ -1,7 +1,9 @@
 import * as THREE from 'three';
-import { renderer, screenWidth, screenHeight, getScene, getCamera, pushView, popView } from '../main';
+import { DemoRenderer, getScene, getCamera, pushView, popView } from '../DemoRenderer';
 import { Image } from './Image';
 import { loggerDebug } from './Bindings';
+
+const demoRenderer = new DemoRenderer();
 
 var fbos = {};
 
@@ -62,7 +64,7 @@ Fbo.init = function(name) {
 
     fbo.name = name;
 
-    fbo.target = new THREE.WebGLRenderTarget( screenWidth, screenHeight );
+    fbo.target = new THREE.WebGLRenderTarget( demoRenderer.canvasWidth, demoRenderer.canvasHeight );
     fbo.target.texture.minFilter = THREE.NearestFilter;
     fbo.target.texture.magFilter = THREE.NearestFilter;
     fbo.target.stencilBuffer = ( format === THREE.DepthStencilFormat ) ? true : false;
@@ -113,8 +115,8 @@ Fbo.prototype.bind = function() {
     //console.warn('fbo bind');
     //fboBind(this.ptr);
     //pushView(this.scene, getCamera());
-    renderer.setRenderTarget(this.target);
-    renderer.clear();
+    demoRenderer.renderer.setRenderTarget(this.target);
+    demoRenderer.renderer.clear();
 
 }
 
@@ -122,8 +124,8 @@ Fbo.prototype.unbind = function() {
     //fboUnbind(this.ptr);
     //console.warn('fbo unbind');
 
-    renderer.render( this.scene, this.camera );
-    renderer.setRenderTarget(null);
+    demoRenderer.renderer.render( this.scene, this.camera );
+    demoRenderer.renderer.setRenderTarget(null);
     //popView();
 }
 
