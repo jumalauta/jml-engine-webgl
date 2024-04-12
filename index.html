@@ -13,11 +13,11 @@
         top: 0;
         right: 0;
         bottom: 0;
-        left: 70%;
+        left: 60%;
     }
     #panel { 
         position: absolute;
-        top: 80%;
+        top: 70%;
         right: 30%;
         bottom: 0;
         left: 0;
@@ -30,10 +30,10 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: black/*#272822 ace/theme/monokai bg*/;
+            background-color: #272822 /*ace/theme/monokai bg*/;
             color: #e0ffe0 /*ace/theme/monokai text*/;
         }
-        button {
+        /*button {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -42,12 +42,10 @@
             -ms-transform: translateY(-50%);
             transform: translateY(-50%);
             font-size: xx-large;
-        }
+        }*/
         canvas {
-            /*width: 70%;
-            height:70%;*/
-            /*width: 70%;
-            height:70%;*/
+            width: 60%;
+            height:70%;
             margin: 0px auto;
         }
 		</style>
@@ -64,36 +62,14 @@
 
 		<!--audio id="music" src="music.mp3"></audio-->
 		<canvas id="canvas" hidden></canvas>
-		<button onclick="startDemo()" id="start">Start</button>	
+		<!--button onclick="startDemo()" id="start">Start</button-->	
 
         <script type="module" src="/main.js"></script>
 
-        <!--div id="editor">function foo(items) {
-            var x = "All this is syntax highlighted";
-            return x;
-        }</div>
+        <div id="editor"></div>
         <div id="panel">
             <button onclick='document.getElementById("panel-console").innerHTML="";'>Clear</button>
             <div id="panel-console"></div>
         </div>
-            
-        <script src="/ace-builds/src/ace.js" type="text/javascript" charset="utf-8"></script>
-        <script>            
-
-            // editor multiple tabs example: https://codepen.io/zymawy/pen/QRLXNE
-            var editor = ace.edit("editor");
-            editor.setTheme("ace/theme/monokai");
-            editor.session.setMode("ace/mode/javascript");
-            editor.commands.addCommand({
-                name: 'myCommand',
-                bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
-                exec: function(editor) {
-                    alert('save event!');
-                },
-                readOnly: true, // false if this command should not apply in readOnly mode
-                // multiSelectAction: "forEach", optional way to control behavior with multiple cursors
-                // scrollIntoView: "cursor", control how cursor is scolled into view after the command
-            });
-        </script-->
     </body>
 </html>

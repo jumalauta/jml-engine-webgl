@@ -16,11 +16,11 @@ Effect.init = function(effectName)
 {
     var effect = eval('new ' + effectName);
 
-    if (effect.loader === void null)
+    //if (effect.loader === void null)
     {
         effect.loader = new Loader();
     }
-    if (effect.player === void null)
+    //if (effect.player === void null)
     {
         effect.player = new Player();
     }
@@ -44,7 +44,9 @@ Effect.init = function(effectName)
 
         let promiseCount = effect.loader.promises.length;
 
-        animate();
+        if (loadingBar.percent <= 0.0) {
+            animate();
+        }
 
         (async () => {
             loggerDebug("Starting loading");

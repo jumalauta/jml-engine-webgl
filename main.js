@@ -1,9 +1,89 @@
 import * as THREE from 'three';
 import { GUI } from 'dat.gui';
+import Stats from 'stats.js'
 import {Utils} from './legacy/Utils.js';
 import {Effect} from './legacy/Effect.js';
-import { getSceneTimeFromStart, loggerDebug } from './legacy/Bindings.js';
+import { getSceneTimeFromStart, loggerDebug, loggerInfo, loggerWarning } from './legacy/Bindings.js';
 import { Sync } from './legacy/Sync.js';
+import { Fbo } from './legacy/Fbo.js';
+import ace from 'ace-builds';
+//import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/theme-monokai';
+//import jsWorkerUrl from "file-loader!ace-builds/src-noconflict/worker-javascript";
+//ace.config.setModuleUrl("ace/mode/javascript_worker", jsWorkerUrl)
+// editor multiple tabs example: https://codepen.io/zymawy/pen/QRLXNE
+
+THREE.Cache.enabled = true;
+
+const aspectRatio = 16 / 9;
+let scene, camera;
+
+function setupScene() {
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
+	camera.position.z = 2;
+	camera.lookAt(new THREE.Vector3(0, 0, 0));
+	camera.up = new THREE.Vector3(0, 1, 0);
+	scene.add(camera);
+}
+setupScene();
+/*aspectRatio = Settings::demo.graphics.aspectRatio;
+clipPlaneNear = 0.1;
+clipPlaneFar = 1000.0;
+horizontalFov = glm::radians(45.0);
+
+setPosition(0.0, 0.0, 2.0);
+setLookAt(0.0, 0.0, 0.0);
+setUp(0.0, 1.0, 0.0);
+*/
+
+
+let scenes = [];
+let cameras = [];
+
+
+var editor = ace.edit("editor");
+ace.config.set("basePath",  "ace-builds/src-noconflict");
+editor.setTheme("ace/theme/monokai");
+editor.session.setMode("ace/mode/javascript");
+editor.commands.addCommand({
+	name: 'myCommand',
+	bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+	exec: function(editor) {
+		for(let i = 0; i < editor.session.getAnnotations().length; i++) {
+			let annotation = editor.session.getAnnotations()[i];
+			if (annotation.type === "error") {
+				loggerWarning("Not reloading. error on line " + annotation.row + ": " + annotation.text);
+				editor.gotoLine(annotation.row + 1);
+				return;
+			}
+		}
+
+		console.log("Reloading demo");
+
+		scenes.forEach(scene => {
+			console.log("removing scene " + scene.uuid);
+			clearThreeObject(scene);
+		});
+		cameras.forEach(scene => {
+			console.log("removing camera " + scene.uuid);
+			clearThreeObject(scene);
+		});
+		scenes = [];
+		cameras = [];
+		Fbo.dispose();
+		setupScene();
+
+		eval(editor.session.getValue());
+		Effect.init("Demo");
+
+	},
+	readOnly: true, // false if this command should not apply in readOnly mode
+	// multiSelectAction: "forEach", optional way to control behavior with multiple cursors
+	// scrollIntoView: "cursor", control how cursor is scolled into view after the command
+});
+
+
 
 // wget https://github.com/ajaxorg/ace/archive/refs/tags/v1.32.9.tar.gz
 // tar -xvzf v1.32.9.tar.gz
@@ -102,28 +182,6 @@ function init() {
   }
   */
 
-const scene = new THREE.Scene();
-const sceneFbo = new THREE.Scene();
-const aspectRatio = 16 / 9;
-/*aspectRatio = Settings::demo.graphics.aspectRatio;
-clipPlaneNear = 0.1;
-clipPlaneFar = 1000.0;
-horizontalFov = glm::radians(45.0);
-
-setPosition(0.0, 0.0, 2.0);
-setLookAt(0.0, 0.0, 0.0);
-setUp(0.0, 1.0, 0.0);
-*/
-const camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
-camera.position.z = 2;
-camera.lookAt(new THREE.Vector3(0, 0, 0));
-camera.up = new THREE.Vector3(0, 1, 0);
-scene.add(camera);
-
-const cameraFbo = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
-
-let scenes = [];
-let cameras = [];
 
 //arry.slice(-1);
 function getScene() { return scenes.slice(-1)[0]||scene; }
@@ -137,8 +195,8 @@ const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha
 //renderer.setClearColor(0x0000FF, 1);
 renderer.autoClear = false;
 renderer.sortObjects = false;
-let canvasWidth = window.innerWidth;// * 0.7; //FIXME: editor dynamic stuff
-let canvasHeight = window.innerHeight;// * 0.8;
+let canvasWidth = window.innerWidth * 0.6; //FIXME: editor dynamic stuff
+let canvasHeight = window.innerHeight * 0.8;
 let screenWidth = canvasWidth;
 let screenHeight = canvasWidth / aspectRatio;
 if (screenHeight > canvasHeight) {
@@ -191,7 +249,7 @@ var duration = 100;
 var layer = 1;*/
 
 var Demo = function() {};
-//export {Demo};
+export {Demo};
 window.Demo = Demo;
 /*Demo.prototype.init = function()
 {
@@ -347,164 +405,25 @@ LoadingBar.prototype.render = function() {
   this.renderer.render( this.scene, this.camera );
 };
 
+(new THREE.FileLoader()).load(
+	'testdata/Demo.js',
+	// onLoad callback
+	(demoData) => {
+		if (demoData[0] === '<') {
+			console.error( 'Could not load Demo.js');
+			return;    
+		}
 
-Demo.prototype.init2 = function()
-{
-  const pointLight = new THREE.PointLight(0xffffff, 1000)
-  pointLight.position.set(2.5, 7.5, 15)
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(0, 1, 2);
-  scene.add( directionalLight );
-  //scene.add( pointLight );
-  const light = new THREE.AmbientLight(0xffffff);
-  scene.add( light );
-
-  //sceneFbo.add( pointLight );
-  //sceneFbo.add( light );
-
-  //camera.position.z = 5;
-  //cameraFbo.position.z = 5;
-  
-
-
-  this.loader.addAnimation({"start": start, "duration": duration, "layer": layer, "image": "clouds_01.png"});
-  this.loader.addAnimation({"start": start, "duration": duration, "layer": layer, "image": "eye.png"});
-  this.loader.addAnimation({"start": start, "duration": duration, "layer": layer, "image": "apple-touch-icon.png"});
-
-  this.loader.addAnimation({
-    "start": start, "duration": duration, "layer": layer, "image": "s5_bg.png"
-    ,"scale":[{"uniform2d":1.0}]
-    //,"angle":[{"degreesZ":"{return getSceneTimeFromStart() * 10;}"}]
-    //,"initFunction":"{console.log('addeds5');}"
-  });
-
-this.loader.addAnimation({
-  "start": start+2, "duration": 10, "layer": layer, "props": {
-    "scene": scene, "camera":camera
-  }
-  ,"initFunction":(animation) => {
-    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    animation.props.cube = new THREE.Mesh( geometry, material );
-    
-    //animation.props.scene.add(animation.props.camera);
-    animation.props.scene.add(animation.props.cube);
-    console.log('addedcube');
-  }
-  ,"runFunction":(animation) => {
-    animation.props.cube.position.x = 2.5;
-    animation.props.cube.rotation.x += 0.01;
-    animation.props.cube.rotation.y += 0.01;
-  }
-});
-
-
-this.loader.addAnimation({
-	"start": start+0, "duration": 20, "layer": layer, "image": "jml_fist.png"
-	,"angle":[{"degreesZ":()=>getSceneTimeFromStart() * 10}]
-	,"scale":[{"uniform2d":1.0}]
-	,"position":[{"x":getScreenWidth()*0.9,"y":getScreenHeight()*0.9}]
-	/*,"position":[{"x":0.0,"y":0.0}
-		,{"duration":5,"x":0.5,"y":0.5}
-		,{"duration":5,"x":0.5,"y":-0.5}
-		,{"duration":5,"x":-0.5,"y":-0.5}
-		,{"duration":5,"x":-0.5,"y":0.5}
-	]*/
-  });
-  
-this.loader.addAnimation({
-  "start": start, "duration": end
- ,"layer": layer
- ,"image": ["_embedded/defaultTransparent.png"]
- ,"shader":{"name":"vignette.fs", "variable":[
-     {"name":"fadeStart","value":[()=> Math.sin(getSceneTimeFromStart())*0.05+0.35||Sync.getSyncValue('vignette_start')]} //0.35
-    ,{"name":"fadeEnd","value":[()=> Sync.getSyncValue('vignette_end')]} //0.5
-]}
-});
-
-this.loader.addAnimation ([
-	{
-		"start": start, "duration": end ,"layer": layer, "fbo":{"name":"testFbo","action":"begin","storeDepth":true}
-		//,"runFunction":()=>{console.log('entering fbo');}
+		editor.session.setValue(demoData);
+	},
+	// onProgress callback
+	undefined,
+	// onError callback
+	(err) => {
+		console.error( 'Could not load Demo.js ', err);
 	}
-	]);
+);
 
-this.loader.addAnimation([{
-  "start": start, "duration":end
- ,"layer": layer, //, "image": ["tex_allseeing.png"]
-"object":"data/obj_allseeing.obj"
-,"position":[{"x":0,"y":0,"z":-5}]
-,"scale":[{"uniform3d":2.0}]
-,"angle": [{"degreesY":"{return -20*getSceneTimeFromStart();}","degreesZ":0,"degreesX":0}]
-//,"color":[{"r":255,"g":255,"b":255,"a":255}]
-//,"runFunction":(animation) => {console.warn('runFunction');}
-}]);
-
-this.loader.addAnimation([{
-  "start": start, "duration": end ,"layer": layer, 		
-  "text":
-  {
-    "string":"TESTing! :)"
-    ,"name":"font.ttf"
-  }
-  ,"position":[{"x":0,"y":0,"z":-10}]
-  //,"runFunction":()=>{console.log('runFunction inside fbo');}
-  //FIXME: ,"angle":[{"degreesZ":()=>getSceneTimeFromStart()*10}]
-  //,"scale":[{"uniform3d":scale}]
-  //,"position":[{"x":960,"y":540+yPos,"z":1}		]
-  //,"angle":[{"degreesZ":0}]
-  //,"color":[{"r":0,"g":0,"b":0}]
-}]);
-
-let textString = "A tragedy in three parts";
-let scale = 3.0;
-let yPos = 0;
-
-this.loader.addAnimation([{
-	"start": start, "duration": end ,"layer": layer,			
-	"text":
-	{
-		"string":textString
-		,"name":"font.ttf"
-	}
-	//,"position":[{"x":-1.5*16/9,"y":1.5,"z":0}]	
-	//,"position":[{"x":getScreenWidth()*0.0,"y":getScreenHeight()*0.0,"z":0}]	
-	,"scale":[{"uniform3d":scale}]
-	,"position":[{"x":960,"y":540+yPos,"z":1}		]
-	,"angle":[{"degreesZ":0}]
-	,"color":[{"r":0,"g":0,"b":0}]
-}]);
-
-this.loader.addAnimation([{
-	"start": start, "duration": end ,"layer": layer,			
-	"text":
-	{
-		"string":"FALL OF MAN"
-		,"name":"font.ttf"
-	}
-	//,"position":[{"x":0,"y":0,"z":-1}]	
-	,"scale":[{"uniform3d":5.0}]
-	,"position":[{"x":960,"y":540+200,"z":1}		]
-	,"angle":[{"degreesZ":0}]
-	,"color":[{"r":0,"g":0,"b":0}]
-}]);
-
-this.loader.addAnimation ([
-	{
-		"start": start, "duration": end ,"layer": layer, "fbo":{"name":"testFbo","action":"unbind"}
-		//,"runFunction":()=>{console.log('exiting fbo');}
-	}
-	]);
-
-this.loader.addAnimation({
-  "start": start, "duration": end
- ,"layer": layer
- ,"image": ["testFbo.color.fbo"]
- ,"color":[{"a":200}]
-});
-
-//FIXME: prebake materials in loading: renderer.compile(scene, camera, scene);
-}
 
 
 ///
@@ -523,7 +442,7 @@ var fftImage = new Image();
 var cScaler = 0.0012;
 var spiralHeight = 127.979;
 
-Demo.prototype.init = function()
+Demo.prototype.init2 = function()
 {
   const pointLight = new THREE.PointLight(0xffffff, 1000)
   pointLight.position.set(2.5, 7.5, 15)
@@ -1548,7 +1467,7 @@ Demo.prototype.createText = function (startTime, duration, textString, scale,yPo
 		"text":
 		{
 			"string":textString
-			,"name":"font.ttf"
+			,"name":"data/font.ttf"
 		}
 		,"scale":[{"uniform3d":scale}]
 		,"position":[{"x":960,"y":540+yPos,"z":1}		]
@@ -1561,19 +1480,29 @@ Demo.prototype.createText = function (startTime, duration, textString, scale,yPo
 /// DEMO.JS END
 ///
 
+const stats = new Stats();
+stats.showPanel(0); 
+document.body.appendChild(stats.dom)
+
+
 let loadingBar = new LoadingBar(renderer);
 export {loadingBar};
 
 //loadingBar.render();
 
 function startDemo() {
-	document.getElementById('start').style.display = 'none';
+	const startButton = document.getElementById('start');
+	if (startButton) {
+		startButton.style.display = 'none';
+	}
+
 	canvas.style.display = 'block';
 	canvas.style.margin = '0px';
 	
-	Effect.init("Demo");
+	//Effect.init("Demo");
 }
 window.startDemo = startDemo;
+startDemo();
 //Effect.deinit("Demo");
 
 
@@ -1597,9 +1526,13 @@ cubeFolder.open()
 //let mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, width/height), material);
 //scene.add(mesh);
 
+
 export function animate() {
+  stats.begin();
+
   if (loadingBar.percent < 1.0) {
     loadingBar.render();
+	stats.end();
     requestAnimationFrame( animate );
     return;
   }
@@ -1643,6 +1576,7 @@ Effect.run("Demo");
   renderer.clear();
   renderer.render( scene, camera );
 
+  stats.end();
   requestAnimationFrame( animate );
 }
 

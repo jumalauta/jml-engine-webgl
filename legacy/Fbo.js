@@ -30,6 +30,14 @@ var Fbo = function() {
     
 }
 
+Fbo.dispose = function() {
+    for (let key in fbos) {
+        let fbo = fbos[key];
+        //  FIXME implement proper dispose
+        delete fbos[key];
+    }
+}
+
 Fbo.init = function(name) {
     if (fbos[name]) {
         return fbos[name];

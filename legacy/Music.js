@@ -19,6 +19,11 @@ Music.getInstance = function() {
 Music.prototype.load = function(url) {
     let instance = this;
     return new Promise((resolve, reject) => {
+        if (instance.duration) {
+            loggerDebug('Loaded music from cache ' + url + ' (length ' + instance.duration + 's)');
+            resolve(instance);
+            return;
+        }
         const loader = new THREE.AudioLoader();
         loader.load(url,
             function(buffer) {
