@@ -11,6 +11,7 @@ import 'ace-builds/src-noconflict/theme-monokai';
 import { loggerWarning } from './legacy/Bindings.js';
 import { Effect } from './legacy/Effect.js';
 import { DemoRenderer } from './DemoRenderer.js';
+import { Timer } from './Timer.js';
 
 /*const gui = new GUI()
 const cubeFolder = gui.addFolder('Cube')
@@ -71,7 +72,7 @@ ToolUi.prototype.init = function() {
     });
 
     (new THREE.FileLoader()).load(
-        'testdata/Demo.js',
+        'data/Demo.js',
         // onLoad callback
         (demoData) => {
             if (demoData[0] === '<') {
@@ -88,6 +89,29 @@ ToolUi.prototype.init = function() {
             console.error( 'Could not load Demo.js ', err);
         }
     );
+
+    this.timelineSlider = document.getElementById("timeline-slider");
+    this.timelineSlider.addEventListener("change", () => {
+        const percentage = this.timelineSlider.value / this.timelineSlider.max;
+        (new Timer()).setTimePercent(percentage);
+        //console.log("Manual time change to percentage: " + percentage);
+    }, false);
+
+    this.hide();
+}
+
+ToolUi.prototype.show = function() {
+    this.stats.dom.style.display = 'block'
+    this.timelineSlider.style.display = 'block'
+}
+
+ToolUi.prototype.hide = function() {
+    this.stats.dom.style.display = 'none'
+    this.timelineSlider.style.display = 'none'
+}
+
+ToolUi.prototype.update = function() {
+    this.timelineSlider.value = (new Timer()).getTimePercent() * this.timelineSlider.max;
 }
 
 export {ToolUi};

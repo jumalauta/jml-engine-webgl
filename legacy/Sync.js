@@ -1,8 +1,7 @@
 import { JSRocket } from "./rocket/jsRocket";
 import { Utils } from "./Utils";
 import { loggerTrace, loggerDebug, loggerWarning } from "./Bindings";
-import { Music } from "./Music";
-import { Timer } from "./Graphics"
+import { Timer } from "../Timer"
 
 /** @constructor */
 var Sync = function()
@@ -10,7 +9,7 @@ var Sync = function()
     this.demoMode = true;
     this.syncDevice = new JSRocket.SyncDevice();
     this.previousIntRow = undefined;
-    this.music = Music.getInstance();
+    this.timer = new Timer();
 };
 
 Sync.getInstance = function() {
@@ -41,14 +40,14 @@ Sync.prototype.init = function() {
             loggerDebug("GNU Rocket loaded");
             resolve();
         });
-        instance.syncDevice.on('update', function(row) { instance.music.setTime(1.23); });
-        instance.syncDevice.on('play', function() { instance.music.play(); });
-        instance.syncDevice.on('pause', function() { instance.music.pause(); });
+        instance.syncDevice.on('update', function(row) { instance.timer.setTime(1.23 * 1000); });
+        instance.syncDevice.on('play', function() { instance.timer.start(); });
+        instance.syncDevice.on('pause', function() { instance.timer.pause(); });
     });
 }
 
 Sync.prototype.getRow = function() {
-    let row = Math.floor((new Timer()).getTimeInSeconds() * this.rowRate);
+    let row = Math.floor(this.timer.getTimeInSeconds() * this.rowRate);
     return row;
 }  
   
@@ -127,8 +126,8 @@ Sync.getSyncValue = function(name)
         }
     }*/
 
-    loggerWarning("Sync track not found '" + name + "'");
-    return 0;
+    //loggerWarning("Sync track not found '" + name + "'");
+    //return 0;
 };
 
 Sync.calculateAnimationSync = function(time, animation)

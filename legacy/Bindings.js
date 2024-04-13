@@ -31,20 +31,6 @@ export function processFutures() {
     //console.log('processFutures');
 }
 
-let startDummy = undefined;
-
-export function startTimer() {
-    startDummy = new Date().getTime() / 1000;
-}
-
-export function getSceneTimeFromStart() {
-    let now = new Date().getTime() / 1000;
-    if (startDummy === undefined) {
-        startDummy = now;
-    }
-    return (now - startDummy);
-}
-
 //notifyResourceLoaded, setResourceCount
 
 var resourceCount = 0;

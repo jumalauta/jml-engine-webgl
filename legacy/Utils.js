@@ -1,4 +1,4 @@
-import { getSceneTimeFromStart } from './Bindings.js';
+import { getSceneTimeFromStart } from '../Timer';
 import { Sync } from './Sync.js';
 
 window.getSceneTimeFromStart = getSceneTimeFromStart;

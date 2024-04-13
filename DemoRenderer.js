@@ -48,7 +48,7 @@ function clearThreeObject(obj) {
     }
   }
 
-  DemoRenderer.prototype.setupScene = function() {
+DemoRenderer.prototype.setupScene = function() {
 	scenes.forEach(scene => {
 		console.log("removing scene " + scene.uuid);
 		clearThreeObject(scene);

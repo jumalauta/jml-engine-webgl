@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Utils } from './Utils.js';
 import { loggerDebug, loggerWarning } from './Bindings';
-import { Timer } from './Graphics.js';
+import { Timer } from '../Timer';
 
   
 /** @constructor */

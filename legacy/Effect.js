@@ -5,6 +5,7 @@ import { loggerDebug, loggerWarning } from './Bindings.js';
 import { Music } from './Music.js';
 import { Sync } from './Sync.js';
 import { LoadingBar } from '../LoadingBar.js';
+import { Timer } from '../Timer.js';
 
 /** @constructor */
 var Effect = function()
@@ -39,7 +40,7 @@ Effect.init = function(effectName)
     }
     else
     {
-        let music = Music.getInstance();
+        const music = new Music();
         effect.loader.promises.push(music.load("data/music.ogg"));
         effect.loader.promises.push(Sync.getInstance().init());
 
@@ -64,7 +65,7 @@ Effect.init = function(effectName)
 
                 loadingBar.setPercent(1.0);
                 loggerDebug("Starting demo. Loading took " + (new Date().getTime() / 1000 - now).toFixed(2) + " seconds");
-                music.play();
+                (new Timer()).start();
             } catch (error) {
                 console.trace(error);
                 alert("Error in loading demo: " + (error.message||''));

@@ -1,4 +1,4 @@
-import { loggerDebug, loggerWarning, getSceneTimeFromStart } from "./Bindings.js";
+import { loggerDebug, loggerWarning } from "./Bindings.js";
 /*
 // TODO:
 var time = getSceneTimeFromStart();
@@ -33,22 +33,6 @@ GL.prototype.clear = function(attributes) {
 }
 
 var gl = new GL();
-
-var Timer = function() {
-    return this.getInstance();
-}
-
-Timer.prototype.getInstance = function() {
-    if (!Timer.prototype._singletonInstance) {
-        Timer.prototype._singletonInstance = this;
-    }
-
-    return Timer.prototype._singletonInstance;
-}
-
-Timer.prototype.getTimeInSeconds = function() {
-    return getSceneTimeFromStart();
-}
 
 var TransformationMatrix = function() {
     return this.getInstance();
@@ -108,4 +92,4 @@ Graphics.prototype.handleErrors = function() {
     return null;//graphicsHandleErrors();
 }
 
-export { Graphics, GL, Timer, TransformationMatrix };
+export { Graphics, GL, TransformationMatrix };

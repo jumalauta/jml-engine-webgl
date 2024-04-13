@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { Utils } from './Utils.js';
 //import { interpolate } from './Interpolate.js';
 import { Sync } from './Sync.js';
-import { Timer, TransformationMatrix, Graphics } from './Graphics.js';
+import { TransformationMatrix, Graphics } from './Graphics.js';
 import { Shader } from './Shader.js';
 import { processFutures } from './Bindings.js';
-import { TetrahedronGeometry } from 'three';
+import { Timer } from '../Timer';
 
 /** @constructor */
 var Player = function()

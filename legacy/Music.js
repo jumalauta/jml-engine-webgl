@@ -1,20 +1,19 @@
 import * as THREE from 'three';
 import { loggerDebug } from './Bindings';
+import { Timer } from '../Timer';
 
-var Music = function()
-{
-    this.listener = new THREE.AudioListener();
-    this.audio = new THREE.Audio(this.listener);
+var Music = function() {
+    return this.getInstance();
 };
 
-Music.getInstance = function() {
-    if (Music.instance === void null)
-    {
-        Music.instance = new Music();
+Music.prototype.getInstance = function() {
+    if (!Music.prototype._singletonInstance) {
+        Music.prototype._singletonInstance = this;
     }
 
-    return Music.instance;
+    return Music.prototype._singletonInstance;
 }
+
 
 Music.prototype.load = function(url) {
     let instance = this;
@@ -27,8 +26,11 @@ Music.prototype.load = function(url) {
         const loader = new THREE.AudioLoader();
         loader.load(url,
             function(buffer) {
+                instance.listener = new THREE.AudioListener();
+                instance.audio = new THREE.Audio(instance.listener);            
                 instance.audio.setBuffer(buffer);
                 instance.duration = buffer.duration;
+                (new Timer()).setEndTime(instance.duration * 1000);
                 loggerDebug('Loaded music ' + url + ' (length ' + instance.duration + 's)');
                 resolve(instance);
             },
@@ -46,9 +48,7 @@ Music.prototype.getDuration = function() {
     return this.audio.duration;
 }
 
-import {startTimer} from './Bindings';
 Music.prototype.play = function() {
-    startTimer();
     this.audio.play();
 }
 
@@ -57,14 +57,19 @@ Music.prototype.stop = function() {
 }
 
 Music.prototype.pause = function() {
-    this.audio.pause();
+    if ((new Timer()).isPaused()) {
+        this.audio.pause();
+    } else {
+        this.audio.play();
+    }
 }
 
 Music.prototype.setTime = function(time) {
-    if (this.audio.isPlaying === true) {
-        this.audio.stop();
-        this.audio.offset = time;
-        this.audio.play();
+    this.stop();
+    this.audio.offset = time;
+    this.play();
+    if ((new Timer()).isPaused()) {
+        this.pause();
     }
 }
 

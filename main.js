@@ -1,16 +1,43 @@
 import * as THREE from 'three';
 import {Utils} from './legacy/Utils.js';
 import {Effect} from './legacy/Effect.js';
-import { getSceneTimeFromStart, loggerDebug, loggerInfo, loggerWarning } from './legacy/Bindings.js';
+import { loggerDebug, loggerInfo, loggerWarning } from './legacy/Bindings.js';
 import { Sync } from './legacy/Sync.js';
 import { Fbo } from './legacy/Fbo.js';
 import { LoadingBar } from './LoadingBar.js';
 import { ToolUi } from './ToolUi.js';
 import { DemoRenderer  } from './DemoRenderer.js';
+import { Timer } from './Timer.js';
 
 THREE.Cache.enabled = true;
 
+let fullscreen = false;
+const timer = new Timer();
 
+document.addEventListener('keydown', function(event) {
+	if (event.repeat) {
+		return;
+	}
+	
+	if (event.key === 'Escape') {
+	  stopDemo();
+	} else if (event.key === 'Enter') {
+	  startDemo();
+	} else if (event.altKey) {
+		if (event.key === '1') {
+			timer.setTime(timer.getTime() - 1000);
+		} else if (event.key === '2') {
+			timer.setTime(timer.getTime() + 1000);
+		} else if (event.key === '3') {
+			timer.pause();
+		} else if (event.ctrlKey && event.key === 'End') {
+			timer.setTimePercent(0.99);
+		} else if (event.ctrlKey && event.key === 'Home') {
+			timer.setTimePercent(0.0);
+		}
+	}	
+});
+  
 /*aspectRatio = Settings::demo.graphics.aspectRatio;
 clipPlaneNear = 0.1;
 clipPlaneFar = 1000.0;
@@ -22,16 +49,6 @@ setUp(0.0, 1.0, 0.0);
 */
 
 /*
-document.addEventListener('keydown', function(event) { // Copilot
-  if (event.repeat) return; // ignore repeated keydown events 
-  
-  if (event.key === 'Escape') { // escape
-    stopDemo();
-  } else if (event.key === 'Enter') { // enter
-    startDemo();
-  }
-  }
-);
 
 
 function init() {
@@ -140,7 +157,12 @@ const loadingBar = new LoadingBar();
 const toolUi = new ToolUi();
 toolUi.init();
 
+let animationFrameId = null;
+let oldTime = undefined;
+
 export function animate() {
+  timer.update();
+  toolUi.update();
   toolUi.stats.begin();
 
   if (loadingBar.percent < 1.0) {
@@ -151,12 +173,24 @@ export function animate() {
   }
 
 
+const time = timer.getTime();
+if (oldTime !== time) {
+  oldTime = time;
+  demoRenderer.render();
+}
 
-demoRenderer.render();
 
 
   toolUi.stats.end();
-  requestAnimationFrame( animate );
+
+  if (timer.isEnd() && !timer.isPaused()){
+	timer.pause();
+	//demoRenderer.renderer.clear();
+	//stopDemo();
+	//return;
+  }
+
+  animationFrameId = requestAnimationFrame( animate );
 }
 
 
@@ -165,6 +199,8 @@ function startDemo() {
 	if (startButton) {
 		startButton.style.display = 'none';
 	}
+
+	toolUi.show();
 
 	canvas.style.display = 'block';
 	canvas.style.margin = '0px';
@@ -179,10 +215,8 @@ function stopDemo() {
   console.log("Stopping demo...");
   
   // Stop the music
-  music.pause();
-  
-  // Rewind the music
-  music.currentTime = 0;
+  timer.stop();
+  toolUi.hide();
   
   if (fullscreen) { // Copilot
     // Exit fullscreen
@@ -197,7 +231,9 @@ function stopDemo() {
   // Stop the animation loop
   cancelAnimationFrame(animationFrameId);
   
-  // hide canvas and show start button 
-  document.getElementById('start').style.display = 'block';
+  const startButton = document.getElementById('start');
+  if (startButton) {
+	  startButton.style.display = 'block';
+  }
   canvas.style.display = 'none';
 }
