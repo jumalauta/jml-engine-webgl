@@ -245,3 +245,13 @@ function stopDemo() {
   }
   canvas.style.display = 'none';
 }
+
+// Set up the resize function to adjust the camera and renderer size
+function onWindowResize() {
+  demoRenderer.resize();
+  demoRenderer.setupScene();
+  Effect.init("Demo");
+}
+
+// Add an event listener for window resizing
+window.addEventListener( 'resize', onWindowResize, false );

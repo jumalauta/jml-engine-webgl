@@ -81,22 +81,27 @@ DemoRenderer.prototype.init = function() {
     
     const loadingBar = new LoadingBar();
     loadingBar.setRenderer(this.renderer);
-    
-    this.fullCanvasWidth = window.innerWidth * 0.6; //FIXME: editor dynamic stuff
-    this.fullCanvasHeight = window.innerHeight * 0.8;
-    this.canvasWidth = this.fullCanvasWidth;
-    this.canvasHeight = this.fullCanvasWidth / aspectRatio;
-    if (this.canvasHeight > this.fullCanvasHeight) {
-        this.canvasHeight = this.fullCanvasHeight;
-        this.canvasWidth = this.fullCanvasHeight * aspectRatio;
-      canvas.style.margin = '0px 0px 0px ' + ((this.fullCanvasWidth - this.canvasWidth) / 2) + 'px';
-    }
 
-    loggerDebug('Screen size: ' + this.canvasWidth + 'x' + this.canvasHeight);
-    this.renderer.setSize( this.canvasWidth, this.canvasHeight, true );   
+    this.resize();
+    
     document.body.appendChild( this.renderer.domElement ); 
 
     this.setupScene();
+}
+
+DemoRenderer.prototype.resize = function() {
+  this.fullCanvasWidth = window.innerWidth * 0.6; //FIXME: editor dynamic stuff
+  this.fullCanvasHeight = window.innerHeight * 0.7;
+  this.canvasWidth = this.fullCanvasWidth;
+  this.canvasHeight = this.fullCanvasWidth / aspectRatio;
+  if (this.canvasHeight > this.fullCanvasHeight) {
+    this.canvasHeight = this.fullCanvasHeight;
+    this.canvasWidth = this.fullCanvasHeight * aspectRatio;
+    canvas.style.margin = '0px 0px 0px ' + ((this.fullCanvasWidth - this.canvasWidth) / 2) + 'px';
+  }
+
+  loggerDebug('Screen size: ' + this.canvasWidth + 'x' + this.canvasHeight);
+  this.renderer.setSize( this.canvasWidth, this.canvasHeight, true );   
 }
 
 DemoRenderer.prototype.setRenderNeedsUpdate = function(needsUpdate) {
