@@ -14,7 +14,7 @@ var Model = function() {
 }
 
 Model.prototype.load = function(filename) {
-    this.filename = filename;
+    this.filename = settings.engine.demoPathPrefix + filename;
 
     if (this.filename.toUpperCase().endsWith(".OBJ") === false) {
         throw new Error("Fileformat not supported. Only .obj files are supported.");

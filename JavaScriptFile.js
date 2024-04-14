@@ -10,12 +10,12 @@ JavaScriptFile.prototype.load = function(filename) {
   const fileManager = new FileManager();
   fileManager.load(filename, this, (instance, data) => {
     try {
-      loggerDebug('Executing JavaScript file: ' + filename);
+      loggerDebug('Executing JavaScript file: ' + instance.filename);
       (new DemoRenderer()).setupScene();
       eval(data);
       Effect.init("Demo");
     } catch (e) {
-      loggerWarning('Error loading JavaScript file: ' + filename + ' ' + e);
+      loggerWarning('Error loading JavaScript file: ' + instance.filename + ' ' + e);
       return false;
     }
     return true;

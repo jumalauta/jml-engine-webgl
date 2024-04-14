@@ -14,6 +14,9 @@ import { DemoRenderer } from './DemoRenderer.js';
 import { Timer } from './Timer.js';
 import { FileManager } from './FileManager.js';
 import { JavaScriptFile } from './JavaScriptFile.js';
+import { Settings } from './Settings.js';
+
+const settings = new Settings();
 
 /*const gui = new GUI()
 const cubeFolder = gui.addFolder('Cube')
@@ -62,16 +65,16 @@ ToolUi.prototype.init = function() {
                 }
             }
     
-            fileManager.setFileData("data/Demo.js", editor.session.getValue());
+            fileManager.setFileData("Demo.js", editor.session.getValue());
             const javaScriptFile = new JavaScriptFile();
-            javaScriptFile.load("data/Demo.js");
+            javaScriptFile.load("Demo.js");
         },
         readOnly: true, // false if this command should not apply in readOnly mode
         // multiSelectAction: "forEach", optional way to control behavior with multiple cursors
         // scrollIntoView: "cursor", control how cursor is scolled into view after the command
     });
 
-    fileManager.load('data/Demo.js', null, (instance, data) => {
+    fileManager.load('Demo.js', null, (instance, data) => {
         (new ToolUi()).editor.session.setValue(data);
         return true;
     });
