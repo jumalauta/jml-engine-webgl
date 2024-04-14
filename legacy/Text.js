@@ -3,6 +3,7 @@ import { TTFLoader } from 'three/addons/loaders/TTFLoader.js';
 import { Font } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { loggerTrace, loggerDebug } from './Bindings';
+import { FileManager } from '../FileManager';
 import { Settings } from '../Settings';
 const settings = new Settings();
 
@@ -15,6 +16,25 @@ var Text = function() {
 
 Text.prototype.load = function(name) {
     let instance = this;
+/*
+    if (fonts[name]) {
+        return new Promise((resolve, reject) => {
+            instance.font = fonts[name];
+            resolve(true);
+        });
+    }
+
+    const fileManager = new FileManager();
+    return fileManager.load(filename, this, (instance, json) => {
+      try {
+        fonts[name] = new Font(json);
+      } catch (e) {
+        loggerWarning('Error loading Font file: ' + instance.filename + ' ' + e);
+        return false;
+      }
+      return true;
+    });
+  */
 
     return new Promise((resolve, reject) => {
         if (fonts[name]) {
@@ -25,7 +45,7 @@ Text.prototype.load = function(name) {
 
         const loader = new TTFLoader();
         loader.load(
-            name,
+            settings.engine.demoPathPrefix + name,
             function(json) {
                 fonts[name] = new Font(json);
                 loggerDebug('Loaded font ' + name);
@@ -111,9 +131,10 @@ Text.prototype.setPosition = function(x, y, z) {
     //setTextPosition(x, y, z);
     if (this.perspective2d){
         if (settings.demo.compatibility.old2dCoordinates) {
-            x = (-2+((4*(x)/1920)))*(16/9);
-            y = (-2+((4*(y)/1080)));
+            x = (-2+((4*(x)/settings.demo.screen.width)));
+            y = (-2+((4*(y)/settings.demo.screen.height)));
         }
+        x *= settings.demo.screen.aspectRatio;
         //x = -2*16/9;
         //y = -2;
         this.mesh.position.z = settings.demo.screen.perspective2dZ;

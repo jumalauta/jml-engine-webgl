@@ -8,8 +8,11 @@ import { Text } from './Text.js';
 import { Fbo } from './Fbo.js';
 import { windowSetTitle, loggerError, loggerDebug, loggerWarning } from './Bindings.js';
 import {getScene, getCamera, pushView, popView} from '../DemoRenderer.js';
+import { Settings } from '../Settings.js';
 
 import * as THREE from 'three';
+
+const settings = new Settings();
 
 /** @constructor */
 var Scene = function(name, loader)
@@ -101,10 +104,12 @@ Scene.prototype.preprocessColorAnimation = function(
 {
     this.setSyncDefaults(animationDefinition, 'color');
 
-    var r = 255;
-    var g = 255;
-    var b = 255;
-    var a = 255;
+    let c = settings.demo.compatibility.oldColors ? 0xFF : 1.0;
+
+    var r = c;
+    var g = c;
+    var b = c;
+    var a = c;
     if (animationDefinitionColor === void null)
     {
         animationDefinitionColor = [{}];

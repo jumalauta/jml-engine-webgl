@@ -23,8 +23,8 @@ Settings.prototype.init = function() {
   this.demo = {
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
     compatibility: {
-      old2dCoordinates: true,
-      oldColors: true,
+      old2dCoordinates: false,
+      oldColors: false,
     },
     text: {
       material: {
@@ -124,7 +124,7 @@ Settings.prototype.toThreeJsProperties = function(src, dst) {
 
   Object.keys(src).forEach(key => {
     if (key == 'type') { return; }
-    
+
     if (dst[key] === undefined) {
       throw new Error(`Property ${key} not found in destination object`);
     }

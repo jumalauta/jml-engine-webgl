@@ -6,6 +6,8 @@ import { TransformationMatrix, Graphics } from './Graphics.js';
 import { Shader } from './Shader.js';
 import { processFutures } from './Bindings.js';
 import { Timer } from '../Timer';
+import { Settings } from '../Settings';
+const settings = new Settings();
 
 /** @constructor */
 var Player = function()
@@ -147,11 +149,13 @@ Player.prototype.calculatePerspectiveAnimation = function(time, animation)
 
 Player.prototype.calculateColorAnimation = function(time, animation, animationColor)
 {
+    let c = settings.demo.compatibility.oldColors ? 0xFF : 1.0;
+
     var obj = {
-        'r': 255,
-        'g': 255,
-        'b': 255,
-        'a': 255
+        'r': c,
+        'g': c,
+        'b': c,
+        'a': c
     };
 
     if (animationColor !== void null)

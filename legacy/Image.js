@@ -138,9 +138,10 @@ Image.prototype.setPosition = function(x, y, z) {
   this.mesh.position.z = z;
   if (this.perspective2d) {
     if (settings.demo.compatibility.old2dCoordinates) {
-      this.mesh.position.x = (((x)/settings.demo.screen.width)-0.5)*(settings.demo.screen.aspectRatio);
+      this.mesh.position.x = (((x)/settings.demo.screen.width)-0.5);
       this.mesh.position.y = ((y)/settings.demo.screen.height)-0.5;  
     }
+    this.mesh.position.x *= settings.demo.screen.aspectRatio;
     this.mesh.position.z = settings.demo.screen.perspective2dZ;
   }
 }
