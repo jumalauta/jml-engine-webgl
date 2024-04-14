@@ -12,6 +12,8 @@ import { loggerWarning } from './legacy/Bindings.js';
 import { Effect } from './legacy/Effect.js';
 import { DemoRenderer } from './DemoRenderer.js';
 import { Timer } from './Timer.js';
+import { FileManager } from './FileManager.js';
+import { JavaScriptFile } from './JavaScriptFile.js';
 
 /*const gui = new GUI()
 const cubeFolder = gui.addFolder('Cube')
@@ -41,6 +43,8 @@ ToolUi.prototype.init = function() {
     this.stats.showPanel(0); 
     document.body.appendChild(this.stats.dom);
 
+    const fileManager = new FileManager();
+
     this.editor = ace.edit("editor");
     ace.config.set("basePath",  "ace-builds/src-noconflict");
     this.editor.setTheme("ace/theme/monokai");
@@ -58,40 +62,22 @@ ToolUi.prototype.init = function() {
                 }
             }
     
-            console.log("Reloading demo");
-    
-            (new DemoRenderer()).setupScene();
-    
-            eval(editor.session.getValue());
-            Effect.init("Demo");
-    
+            fileManager.setFileData("data/Demo.js", editor.session.getValue());
+            const javaScriptFile = new JavaScriptFile();
+            javaScriptFile.load("data/Demo.js");
         },
         readOnly: true, // false if this command should not apply in readOnly mode
         // multiSelectAction: "forEach", optional way to control behavior with multiple cursors
         // scrollIntoView: "cursor", control how cursor is scolled into view after the command
     });
 
-    (new THREE.FileLoader()).load(
-        'data/Demo.js',
-        // onLoad callback
-        (demoData) => {
-            if (demoData[0] === '<') {
-                console.error( 'Could not load Demo.js');
-                return;    
-            }
-    
-            (new ToolUi()).editor.session.setValue(demoData);
-        },
-        // onProgress callback
-        undefined,
-        // onError callback
-        (err) => {
-            console.error( 'Could not load Demo.js ', err);
-        }
-    );
+    fileManager.load('data/Demo.js', null, (instance, data) => {
+        (new ToolUi()).editor.session.setValue(data);
+        return true;
+    });
 
     this.timelineSlider = document.getElementById("timeline-slider");
-    this.timelineSlider.addEventListener("change", () => {
+    this.timelineSlider.addEventListener("input", () => {
         const percentage = this.timelineSlider.value / this.timelineSlider.max;
         (new Timer()).setTimePercent(percentage);
         //console.log("Manual time change to percentage: " + percentage);
