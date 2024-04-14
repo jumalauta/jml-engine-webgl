@@ -96,7 +96,16 @@ DemoRenderer.prototype.init = function() {
     this.setupScene();
 }
 
+DemoRenderer.prototype.setRenderNeedsUpdate = function(needsUpdate) {
+    this.renderNeedsUpdate = needsUpdate;
+}
+
+DemoRenderer.prototype.isRenderNeedsUpdate = function() {
+    return this.renderNeedsUpdate;
+}
+
 DemoRenderer.prototype.render = function() {
+  this.renderNeedsUpdate = false;
 /*
     var BPM = 120,
         ROWS_PER_BEAT = 8,

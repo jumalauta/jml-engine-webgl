@@ -6,6 +6,7 @@ import { Music } from './Music.js';
 import { Sync } from './Sync.js';
 import { LoadingBar } from '../LoadingBar.js';
 import { Timer } from '../Timer.js';
+import { DemoRenderer } from '../DemoRenderer.js';
 
 /** @constructor */
 var Effect = function()
@@ -65,7 +66,14 @@ Effect.init = function(effectName)
 
                 loadingBar.setPercent(1.0);
                 loggerDebug("Starting demo. Loading took " + (new Date().getTime() / 1000 - now).toFixed(2) + " seconds");
-                (new Timer()).start();
+
+                const timer = new Timer();
+                if (timer.getTime() <= 0) {
+                    timer.start();
+                }
+                
+                const demoRenderer = new DemoRenderer();
+                demoRenderer.setRenderNeedsUpdate(true);
             } catch (error) {
                 console.trace(error);
                 alert("Error in loading demo: " + (error.message||''));

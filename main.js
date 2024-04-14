@@ -167,7 +167,7 @@ export function animate() {
 
   if (loadingBar.percent < 1.0) {
     loadingBar.render();
-	toolUi.stats.end();
+	  toolUi.stats.end();
     requestAnimationFrame( animate );
     return;
   }
@@ -176,6 +176,10 @@ export function animate() {
 const time = timer.getTime();
 if (oldTime !== time) {
   oldTime = time;
+  demoRenderer.setRenderNeedsUpdate(true);
+}
+
+if (demoRenderer.isRenderNeedsUpdate()) {
   demoRenderer.render();
 }
 
