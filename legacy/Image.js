@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { Fbo } from './Fbo';
 import { loggerDebug, loggerWarning } from './Bindings';
 import { FileManager } from '../FileManager';
+import { Settings } from '../Settings';
+
+const settings = new Settings();
 
 var Image = function() {
   this.ptr = undefined;
@@ -30,19 +33,22 @@ Image.prototype.generateMesh = function() {
 
   this.width = this.texture.image.width;
   this.height = this.texture.image.height;
-  this.texture.wrapS = THREE.RepeatWrapping;
-  this.texture.wrapT = THREE.RepeatWrapping;
+  settings.toThreeJsProperties(settings.demo.image.texture, this.texture);
 
   if (this.fbo) {
-    console.warn("fbo dimensions");
-    this.width = 1920;
-    this.height = 1080;  
+    this.width = settings.demo.screen.width;
+    this.height = settings.demo.screen.height;  
   }
-  this.material = new THREE.MeshBasicMaterial({ map: this.texture, blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
-  this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(this.width/1920*16/9, this.height/1080), this.material);
+  this.material = settings.createMaterial(settings.demo.image.material);
+  this.material.map = this.texture;
+  this.material.blending = THREE.CustomBlending;
+  this.material.depthTest = false;
+  this.material.depthWrite = false;
+  //this.material = new THREE.MeshBasicMaterial({ map: this.texture, blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
+  this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(this.width/settings.demo.screen.width*settings.demo.screen.aspectRatio, this.height/settings.demo.screen.height), this.material);
   //instance.mesh.renderOrder = 100;
   this.ptr = this.mesh;
-  this.mesh.position.z = -0.651;
+  this.mesh.position.z = settings.demo.screen.perspective2dZ;
 }
 
 Image.prototype.load = function(filename) {
@@ -127,14 +133,15 @@ Image.prototype.setScale = function(x, y, z) {
 
 Image.prototype.setPosition = function(x, y, z) {
   //setTexturePosition(this.ptr, x, y, z);
-  if (this.perspective2d){
-    this.mesh.position.x = (((x)/1920)-0.5)*(16/9);
-    this.mesh.position.y = ((y)/1080)-0.5;
-    this.mesh.position.z = -0.651;
-  } else {
-    this.mesh.position.x = x;
-    this.mesh.position.y = y;
-    this.mesh.position.z = z;
+  this.mesh.position.x = x;
+  this.mesh.position.y = y;
+  this.mesh.position.z = z;
+  if (this.perspective2d) {
+    if (settings.demo.compatibility.old2dCoordinates) {
+      this.mesh.position.x = (((x)/settings.demo.screen.width)-0.5)*(settings.demo.screen.aspectRatio);
+      this.mesh.position.y = ((y)/settings.demo.screen.height)-0.5;  
+    }
+    this.mesh.position.z = settings.demo.screen.perspective2dZ;
   }
 }
 
@@ -144,13 +151,24 @@ Image.prototype.setCenterAlignment = function(align) {
 
 Image.prototype.setColor = function(r, g, b, a) {
   //setTextureColor(this.ptr, r, g, b, a);
+  let nr = r;
+  let ng = g;
+  let nb = b;
+  let na = a;
+  if (settings.demo.compatibility.oldColors) {
+    nr = r/0xFF;
+    ng = g/0xFF;
+    nb = b/0xFF;
+    na = a/0xFF;
+  }
+
   if (this.mesh.material instanceof THREE.ShaderMaterial) {
     if (this.mesh.material.uniforms && this.mesh.material.uniforms.color) {
-      this.mesh.material.uniforms.color.value = new THREE.Vector4(r/0xFF, g/0xFF, b/0xFF, a/0xFF);
+      this.mesh.material.uniforms.color.value = new THREE.Vector4(nr, ng, nb, na);
     }
   } else {
-    this.mesh.material.color = new THREE.Color(r/0xFF, g/0xFF, b/0xFF);
-    this.mesh.material.opacity = a/0xFF;
+    this.mesh.material.color = new THREE.Color(nr, ng, nb);
+    this.mesh.material.opacity = na;
   }
 }
 

@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
 import { loggerDebug } from './Bindings';
+import { Settings } from '../Settings';
+const settings = new Settings();
 
 var Model = function() {
     this.ptr = undefined;
@@ -121,15 +123,26 @@ Model.prototype.setNodeScale = function(nodeName, x, y, z) {
 
 Model.prototype.setColor = function(r, g, b, a) {
     //setObjectColor(this.ptr, r/255, g/255, b/255, a/255);
+    let nr = r;
+    let ng = g;
+    let nb = b;
+    let na = a;
+    if (settings.demo.compatibility.oldColors) {
+      nr = r/0xFF;
+      ng = g/0xFF;
+      nb = b/0xFF;
+      na = a/0xFF;
+    }
+  
     if (this.mesh.material instanceof THREE.ShaderMaterial) {
         if (this.mesh.material.uniforms && this.mesh.material.uniforms.color) {
-            this.mesh.material.uniforms.color.value = new THREE.Vector4(r/0xFF, g/0xFF, b/0xFF, a/0xFF);
+            this.mesh.material.uniforms.color.value = new THREE.Vector4(nr, ng, nb, na);
         }
     } else {
         this.mesh.traverse( function (obj) {
             if (obj.isMesh){
-                obj.material.color = new THREE.Color(r/0xFF, g/0xFF, b/0xFF);
-                obj.material.opacity = a/0xFF;
+                obj.material.color = new THREE.Color(nr, ng, nb);
+                obj.material.opacity = na;
             }
         });
 

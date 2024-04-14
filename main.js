@@ -8,8 +8,12 @@ import { LoadingBar } from './LoadingBar.js';
 import { ToolUi } from './ToolUi.js';
 import { DemoRenderer  } from './DemoRenderer.js';
 import { Timer } from './Timer.js';
+import { Settings } from './Settings';
+
 
 THREE.Cache.enabled = true;
+
+const settings = new Settings();
 
 let fullscreen = false;
 const timer = new Timer();

@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { DemoRenderer, getScene, getCamera, pushView, popView } from '../DemoRenderer';
 import { Image } from './Image';
 import { loggerDebug } from './Bindings';
+import { Settings } from '../Settings';
+
+const settings = new Settings();
 
 const demoRenderer = new DemoRenderer();
 
@@ -13,23 +16,9 @@ var Fbo = function() {
     this.color = undefined;
     this.scene = new THREE.Scene();
 
-    const pointLight = new THREE.PointLight(0xffffff, 1000)
-    pointLight.position.set(2.5, 7.5, 15)
-    //this.scene.add( pointLight );
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(0, 1, 2);
-    this.scene.add( directionalLight );
-  
-    const light = new THREE.AmbientLight(0xffffff);
-    this.scene.add( light );
-    //this.scene.add(getCamera());
-  
-    this.camera = new THREE.PerspectiveCamera( 75, 16/9, 0.1, 1000 );
-    this.camera.position.z = 2;
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-    this.camera.up = new THREE.Vector3(0, 1, 0);
+    settings.createLightsToScene(this.scene);
+    this.camera = settings.createCamera();
     this.scene.add(this.camera);
-    
 }
 
 Fbo.dispose = function() {
@@ -60,17 +49,15 @@ Fbo.init = function(name) {
     }*/
     //if ( target ) target.dispose();
 
-    const format = THREE.DepthFormat;
-
     fbo.name = name;
 
     fbo.target = new THREE.WebGLRenderTarget( demoRenderer.canvasWidth, demoRenderer.canvasHeight );
-    fbo.target.texture.minFilter = THREE.NearestFilter;
-    fbo.target.texture.magFilter = THREE.NearestFilter;
-    fbo.target.stencilBuffer = ( format === THREE.DepthStencilFormat ) ? true : false;
+    settings.toThreeJsProperties(settings.demo.fbo.color.texture, fbo.target.texture);
     fbo.target.depthTexture = new THREE.DepthTexture();
-    fbo.target.depthTexture.format = format;
+    fbo.target.depthTexture.format = THREE.DepthFormat;
     fbo.target.depthTexture.type = THREE.UnsignedShortType;
+    settings.toThreeJsProperties(settings.demo.fbo.depth.texture, fbo.target.depthTexture);
+    fbo.target.stencilBuffer = ( fbo.target.depthTexture.format === THREE.DepthStencilFormat ) ? true : false;
 
     fbo.color = new Image();
     fbo.color.texture = fbo.target.texture;

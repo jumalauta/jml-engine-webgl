@@ -100,7 +100,7 @@ Sync.addSync = function(syncDefinitions)
 
 let trackCache = {};
 
-Sync.getSyncValue = function(name)
+Sync.get = function(name)
 {
     let track = trackCache[name];
     if (track === void null) {
@@ -129,6 +129,8 @@ Sync.getSyncValue = function(name)
     //loggerWarning("Sync track not found '" + name + "'");
     //return 0;
 };
+
+Sync.getSyncValue = Sync.get;
 
 Sync.calculateAnimationSync = function(time, animation)
 {

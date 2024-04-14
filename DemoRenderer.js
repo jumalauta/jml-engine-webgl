@@ -4,6 +4,9 @@ import { LoadingBar } from './LoadingBar.js';
 import { Fbo } from './legacy/Fbo.js';
 import { Demo } from './main.js';
 import { Effect } from './legacy/Effect.js';
+import { Settings } from './Settings';
+
+const settings = new Settings();
 
 var DemoRenderer = function() {
     return this.getInstance();
@@ -18,7 +21,7 @@ DemoRenderer.prototype.getInstance = function() {
 }
 
 
-const aspectRatio = 16 / 9;
+const aspectRatio = settings.demo.screen.aspectRatio;
 let scene, camera;
 let scenes = [];
 let cameras = [];
@@ -62,19 +65,19 @@ DemoRenderer.prototype.setupScene = function() {
 	Fbo.dispose();
 
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
+	/*camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
 	camera.position.z = 2;
 	camera.lookAt(new THREE.Vector3(0, 0, 0));
 	camera.up = new THREE.Vector3(0, 1, 0);
+  */
+  settings.createLightsToScene(scene);
+  camera = settings.createCamera();
 	scene.add(camera);
 }
 
 DemoRenderer.prototype.init = function() {
     const canvas = document.getElementById("canvas");
-    this.renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
-    //this.renderer.setClearColor(0x0000FF, 1);
-    this.renderer.autoClear = false;
-    this.renderer.sortObjects = false;
+    this.renderer = settings.createRenderer(canvas);
     
     const loadingBar = new LoadingBar();
     loadingBar.setRenderer(this.renderer);
