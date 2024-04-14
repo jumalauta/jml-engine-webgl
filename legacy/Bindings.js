@@ -1,14 +1,17 @@
+import { Timer } from '../Timer';
 function log(type, txt) {
-    let elem = document.getElementById('panel-console');
-    if (elem) {
-        elem.innerHTML += '<p>'+((new Date()).toISOString())+' ['+type.toUpperCase()+']: '+txt+'</p>';
-        elem.scrollTop = elem.scrollHeight;
-    }
+    //This console printing thing causes heavy delays in the browser
+    //let elem = document.getElementById('panel-console');
+    //if (elem) {
+    //    elem.innerHTML += '<p>'+((new Date()).toISOString())+' ['+type.toUpperCase()+']: '+txt+'</p>';
+    //    elem.scrollTop = elem.scrollHeight;
+    //}
 
     if (type === 'trace') {
         type = 'debug';
     }
-    console[type](txt);
+    let msg = `${(new Date()).toISOString()} - ${(new Timer()).getTimeInSeconds().toFixed(2)} [${type.toUpperCase()}]: ${txt}`;
+    console[type](msg);
 }
 
 export function loggerTrace(txt) {
