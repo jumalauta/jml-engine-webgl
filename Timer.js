@@ -7,6 +7,7 @@ var Timer = function() {
 Timer.prototype.getInstance = function() {
   if (!Timer.prototype._singletonInstance) {
     this.music = new Music();
+    this.time = 0;
     Timer.prototype._singletonInstance = this;
   }
 
