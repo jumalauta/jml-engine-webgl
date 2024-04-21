@@ -7,13 +7,13 @@ import { Fbo } from './legacy/Fbo.js';
 import { LoadingBar } from './LoadingBar.js';
 import { ToolUi } from './ToolUi.js';
 import { DemoRenderer  } from './DemoRenderer.js';
+import { FileManager } from './FileManager.js';
+import { JavaScriptFile } from './JavaScriptFile.js';
 import { Timer } from './Timer.js';
 import { Settings } from './Settings';
 
-
-THREE.Cache.enabled = true;
-
 const settings = new Settings();
+const fileManager = new FileManager();
 
 let fullscreen = false;
 const timer = new Timer();
@@ -27,7 +27,7 @@ document.addEventListener('keydown', function(event) {
 	  stopDemo();
 	} else if (event.key === 'Enter') {
 	  startDemo();
-	} else if (event.altKey) {
+	} else if (event.altKey && settings.engine.tool) {
 		if (event.key === '1') {
 			timer.setTime(timer.getTime() - 1000);
 		} else if (event.key === '2') {
@@ -165,6 +165,11 @@ let animationFrameId = null;
 let oldTime = undefined;
 
 export function animate() {
+  if (fileManager.isNeedsUpdate()) {
+    fileManager.setNeedsUpdate(false);
+    reloadDemo();
+  }
+
   timer.update();
   toolUi.update();
   toolUi.stats.begin();
@@ -192,10 +197,14 @@ if (demoRenderer.isRenderNeedsUpdate()) {
   toolUi.stats.end();
 
   if (timer.isEnd() && !timer.isPaused()){
-	timer.pause();
-	//demoRenderer.renderer.clear();
-	//stopDemo();
-	//return;
+    if (settings.engine.tool) {
+      timer.pause();
+    } else {
+	    demoRenderer.renderer.clear();
+	    stopDemo();
+	    return;
+    }
+	
   }
 
   animationFrameId = requestAnimationFrame( animate );
@@ -208,15 +217,20 @@ function startDemo() {
 		startButton.style.display = 'none';
 	}
 
-	toolUi.show();
+  if (settings.engine.tool) {
+    toolUi.show();
+  }
 
 	canvas.style.display = 'block';
 	canvas.style.margin = '0px';
 	
-	//Effect.init("Demo");
+  const javaScriptFile = new JavaScriptFile();
+  javaScriptFile.load("Demo.js");
+  windowResize();
+  animate();
 }
 window.startDemo = startDemo;
-startDemo();
+//startDemo();
 
 
 function stopDemo() {
@@ -246,12 +260,16 @@ function stopDemo() {
   canvas.style.display = 'none';
 }
 
-// Set up the resize function to adjust the camera and renderer size
-function onWindowResize() {
-  demoRenderer.resize();
+function reloadDemo() {
+  loggerInfo("Reloading demo");
   demoRenderer.setupScene();
   Effect.init("Demo");
 }
+// Set up the resize function to adjust the camera and renderer size
+function windowResize() {
+  demoRenderer.resize();
+  reloadDemo();
+}
 
 // Add an event listener for window resizing
-window.addEventListener( 'resize', onWindowResize, false );
+window.addEventListener( 'resize', windowResize, false );

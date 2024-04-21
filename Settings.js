@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { loggerWarning, loggerDebug } from './legacy/Bindings';
-import { Image } from './legacy/Image';
 
 var Settings = function() {
   return this.getInstance();
@@ -8,8 +7,8 @@ var Settings = function() {
 
 Settings.prototype.getInstance = function() {
   if (!Settings.prototype._singletonInstance) {
-    this.init();
     Settings.prototype._singletonInstance = this;
+    this.init();
   }
 
   return Settings.prototype._singletonInstance;
@@ -17,7 +16,9 @@ Settings.prototype.getInstance = function() {
 
 Settings.prototype.init = function() {
   this.engine = {
-    demoPathPrefix: 'data/'
+    demoPathPrefix: 'data/',
+    tool: true,
+    enabledLogLevels: ['trace', 'debug', 'info', 'warning', 'error'],
   };
 
   this.demo = {

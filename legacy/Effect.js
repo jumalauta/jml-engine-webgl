@@ -48,9 +48,6 @@ Effect.init = function(effectName)
         let promiseCount = effect.loader.promises.length;
 
         const loadingBar = new LoadingBar();
-        if (loadingBar.percent <= 0.0) {
-            animate();
-        }
 
         (async () => {
             loggerDebug("Starting loading");

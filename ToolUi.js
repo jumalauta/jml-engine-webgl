@@ -48,7 +48,7 @@ ToolUi.prototype.init = function() {
 
     const fileManager = new FileManager();
 
-    this.editor = ace.edit("editor");
+    /*this.editor = ace.edit("editor");
     ace.config.set("basePath",  "ace-builds/src-noconflict");
     this.editor.setTheme("ace/theme/monokai");
     this.editor.session.setMode("ace/mode/javascript");
@@ -66,6 +66,7 @@ ToolUi.prototype.init = function() {
             }
     
             fileManager.setFileData("Demo.js", editor.session.getValue());
+            fileManager.setNeedsUpdate(true);
             const javaScriptFile = new JavaScriptFile();
             javaScriptFile.load("Demo.js");
         },
@@ -77,7 +78,7 @@ ToolUi.prototype.init = function() {
     fileManager.load('Demo.js', null, (instance, data) => {
         (new ToolUi()).editor.session.setValue(data);
         return true;
-    });
+    });*/
 
     this.timelineSlider = document.getElementById("timeline-slider");
     this.timelineSlider.addEventListener("input", () => {

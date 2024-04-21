@@ -17,11 +17,11 @@
     }
     #panel { 
         position: absolute;
-        top: 70%;
+        top: 90%;
         right: 30%;
         bottom: 0;
         left: 0;
-        width: 60%;
+        width: 100%;
     }
         body {
             margin: 0;
@@ -30,7 +30,7 @@
             background-color: #272822 /*ace/theme/monokai bg*/;
             color: #e0ffe0 /*ace/theme/monokai text*/;
         }
-        /*button {
+        #start {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -39,10 +39,10 @@
             -ms-transform: translateY(-50%);
             transform: translateY(-50%);
             font-size: xx-large;
-        }*/
+        }
         canvas {
-            width: 60%;
-            height:70%;
+            width: 100%;
+            height:100%;
             margin: 0px auto;
         }
         .slider {
@@ -73,7 +73,7 @@
 
         <script type="module" src="/main.js"></script>
 
-        <div id="editor"></div>
+        <!--div id="editor"></div-->
         <div id="panel">
             <input type="range" min="0" max="1000" value="0" class="slider" id="timeline-slider"/>
         </div>

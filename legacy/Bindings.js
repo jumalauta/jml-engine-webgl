@@ -1,4 +1,7 @@
 import { Timer } from '../Timer';
+import { Settings } from '../Settings';
+const settings = new Settings();
+
 function log(type, txt) {
     //This console printing thing causes heavy delays in the browser
     //let elem = document.getElementById('panel-console');
@@ -6,6 +9,10 @@ function log(type, txt) {
     //    elem.innerHTML += '<p>'+((new Date()).toISOString())+' ['+type.toUpperCase()+']: '+txt+'</p>';
     //    elem.scrollTop = elem.scrollHeight;
     //}
+
+    if (settings.engine.enabledLogLevels.includes(type) === false) {
+        return;
+    }
 
     if (type === 'trace') {
         type = 'debug';

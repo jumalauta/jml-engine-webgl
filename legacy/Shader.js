@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import { Utils } from './Utils.js';
 import { loggerDebug, loggerWarning } from './Bindings';
 import { Timer } from '../Timer';
-import { Settings } from '../Settings';
-const settings = new Settings();
+import { FileManager } from '../FileManager';
   
 /** @constructor */
 var Shader = function(animationDefinition)
 {
+    const fileManager = new FileManager();
     this.vertexShaderUrl   = '_embedded/default.vs';
     this.fragmentShaderUrl = '_embedded/default.fs';
     this.shaderDefinition  = animationDefinition.shader;
@@ -16,9 +16,9 @@ var Shader = function(animationDefinition)
         let name = this.shaderDefinition.name instanceof Array ? this.shaderDefinition.name : [this.shaderDefinition.name];
         name.forEach((shaderUrl) => {
             if (shaderUrl.toUpperCase().endsWith('.VS') || shaderUrl.toUpperCase().endsWith('.VERT')) {
-                this.vertexShaderUrl = settings.engine.demoPathPrefix + shaderUrl;
+                this.vertexShaderUrl = fileManager.getPath(shaderUrl);
             } else {
-                this.fragmentShaderUrl = settings.engine.demoPathPrefix + shaderUrl;
+                this.fragmentShaderUrl = fileManager.getPath(shaderUrl);
             }
         });
     }

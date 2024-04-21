@@ -90,8 +90,8 @@ DemoRenderer.prototype.init = function() {
 }
 
 DemoRenderer.prototype.resize = function() {
-  this.fullCanvasWidth = window.innerWidth * 0.6; //FIXME: editor dynamic stuff
-  this.fullCanvasHeight = window.innerHeight * 0.7;
+  this.fullCanvasWidth = window.innerWidth * 1.0; //FIXME: editor dynamic stuff
+  this.fullCanvasHeight = window.innerHeight * ((settings.engine.tool) ? 0.9 : 1.0);
   this.canvasWidth = this.fullCanvasWidth;
   this.canvasHeight = this.fullCanvasWidth / aspectRatio;
   if (this.canvasHeight > this.fullCanvasHeight) {
