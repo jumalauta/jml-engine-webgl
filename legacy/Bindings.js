@@ -17,7 +17,7 @@ function log(type, txt) {
     if (type === 'trace') {
         type = 'debug';
     }
-    let msg = `${(new Date()).toISOString()} - ${(new Timer()).getTimeInSeconds().toFixed(2)} [${type.toUpperCase()}]: ${txt}`;
+    let msg = `${(new Timer()).getTimeInSeconds().toFixed(2)} [${type.toUpperCase()}]: ${txt}`;
     console[type](msg);
 }
 

@@ -81,7 +81,7 @@ Image.prototype.load = function(filename) {
     return (new FileManager()).load(filename, instance, (instance, texture) => {
       instance.texture = texture;
       instance.generateMesh();
-      loggerDebug('Loaded texture ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
+      //loggerDebug('Loaded texture ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
   }

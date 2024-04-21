@@ -1,12 +1,12 @@
 import { Loader } from './Loader.js';
 import { Player } from './Player.js';
-import { animate, Demo } from '../main.js';
-import { loggerDebug, loggerWarning } from './Bindings.js';
+import { loggerDebug, loggerInfo, loggerWarning } from './Bindings.js';
 import { Music } from './Music.js';
 import { Sync } from './Sync.js';
 import { LoadingBar } from '../LoadingBar.js';
 import { Timer } from '../Timer.js';
 import { DemoRenderer } from '../DemoRenderer.js';
+import { FileManager } from '../FileManager.js';
 
 /** @constructor */
 var Effect = function()
@@ -41,8 +41,9 @@ Effect.init = function(effectName)
     }
     else
     {
+        const fileManager = new FileManager();
         const music = new Music();
-        effect.loader.promises.push(music.load("data/music.ogg"));
+        effect.loader.promises.push(music.load(fileManager.getPath("music.ogg")));
         effect.loader.promises.push(Sync.getInstance().init());
 
         let promiseCount = effect.loader.promises.length;
@@ -62,7 +63,7 @@ Effect.init = function(effectName)
                 effect.loader.processAnimation();
 
                 loadingBar.setPercent(1.0);
-                loggerDebug("Starting demo. Loading took " + (new Date().getTime() / 1000 - now).toFixed(2) + " seconds");
+                loggerInfo("Starting demo. Loading took " + (new Date().getTime() / 1000 - now).toFixed(2) + " seconds");
 
                 const timer = new Timer();
                 if (timer.getTime() <= 0) {
@@ -71,6 +72,7 @@ Effect.init = function(effectName)
                 
                 const demoRenderer = new DemoRenderer();
                 demoRenderer.setRenderNeedsUpdate(true);
+                fileManager.setNeedsUpdate(false);
             } catch (error) {
                 console.trace(error);
                 alert("Error in loading demo: " + (error.message||''));

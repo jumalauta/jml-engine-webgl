@@ -14,6 +14,8 @@ import { Settings } from './Settings';
 
 const settings = new Settings();
 const fileManager = new FileManager();
+const javaScriptFile = new JavaScriptFile();
+javaScriptFile.load("Demo.js");
 
 let fullscreen = false;
 const timer = new Timer();
@@ -153,23 +155,20 @@ window.Demo = Demo;
 //let mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, width/height), material);
 //scene.add(mesh);
 
-const demoRenderer = new DemoRenderer();
-demoRenderer.init();
 
 const loadingBar = new LoadingBar();
 
 const toolUi = new ToolUi();
 toolUi.init();
 
+const demoRenderer = new DemoRenderer();
+demoRenderer.init();
+
+
 let animationFrameId = null;
 let oldTime = undefined;
 
 export function animate() {
-  if (fileManager.isNeedsUpdate()) {
-    fileManager.setNeedsUpdate(false);
-    reloadDemo();
-  }
-
   timer.update();
   toolUi.update();
   toolUi.stats.begin();
@@ -180,7 +179,11 @@ export function animate() {
     requestAnimationFrame( animate );
     return;
   }
-
+  if (fileManager.isNeedsUpdate()) {
+    loggerInfo("File manager refresh")
+    fileManager.setNeedsUpdate(false);
+    reloadDemo();
+  }
 
 const time = timer.getTime();
 if (oldTime !== time) {
@@ -224,9 +227,8 @@ function startDemo() {
 	canvas.style.display = 'block';
 	canvas.style.margin = '0px';
 	
-  const javaScriptFile = new JavaScriptFile();
-  javaScriptFile.load("Demo.js");
-  windowResize();
+  reloadDemo();
+
   animate();
 }
 window.startDemo = startDemo;

@@ -1,3 +1,4 @@
+import { loggerInfo } from "./legacy/Bindings";
 import { Music } from "./legacy/Music";
 
 var Timer = function() {
@@ -24,22 +25,27 @@ Timer.prototype.setEndTime = function(endTime) {
 }
 
 Timer.prototype.start = function() {
-  this.stop();
-  this.startTime = this.now();
-  this.music.play();
-  this.update();
+  loggerInfo('Starting demo timer');
+  this.setTime(0);
+  //this.music.play();
+  //this.update();
 }
 
 Timer.prototype.stop = function() {
+  loggerInfo('Stopping demo timer');
+  this.setTime(0);
+  this.music.stop();
   this.startTime = undefined;
   this.pauseTime = undefined;
-  this.music.stop();
+  this.time = 0;
 }
 
 Timer.prototype.pause = function() {
   if (!this.pauseTime) {
+    loggerInfo('Pausing demo timer');
     this.pauseTime = this.now();
   } else {
+    loggerInfo('Resuming demo timer');
     this.startTime += this.now() - this.pauseTime;
     this.pauseTime = undefined;
   }
@@ -69,7 +75,8 @@ Timer.prototype.setTime = function(time) {
 
 Timer.prototype.update = function(force) {
   if (this.startTime === undefined) {
-    return 0;
+    this.time = 0;
+    return;
   }
   
   if (!this.pauseTime || force) {

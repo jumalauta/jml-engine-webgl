@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { loggerDebug } from './legacy/Bindings';
 import { LoadingBar } from './LoadingBar.js';
 import { Fbo } from './legacy/Fbo.js';
-import { Demo } from './main.js';
 import { Effect } from './legacy/Effect.js';
 import { Settings } from './Settings';
 
