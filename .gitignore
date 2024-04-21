@@ -2,6 +2,7 @@
 *.BAK
 ace-builds
 dist
+public
 data
 testdata
 
