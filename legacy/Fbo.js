@@ -29,6 +29,10 @@ Fbo.dispose = function() {
     }
 }
 
+Fbo.get = function(name) {
+    return fbos[name];
+}
+
 Fbo.init = function(name) {
     if (fbos[name]) {
         return fbos[name];

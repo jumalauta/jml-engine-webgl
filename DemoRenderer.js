@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { loggerDebug } from './legacy/Bindings';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { loggerDebug, loggerInfo } from './legacy/Bindings';
 import { LoadingBar } from './LoadingBar.js';
 import { Fbo } from './legacy/Fbo.js';
 import { Effect } from './legacy/Effect.js';
@@ -72,6 +73,8 @@ DemoRenderer.prototype.setupScene = function() {
   settings.createLightsToScene(scene);
   camera = settings.createCamera();
 	scene.add(camera);
+
+  this.setOrbitControls(camera);
 }
 
 DemoRenderer.prototype.init = function() {
@@ -118,6 +121,27 @@ DemoRenderer.prototype.isRenderNeedsUpdate = function() {
     return this.renderNeedsUpdate;
 }
 
+DemoRenderer.prototype.setOrbitControls = function(camera) {
+  if (this.controls) {
+    if (this.controls.object === camera) {
+      return;
+    }
+
+    this.controls.dispose();
+    this.controls = null;
+  }
+
+  if (!camera) {
+    return;
+  }
+
+  this.controls = new OrbitControls( camera, document.getElementById("canvas") );
+  this.controls.target.set( 0, 0, -10 );
+  this.controls.update();
+  this.controls.enablePan = false;
+  this.controls.enableDamping = true;
+}
+
 DemoRenderer.prototype.render = function() {
   this.renderNeedsUpdate = false;
 /*
@@ -154,6 +178,9 @@ Effect.run("Demo");
 
   //renderer.setRenderTarget(null);
   this.renderer.clear();
+  if (this.controls) {
+    this.controls.update();
+  }
   this.renderer.render( scene, camera );
 }
 

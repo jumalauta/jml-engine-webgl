@@ -7,6 +7,8 @@ import { Shader } from './Shader.js';
 import { processFutures } from './Bindings.js';
 import { Timer } from '../Timer';
 import { Settings } from '../Settings';
+import { DemoRenderer } from '../DemoRenderer';
+
 const settings = new Settings();
 
 /** @constructor */
@@ -541,6 +543,9 @@ Player.prototype.drawObjectAnimation = function(time, animation)
 
 Player.prototype.drawFboAnimation = function(time, animation)
 {
+    if (animation.fbo.debugCamera === true) {
+        (new DemoRenderer()).setOrbitControls(animation.ref.camera);
+    }
     if (animation.fbo.dimension !== void null)
     {
         var obj = {
@@ -552,7 +557,6 @@ Player.prototype.drawFboAnimation = function(time, animation)
         var dimension = this.calculate3dCoordinateAnimation(time, animation.fbo.dimension, obj);
         animation.ref.setRenderDimensions(dimension.x, dimension.y);
     }
-
 
     if (animation.fbo.action === 'begin')
     {
