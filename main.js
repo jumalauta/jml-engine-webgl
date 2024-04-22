@@ -227,7 +227,7 @@ function startDemo() {
 	canvas.style.display = 'block';
 	canvas.style.margin = '0px';
 	
-  reloadDemo();
+  windowResize();
 
   animate();
 }
