@@ -70,6 +70,12 @@ Settings.prototype.init = function() {
       //aspectRatio calculated below
       perspective2dZ: -0.651,
     },
+    shadow: {
+      mapSize: {
+        width:  512,
+        height: 512,
+      },
+    },
     camera: {
       type: 'Perspective',
       fov: 75,
@@ -83,15 +89,16 @@ Settings.prototype.init = function() {
     lights: [
       {
         type: 'Ambient',
-        color: { r: 1.0, g: 1.0, b: 1.0 },
+        color: { r: 0.5, g: 0.5, b: 0.5 },
         intensity: 1.0,
-      },
+      }/*,
       {
         type: 'Directional',
+        castShadow: true,
         color: { r: 1.0, g: 1.0, b: 1.0 },
         intensity: 1.0,
         position: { x: 0.0, y: 1.0, z: 2.0 },
-      },
+      },*/
     ],
     renderer: {
       antialias: true,
@@ -175,6 +182,14 @@ Settings.prototype.createLight = function(light) {
   let lightObj = new lightType(this.toThreeJsColor(light.color), light.intensity);
   this.setXyz(light.position, lightObj.position);
 
+  if (light.castShadow) {
+    lightObj.castShadow = light.castShadow;
+    lightObj.shadow.mapSize.width = this.demo.shadow.mapSize.width;
+    lightObj.shadow.mapSize.height = this.demo.shadow.mapSize.height;
+    lightObj.shadow.camera.near = this.demo.camera.near;
+    lightObj.shadow.camera.far = this.demo.camera.far;
+  }
+
   return lightObj;
 }
 
@@ -194,7 +209,9 @@ Settings.prototype.createRenderer = function(canvas) {
   renderer.setClearColor(this.toThreeJsColor(this.demo.clearColor), this.demo.clearColor.a);
   renderer.autoClear = this.demo.renderer.autoClear;
   renderer.sortObjects = this.demo.renderer.sortObjects;
-
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+  
   return renderer;
 }
 
