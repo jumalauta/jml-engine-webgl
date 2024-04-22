@@ -2,7 +2,7 @@
 *.BAK
 ace-builds
 dist
-public
+public/_embedded
 data
 testdata
 

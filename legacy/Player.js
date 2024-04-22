@@ -446,6 +446,8 @@ Player.prototype.drawObjectAnimation = function(time, animation)
             setPerspective3d(1);
         }*/
 
+        animation.ref.setAnimationTime(time);
+
         if (animation.nodes !== void null) {
             for (var nodeName in animation.nodes) {
                 var node = animation.nodes[nodeName]

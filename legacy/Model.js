@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { loggerDebug } from './Bindings';
 import { FileManager } from '../FileManager';
 import { Settings } from '../Settings';
@@ -19,48 +21,92 @@ Model.prototype.load = function(filename) {
     this.filename = filename;
     fileManager.setRefreshFileTimestamp(filename);
 
-    if (this.filename.toUpperCase().endsWith(".OBJ") === false) {
-        throw new Error("Fileformat not supported. Only .obj files are supported.");
-    }
-
     let instance = this;
 
-    const materialFilename = this.filename.replace(".obj", ".mtl").replace(".OBJ", ".MTL");
-    fileManager.setRefreshFileTimestamp(materialFilename);
+    if (this.filename.toUpperCase().endsWith(".OBJ")) {
+        const materialFilename = this.filename.replace(".obj", ".mtl").replace(".OBJ", ".MTL");
+        fileManager.setRefreshFileTimestamp(materialFilename);
+    
+        return new Promise((resolve, reject) => {
+            const mtlLoader = new MTLLoader();
+            mtlLoader.load(
+                fileManager.getPath(materialFilename),
+                (materials) => {
+                    materials.preload();
+            
+                    const objLoader = new OBJLoader();
+                    objLoader.setMaterials(materials);
+                    objLoader.load(
+                        fileManager.getPath(this.filename),
+                        (object) => {
+                            instance.mesh = object;
+                            instance.ptr = instance.mesh;
+                            loggerDebug('Loaded OBJ ' + this.filename);
+                            resolve(instance);
+                        },
+                        undefined,
+                        (error) => {
+                            console.error('Could not load OBJ ' + this.filename);
+                            instance.error = true;
+                            reject(instance);        
+                        }
+                    )
+                },
+                undefined,
+                (error) => {
+                    console.error('Could not load MTL ' + this.filename);
+                    instance.error = true;
+                    reject(instance);
+                }
+            );
+        });    
+    } else if (this.filename.toUpperCase().endsWith(".GLTF") || this.filename.toUpperCase().endsWith(".GLB")) {
+        const loader = new GLTFLoader();
 
-    return new Promise((resolve, reject) => {
-        const mtlLoader = new MTLLoader();
-        mtlLoader.load(
-            fileManager.getPath(materialFilename),
-            (materials) => {
-                materials.preload();
-        
-                const objLoader = new OBJLoader();
-                objLoader.setMaterials(materials);
-                objLoader.load(
-                    fileManager.getPath(this.filename),
-                    (object) => {
-                        instance.mesh = object;
-                        instance.ptr = instance.mesh;
-                        loggerDebug('Loaded OBJ ' + this.filename);
-                        resolve(instance);
-                    },
-                    undefined,
-                    (error) => {
-                        console.error('Could not load OBJ ' + this.filename);
-                        instance.error = true;
-                        reject(instance);        
-                    }
-                )
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath( 'dracogltf/' );    
+        loader.setDRACOLoader( dracoLoader );
+
+        return new Promise((resolve, reject) => {
+            loader.load(fileManager.getPath(this.filename),
+            (gltf) => {
+                instance.mesh = gltf.scene;
+                instance.ptr = instance.mesh;
+                instance.gltf = gltf;
+    
+                if (gltf.animations && gltf.animations.length > 0) {
+                    instance.mixer = new THREE.AnimationMixer(instance.mesh);
+                    instance.clips = [];
+                    gltf.animations.forEach((clip) => {
+                        const clipAction = instance.mixer.clipAction(clip);
+                        clipAction.play();
+                        // FIXME support for animating / mixing animations
+                        clipAction.enabled = true;
+                        clipAction.setEffectiveTimeScale(1);
+                        clipAction.setEffectiveWeight(1);
+                        instance.clips.push(clipAction);
+                    });
+                }
+    
+                loggerDebug('Loaded GLTF ' + this.filename);
+                resolve(instance);
             },
             undefined,
-            (error) => {
-                console.error('Could not load MTL ' + this.filename);
+            (error) =>  {
+                console.error('Could not load model ' + this.filename);
                 instance.error = true;
                 reject(instance);
-            }
-        );
-    });
+            });
+        });
+    } else {
+      throw new Error("Fileformat not supported: " + this.filename);
+    }
+}
+
+Model.prototype.setAnimationTime = function(time) {
+    if (this.mixer) {
+        this.mixer.setTime(time);
+    }
 }
 
 Model.prototype.setCameraName = function(cameraName) {
