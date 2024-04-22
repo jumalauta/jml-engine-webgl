@@ -89,18 +89,25 @@ DemoRenderer.prototype.init = function() {
 }
 
 DemoRenderer.prototype.resize = function() {
-  this.fullCanvasWidth = window.innerWidth * 1.0; //FIXME: editor dynamic stuff
+  const scaleDown = settings.demo.screen.quality;
+  const scaleUp = 1.0/scaleDown;
+
+  this.fullCanvasWidth = window.innerWidth * 1.0;
   this.fullCanvasHeight = window.innerHeight * ((settings.engine.tool) ? 0.9 : 1.0);
   this.canvasWidth = this.fullCanvasWidth;
   this.canvasHeight = this.fullCanvasWidth / aspectRatio;
   if (this.canvasHeight > this.fullCanvasHeight) {
     this.canvasHeight = this.fullCanvasHeight;
     this.canvasWidth = this.fullCanvasHeight * aspectRatio;
-    canvas.style.margin = '0px 0px 0px ' + ((this.fullCanvasWidth - this.canvasWidth) / 2) + 'px';
   }
+  this.canvasWidth *= scaleDown;
+  this.canvasHeight *= scaleDown;
+  canvas.style.margin = `${((this.fullCanvasHeight - this.canvasHeight) / 2)}px 0px 0px ${((this.fullCanvasWidth - this.canvasWidth) / 2)}px`;
+  canvas.style.transform = `scale(${scaleUp})`;
 
   loggerDebug('Screen size: ' + this.canvasWidth + 'x' + this.canvasHeight);
-  this.renderer.setSize( this.canvasWidth, this.canvasHeight, true );   
+  this.renderer.setSize( this.canvasWidth, this.canvasHeight, true );
+  this.renderer.setPixelRatio( window.devicePixelRatio );
 }
 
 DemoRenderer.prototype.setRenderNeedsUpdate = function(needsUpdate) {

@@ -51,7 +51,7 @@ Fbo.init = function(name) {
 
     fbo.name = name;
 
-    fbo.target = new THREE.WebGLRenderTarget( demoRenderer.canvasWidth, demoRenderer.canvasHeight );
+    fbo.target = new THREE.WebGLRenderTarget( demoRenderer.canvasWidth*settings.demo.fbo.quality, demoRenderer.canvasHeight*settings.demo.fbo.quality );
     settings.toThreeJsProperties(settings.demo.fbo.color.texture, fbo.target.texture);
     fbo.target.depthTexture = new THREE.DepthTexture();
     fbo.target.depthTexture.format = THREE.DepthFormat;

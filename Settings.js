@@ -45,6 +45,7 @@ Settings.prototype.init = function() {
       },
     },
     fbo: {
+      quality: 1.0,
       color: {
         texture: {
           minFilter: 'NearestFilter',
@@ -63,6 +64,7 @@ Settings.prototype.init = function() {
       },
     },
     screen: {
+      quality: 1.0,
       width: 1920,
       height: 1080,
       //aspectRatio calculated below
