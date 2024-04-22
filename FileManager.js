@@ -100,6 +100,10 @@ FileManager.prototype.setFileData = function(filePath, data) {
   }
 }
 
+FileManager.prototype.getFileData = function(filePath) {
+  return this.files[filePath];
+}
+
 FileManager.prototype.getInstanceName = function(instance) {
   if (instance) {
     return instance.constructor.name;
@@ -116,7 +120,9 @@ FileManager.prototype.processPromise = function(resolve, reject, filePath, insta
   if (callback) {
     try {
       if (callback(instance, data)) {
-        this.setFileData(filePath, data);
+        if (!((instance instanceof Image) || (instance instanceof Text) || (instance instanceof Model))) {
+          this.setFileData(filePath, data);
+        }
         loggerDebug(`${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`);
         resolve(data);
       } else {
