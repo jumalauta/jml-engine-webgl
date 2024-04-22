@@ -10,7 +10,7 @@ import { Text } from './legacy/Text';
 import { Model } from './legacy/Model';
 import { Settings } from './Settings';
 
-THREE.Cache.enabled = false;
+THREE.Cache.enabled = true;
 
 const settings = new Settings();
 
