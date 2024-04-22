@@ -64,7 +64,7 @@ DemoRenderer.prototype.setupScene = function() {
 	cameras = [];
 	Fbo.dispose();
 
-	scene = new THREE.Scene();
+	scene = settings.createScene();
 	/*camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
 	camera.position.z = 2;
 	camera.lookAt(new THREE.Vector3(0, 0, 0));

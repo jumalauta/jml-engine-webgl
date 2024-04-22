@@ -24,6 +24,12 @@ Settings.prototype.init = function() {
 
   this.demo = {
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+    /*backgroundColor: { r: 0.0, g: 0.0, b: 0.0 },
+    fog: {
+      color: { r: 0.0, g: 0.0, b: 0.0 },
+      near: 0.1,
+      far: 900,
+    },*/
     compatibility: {
       old2dCoordinates: false,
       oldColors: false,
@@ -155,6 +161,17 @@ Settings.prototype.toThreeJsProperties = function(src, dst) {
 
     dst[key] = value;
   });
+}
+
+Settings.prototype.createScene = function() {
+  const scene = new THREE.Scene();
+  if (this.demo.backgroundColor) {
+    scene.background = this.toThreeJsColor(this.demo.backgroundColor);
+  }
+  if (this.demo.fog) {
+    scene.fog = new THREE.Fog(this.toThreeJsColor(this.demo.fog.color), this.demo.fog.near, this.demo.fog.far);
+  }
+  return scene;
 }
 
 Settings.prototype.createCamera = function() {

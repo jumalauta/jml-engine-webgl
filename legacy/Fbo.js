@@ -14,7 +14,7 @@ var Fbo = function() {
     this.ptr = undefined;
     this.name = undefined;
     this.color = undefined;
-    this.scene = new THREE.Scene();
+    this.scene = settings.createScene();
 
     settings.createLightsToScene(this.scene);
     this.camera = settings.createCamera();
