@@ -84,7 +84,7 @@ LoadingBar.prototype.init = function() {
                       }
             
                         vec4 outputColor = texture2D(texture0, texCoord);
-                        if (outputColor.a > 0.3 && outputColor.g < 0.8) {
+                        if (outputColor.a > 0.1 && outputColor.g < 0.9) {
                             if (col.a > 0.0) {
                               outputColor = col*texture2D(texture0, texCoord);
                             } else {
