@@ -87,6 +87,7 @@ Shader.prototype.createMaterial = function(vertexData, fragmentData) {
     }
 
     this.material = new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL3,
         uniforms: this.createThreeJsUniforms(),
         vertexShader: vertexData,
         fragmentShader: fragmentData,
