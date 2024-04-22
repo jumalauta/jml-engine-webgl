@@ -64,50 +64,112 @@ Shader.prototype.createThreeJsUniforms = function() {
     return THREE.UniformsUtils.clone(uniforms);
 }
 
+Shader.prototype.createMaterial = function(vertexData, fragmentData) {
+    // Parse uniforms from the fragment shader, note that this does not support excluding commented out uniforms
+    const uniforms = fragmentData.match(/uniform\s+([a-zA-Z0-9]+)\s+([a-zA-Z0-9_]+)\s*;/g);
+    if (uniforms) {
+        uniforms.forEach((match) => {
+            let type = match.split(' ')[1];
+            let name = match.split(' ')[2].replace(';', '');
+
+            // This tries to support the automatic variable assignments
+            if (name === 'texture0' && type === 'sampler2D') {
+                this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+                this.shaderDefinition.variable.push({ name: name, value: undefined });
+            } else if (name === 'time' && type === 'float') {
+                this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+                this.shaderDefinition.variable.push({ name: name, value: undefined });
+            } else if (name === 'color' && type === 'vec4') {
+                this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+                this.shaderDefinition.variable.push({ name: name, value: undefined });
+            }
+        });
+    }
+
+    this.material = new THREE.ShaderMaterial({
+        uniforms: this.createThreeJsUniforms(),
+        vertexShader: vertexData,
+        fragmentShader: fragmentData,
+    });
+    this.ptr = this.material;
+
+    loggerDebug('Created shader ' + this.vertexShaderUrl + ' and ' + this.fragmentShaderUrl);
+}
+
 Shader.prototype.load = function() {
     let instance = this;
 
     const fileManager = new FileManager();
-    return fileManager.loadFiles([instance.vertexShaderUrl, instance.fragmentShaderUrl], this, (instance, data) => {
-      try {
-        const vertexData = data[0];
-        const fragmentData = data[1];
-        // Parse uniforms from the fragment shader, note that this does not support excluding commented out uniforms
-        const uniforms = fragmentData.match(/uniform\s+([a-zA-Z0-9]+)\s+([a-zA-Z0-9_]+)\s*;/g);
-        if (uniforms) {
-            uniforms.forEach((match) => {
-                let type = match.split(' ')[1];
-                let name = match.split(' ')[2].replace(';', '');
 
-                // This tries to support the automatic variable assignments
-                if (name === 'texture0' && type === 'sampler2D') {
-                    instance.shaderDefinition.variable = instance.shaderDefinition.variable || [];
-                    instance.shaderDefinition.variable.push({ name: name, value: undefined });
-                } else if (name === 'time' && type === 'float') {
-                    instance.shaderDefinition.variable = instance.shaderDefinition.variable || [];
-                    instance.shaderDefinition.variable.push({ name: name, value: undefined });
-                } else if (name === 'color' && type === 'vec4') {
-                    instance.shaderDefinition.variable = instance.shaderDefinition.variable || [];
-                    instance.shaderDefinition.variable.push({ name: name, value: undefined });
-                }
-            });
-        }
-
-        instance.material = new THREE.ShaderMaterial({
-            uniforms: instance.createThreeJsUniforms(),
-            vertexShader: vertexData,
-            fragmentShader: fragmentData,
+    if (fileManager.getFileData(instance.vertexShaderUrl) && fileManager.getFileData(instance.fragmentShaderUrl)) {
+        return new Promise((resolve, reject) => {
+            try {
+                instance.createMaterial(fileManager.getFileData(instance.vertexShaderUrl), fileManager.getFileData(instance.fragmentShaderUrl));
+                resolve(instance);
+            } catch (e) {
+                console.error( 'Could not load shader ' + instance.vertexShaderUrl + ' and ' + instance.fragmentShaderUrl );
+                instance.error = true;
+                reject(instance);
+            }
         });
-        instance.ptr = instance.material;
+    }
 
-        //loggerDebug('Downloaded shader ' + instance.vertexShaderUrl + ' and ' + instance.fragmentShaderUrl);
-      } catch (e) {
-        loggerWarning('Error loading Shader file: ' +  instance.vertexShaderUrl + ' and ' + instance.fragmentShaderUrl + ': ' + e);
-        return false;
-      }
-      return true;
+    return new Promise((resolve, reject) => {
+        (new THREE.FileLoader()).load(
+            fileManager.getPath(instance.vertexShaderUrl),
+            // onLoad callback
+            (vertexData) => {
+                if (vertexData[0] === '<') {
+                    console.error( 'Could not load vertex shader ' + instance.vertexShaderUrl );
+                    instance.error = true;
+                    reject(instance);
+                    return;    
+                }
+
+                (new THREE.FileLoader()).load(
+                    fileManager.getPath(instance.fragmentShaderUrl),
+                    // onLoad callback
+                    (fragmentData) => {
+                        if (fragmentData[0] === '<') {
+                            console.error( 'Could not load fragment shader ' + instance.fragmentShaderUrl );
+                            instance.error = true;
+                            reject(instance);
+                            return;    
+                        }
+
+                        // Ensure we have working updates...
+                        fileManager.setRefreshFileTimestamp(instance.vertexShaderUrl);
+                        fileManager.setFileData(instance.vertexShaderUrl, vertexData);
+
+                        fileManager.setRefreshFileTimestamp(instance.fragmentShaderUrl); 
+                        fileManager.setFileData(instance.fragmentShaderUrl, fragmentData);                   
+
+                        instance.createMaterial(vertexData, fragmentData);
+
+                        resolve(instance);
+                    },
+                    // onProgress callback
+                    undefined,
+                    // onError callback
+                    (err) => {
+                        console.error( 'Could not load fragment shader ' + instance.fragmentShaderUrl );
+                        instance.error = true;
+                        reject(instance);
+                    }
+                );
+            },
+            // onProgress callback
+            undefined,
+            // onError callback
+            (err) => {
+                console.error( 'Could not load vertex shader file ' + instance.vertexShaderUrl );
+                instance.error = true;
+                reject(instance);
+            }
+        );
     });
 }
+
 
 Shader.increaseLoaderResourceCountWithShaders = function()
 {
