@@ -16,7 +16,7 @@ var Text = function() {
 
 Text.prototype.load = function(name) {
     let instance = this;
-/*
+
     if (fonts[name]) {
         return new Promise((resolve, reject) => {
             instance.font = fonts[name];
@@ -25,39 +25,14 @@ Text.prototype.load = function(name) {
     }
 
     const fileManager = new FileManager();
-    return fileManager.load(filename, this, (instance, json) => {
+    return fileManager.load(name, this, (instance, json) => {
       try {
         fonts[name] = new Font(json);
       } catch (e) {
-        loggerWarning('Error loading Font file: ' + instance.filename + ' ' + e);
+        loggerWarning('Error loading Font file: ' + name + ' ' + e);
         return false;
       }
       return true;
-    });
-  */
-
-    return new Promise((resolve, reject) => {
-        if (fonts[name]) {
-            instance.font = fonts[name];
-            resolve(true);
-            return;
-        }
-
-        const loader = new TTFLoader();
-        loader.load(
-            settings.engine.demoPathPrefix + name,
-            function(json) {
-                fonts[name] = new Font(json);
-                loggerDebug('Loaded font ' + name);
-                resolve(true);
-            },
-            undefined,
-            function(err) {
-                console.error( 'Could not load ' + name );
-                instance.error = true;
-                reject(err);
-            }
-        );
     });
 }
 

@@ -1,5 +1,6 @@
 import { loggerInfo } from "./legacy/Bindings";
 import { Music } from "./legacy/Music";
+import { FileManager } from "./FileManager";
 
 var Timer = function() {
   return this.getInstance();
@@ -26,6 +27,7 @@ Timer.prototype.setEndTime = function(endTime) {
 
 Timer.prototype.start = function() {
   loggerInfo('Starting demo timer');
+  (new FileManager()).startWatchFileChanges();
   this.setTime(0);
   //this.music.play();
   //this.update();
@@ -33,6 +35,7 @@ Timer.prototype.start = function() {
 
 Timer.prototype.stop = function() {
   loggerInfo('Stopping demo timer');
+  (new FileManager()).stopWatchFileChanges();
   this.setTime(0);
   this.music.stop();
   this.startTime = undefined;

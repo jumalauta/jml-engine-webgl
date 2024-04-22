@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
 import { loggerDebug } from './Bindings';
+import { FileManager } from '../FileManager';
 import { Settings } from '../Settings';
 const settings = new Settings();
 
@@ -14,7 +15,9 @@ var Model = function() {
 }
 
 Model.prototype.load = function(filename) {
-    this.filename = settings.engine.demoPathPrefix + filename;
+    const fileManager = new FileManager();
+    this.filename = filename;
+    fileManager.setRefreshFileTimestamp(filename);
 
     if (this.filename.toUpperCase().endsWith(".OBJ") === false) {
         throw new Error("Fileformat not supported. Only .obj files are supported.");
@@ -22,17 +25,20 @@ Model.prototype.load = function(filename) {
 
     let instance = this;
 
+    const materialFilename = this.filename.replace(".obj", ".mtl").replace(".OBJ", ".MTL");
+    fileManager.setRefreshFileTimestamp(materialFilename);
+
     return new Promise((resolve, reject) => {
         const mtlLoader = new MTLLoader();
         mtlLoader.load(
-            this.filename.replace(".obj", ".mtl").replace(".OBJ", ".MTL"),
+            fileManager.getPath(materialFilename),
             (materials) => {
                 materials.preload();
         
                 const objLoader = new OBJLoader();
                 objLoader.setMaterials(materials);
                 objLoader.load(
-                    this.filename,
+                    fileManager.getPath(this.filename),
                     (object) => {
                         instance.mesh = object;
                         instance.ptr = instance.mesh;

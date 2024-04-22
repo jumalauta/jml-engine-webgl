@@ -18,6 +18,7 @@ Settings.prototype.init = function() {
   this.engine = {
     demoPathPrefix: 'data/',
     tool: true,
+    fileWatchInterval: 250,
     enabledLogLevels: ['trace', 'debug', 'info', 'warning', 'error'],
   };
 
