@@ -27,6 +27,72 @@ var Image = function() {
   //data.plane.position.z = 0;
   //data.bgScene.add(data.plane);
 
+Image.prototype.createMaterial = function() {
+  const shader = {
+    uniforms: {
+        texture0: { value: this.texture },
+        color: { value: new THREE.Vector4(1, 1, 1, 1) },
+    },
+    // Manually added vertex shader to get the fragment shader running
+    vertexShader: `
+      out vec2 texCoord;
+
+      // Idea for this shader is to render a 2D image with a 2D orthographic projection in the correct (=how old engine supported mixture of 2d and 3d) render order
+      
+      #define aspectRatio 16.0/9.0
+      
+      mat4 ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
+          mat4 m = mat4(1.0);
+          m[0][0] = 2.0 / (right - left);
+          m[1][1] = 2.0 / (top - bottom);
+          m[2][2] = -2.0  / (zFar - zNear);
+          m[3][0] = -(right + left) / (right - left);
+          m[3][1] = -(top + bottom) / (top - bottom);
+          m[3][2] = -(zFar + zNear) / (zFar - zNear);
+          return m; 
+      }
+      
+      void main() {
+          texCoord = uv;
+          mat4 viewMatrix2d = mat4(1.0);
+          mat4 projectionMatrix2d = ortho(-0.5 * aspectRatio, 0.5 * aspectRatio, -0.5, 0.5, -1.0, 1.0);
+      
+          gl_Position = projectionMatrix2d * modelMatrix * viewMatrix2d * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      in vec2 texCoord;
+      out vec4 fragColor;
+      
+      uniform sampler2D texture0; // this will be automatically binded in the script to animation's first texture
+      uniform vec4 color; // this will be automatically binded to color animation variable, defaults to 1,1,1,1
+      
+      void main() {
+          fragColor = color * texture2D(texture0, texCoord);
+      }
+    `
+  };
+
+  let material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      uniforms: THREE.UniformsUtils.clone(shader.uniforms),
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader,
+      //blending:THREE.CustomBlending,
+      //depthTest: false,
+      //depthWrite: false,
+      //transparent: true,
+      //map: texture,
+  });
+  //material = settings.createMaterial(settings.demo.image.material);
+  material.map = this.texture;
+  material.blending = THREE.CustomBlending;
+  material.depthTest = false;
+  material.depthWrite = false;
+
+  return material;
+}
+
 Image.prototype.generateMesh = function() {
   if (this.texture === undefined) {
     throw new Error("Texture not loaded, cannot generate image mesh");
@@ -40,19 +106,14 @@ Image.prototype.generateMesh = function() {
     this.width = settings.demo.screen.width;
     this.height = settings.demo.screen.height;  
   }
-  this.material = settings.createMaterial(settings.demo.image.material);
-  this.material.map = this.texture;
-  this.material.blending = THREE.CustomBlending;
-  this.material.depthTest = false;
-  this.material.depthWrite = false;
+  this.material = this.createMaterial();
   //this.material = new THREE.MeshBasicMaterial({ map: this.texture, blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
   this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(this.width/settings.demo.screen.width*settings.demo.screen.aspectRatio, this.height/settings.demo.screen.height), this.material);
   this.mesh.castShadow = false;
   this.mesh.receiveShadow = false;
   //instance.mesh.renderOrder = 100;
   this.ptr = this.mesh;
-  this.mesh.position.z = settings.demo.screen.perspective2dZ;
-
+  this.mesh.position.z = 0;//settings.demo.screen.perspective2dZ;
   if (settings.engine.preload) {
     (new DemoRenderer()).renderer.initTexture(this.texture);
   }
@@ -149,7 +210,7 @@ Image.prototype.setPosition = function(x, y, z) {
       this.mesh.position.y = ((y)/settings.demo.screen.height)-0.5;  
     }
     this.mesh.position.x *= settings.demo.screen.aspectRatio;
-    this.mesh.position.z = settings.demo.screen.perspective2dZ;
+    this.mesh.position.z = 0;
   }
 }
 
@@ -192,6 +253,7 @@ Image.prototype.setDefaults = function() {
 Image.prototype.draw = function() {
   //drawTexture(this.ptr);
   //this.mesh.visible = true;
+  this.material.uniforms['texture0'].value = this.texture;
 }
 
 export { Image };

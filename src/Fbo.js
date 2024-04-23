@@ -18,7 +18,6 @@ var Fbo = function() {
 
     settings.createLightsToScene(this.scene);
     this.camera = settings.createCamera();
-    this.scene.add(this.camera);
 }
 
 Fbo.getFbos = function() {

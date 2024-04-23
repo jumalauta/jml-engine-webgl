@@ -7,6 +7,7 @@ import { Model } from './Model';
 import { Text } from './Text';
 import { Fbo } from './Fbo';
 import { Light } from './Light';
+import { Camera } from './Camera';
 import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
 import {getScene, getCamera} from './DemoRenderer';
 import { Settings } from './Settings';
@@ -199,10 +200,10 @@ Scene.prototype.preprocessPerspectiveAnimation = function(animStart, animDuratio
 
     Utils.preprocessTimeAnimation(animStart, animDuration, animEnd, animationDefinition.perspective);
 
-    var fov = 45.0;
-    var aspect = getCameraAspectRatio();
-    var near = 1.0;
-    var far = 1000.0;
+    var fov = settings.demo.camera.fov;
+    var aspect = settings.demo.camera.aspectRatio;
+    var near = settings.demo.camera.near;
+    var far = settings.demo.camera.far;
 
     for (var i = 0; i < animationDefinition.perspective.length; i++)
     {
@@ -358,6 +359,91 @@ Scene.prototype.addAnimation = function(animationDefinitions)
             animationLayers[animationDefinition.layer] = new Array();
         }
 
+        if (animationDefinition.object !== void null)
+        {
+            animationDefinition.ref = new Model();
+            let promises = [];
+            promises.push(animationDefinition.ref.load(animationDefinition.object));
+
+            this.loader.addNotifyResource(animationDefinition.object, promises);
+        }
+        else if (animationDefinition.text !== void null)
+        {
+            animationDefinition.ref = new Text();
+            let promises = [];
+            promises.push(animationDefinition.ref.load(animationDefinition.text.name));
+            if (animationDefinition.perspective === void null)
+            {
+                animationDefinition.perspective = '2d';
+            }
+
+            this.loader.addNotifyResource(animationDefinition.text, promises);
+        }
+        else if (animationDefinition.image !== void null)
+        {
+            animationDefinition.type = 'image';
+            if (Utils.isArray(animationDefinition.image) === false)
+            {
+                animationDefinition.image = [animationDefinition.image];
+            }
+
+            for (var imageI = 0; imageI < animationDefinition.image.length; imageI++)
+            {
+                if (Utils.isString(animationDefinition.image[imageI]) === true)
+                {
+                    animationDefinition.image[imageI] = {'name': animationDefinition.image[imageI]};
+                }
+            }
+
+            animationDefinition.ref = new Image(animationDefinition.scene);
+            let promises = [];
+            promises.push(animationDefinition.ref.load(animationDefinition.image[0].name));
+
+            if (animationDefinition.image[0].video !== void null)
+            {
+                var video = Utils.deepCopyJson(animationDefinition.image[0].video);
+                video.ref = new Video();
+                promises.push(video.ref.load(animationDefinition.image[0].name));
+                animationDefinition.ref.video = video;
+            }
+
+            animationDefinition.multiTexRef = [animationDefinition.ref];
+            for (var imageI = 1; imageI < animationDefinition.image.length; imageI++)
+            {
+                var multiTexRef = new Image(animationDefinition.scene);
+                promises.push(multiTexRef.load(animationDefinition.image[imageI].name));
+
+                animationDefinition.multiTexRef.push(multiTexRef);
+                if (animationDefinition.image[imageI].video !== void null)
+                {
+                    var video = Utils.deepCopyJson(animationDefinition.image[imageI].video);
+                    video.ref = new Video();
+                    promises.push(video.ref.load(animationDefinition.image[imageI].name));
+                    animationDefinition.multiTexRef[imageI].video = video;
+                }
+            }
+
+            if (animationDefinition.perspective === void null)
+            {
+                animationDefinition.perspective = '2d';
+            }
+
+            if (animationDefinition.align === void null && animationDefinition.position === void null)
+            {
+                animationDefinition.align = Constants.Align.CENTER;
+            }
+
+            if (this.loader.addNotifyResource(animationDefinition.image, promises))
+            {
+                //imageLoadImageAsync(animationDefinition.image);
+            }
+        }
+        else if (animationDefinition.fbo !== void null)
+        {
+            animationDefinition.ref = Fbo.init(animationDefinition.fbo.name);
+            this.loader.addNotifyResource(animationDefinition.fbo.name);
+        }
+
         if (animationDefinition.shader !== void null)
         {
             animationDefinition.shader.ref = new Shader(animationDefinition);
@@ -484,87 +570,6 @@ Scene.prototype.addAnimation = function(animationDefinitions)
             }
 
             this.addAnimation([fboAnimationDefinition]);
-        }
-
-        if (animationDefinition.object !== void null)
-        {
-            animationDefinition.ref = new Model();
-            let promises = [];
-            promises.push(animationDefinition.ref.load(animationDefinition.object));
-
-            this.loader.addNotifyResource(animationDefinition.object, promises);
-        }
-        else if (animationDefinition.text !== void null)
-        {
-            animationDefinition.ref = new Text();
-            let promises = [];
-            promises.push(animationDefinition.ref.load(animationDefinition.text.name));
-
-            this.loader.addNotifyResource(animationDefinition.text, promises);
-        }
-        else if (animationDefinition.image !== void null)
-        {
-            animationDefinition.type = 'image';
-            if (Utils.isArray(animationDefinition.image) === false)
-            {
-                animationDefinition.image = [animationDefinition.image];
-            }
-
-            for (var imageI = 0; imageI < animationDefinition.image.length; imageI++)
-            {
-                if (Utils.isString(animationDefinition.image[imageI]) === true)
-                {
-                    animationDefinition.image[imageI] = {'name': animationDefinition.image[imageI]};
-                }
-            }
-
-            animationDefinition.ref = new Image(animationDefinition.scene);
-            let promises = [];
-            promises.push(animationDefinition.ref.load(animationDefinition.image[0].name));
-
-            if (animationDefinition.image[0].video !== void null)
-            {
-                var video = Utils.deepCopyJson(animationDefinition.image[0].video);
-                video.ref = new Video();
-                promises.push(video.ref.load(animationDefinition.image[0].name));
-                animationDefinition.ref.video = video;
-            }
-
-            animationDefinition.multiTexRef = [animationDefinition.ref];
-            for (var imageI = 1; imageI < animationDefinition.image.length; imageI++)
-            {
-                var multiTexRef = new Image(animationDefinition.scene);
-                promises.push(multiTexRef.load(animationDefinition.image[imageI].name));
-
-                animationDefinition.multiTexRef.push(multiTexRef);
-                if (animationDefinition.image[imageI].video !== void null)
-                {
-                    var video = Utils.deepCopyJson(animationDefinition.image[imageI].video);
-                    video.ref = new Video();
-                    promises.push(video.ref.load(animationDefinition.image[imageI].name));
-                    animationDefinition.multiTexRef[imageI].video = video;
-                }
-            }
-
-            if (animationDefinition.perspective === void null)
-            {
-                animationDefinition.perspective = '2d';
-            }
-
-            if (animationDefinition.align === void null && animationDefinition.position === void null)
-            {
-                animationDefinition.align = Constants.Align.CENTER;
-            }
-
-            if (this.loader.addNotifyResource(animationDefinition.image, promises))
-            {
-                //imageLoadImageAsync(animationDefinition.image);
-            }
-        }
-        else if (animationDefinition.fbo !== void null)
-        {
-            animationDefinition.ref = Fbo.init(animationDefinition.fbo.name);
-            this.loader.addNotifyResource(animationDefinition.fbo.name);
         }
 
         if (animationDefinition.initFunction !== void null)
@@ -821,8 +826,8 @@ Scene.prototype.processAnimation = function()
                 else if (animationDefinition.image !== void null)
                 {
                     if (animationDefinition.perspective == '2d') {
-                        getCamera().add(animationDefinition.ref.mesh);
-                        //getScene().add(animationDefinition.ref.mesh);
+                        //getCamera().add(animationDefinition.ref.mesh);
+                        getScene().add(animationDefinition.ref.mesh);
                     } else {
                         getScene().add(animationDefinition.ref.mesh);
                     }
@@ -904,8 +909,8 @@ Scene.prototype.processAnimation = function()
                     }
 
                     if (animationDefinition.perspective == '2d') {
-                        getCamera().add(animationDefinition.ref.mesh);
-                        //getScene().add(animationDefinition.ref.mesh);
+                        //getCamera().add(animationDefinition.ref.mesh);
+                        getScene().add(animationDefinition.ref.mesh);
                     } else {
                         getScene().add(animationDefinition.ref.mesh);
                     }
@@ -1006,19 +1011,19 @@ Scene.prototype.processAnimation = function()
                     animStart = startTime;
                     animEnd = startTime;
                     animDuration = animEnd - animStart;
-                    if (animationDefinition.sync !== void null && animationDefinition.sync.target === void null)
+                    if (animationDefinition.sync !== void null && animationDefinition.sync.lookAt === void null)
                     {
                         if (animationDefinition.sync.all === true)
                         {
-                            animationDefinition.sync.target = true;
+                            animationDefinition.sync.lookAt = true;
                         }
                         else
                         {
-                            animationDefinition.sync.target = false;
+                            animationDefinition.sync.lookAt = false;
                         }
                     }
-                    Utils.preprocessTimeAnimation(animStart, animDuration, animEnd, animationDefinition.target);
-                    this.preprocess3dCoordinateAnimation(animStart, animDuration, animEnd, animationDefinition.target,
+                    Utils.preprocessTimeAnimation(animStart, animDuration, animEnd, animationDefinition.lookAt);
+                    this.preprocess3dCoordinateAnimation(animStart, animDuration, animEnd, animationDefinition.lookAt,
                         {'x': 0.0, 'y': 0.0, 'z': 0.0});
 
                     animStart = startTime;

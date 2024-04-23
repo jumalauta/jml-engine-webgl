@@ -9,6 +9,10 @@ var Shader = function(animationDefinition)
 {
     this.vertexShaderUrl   = '_embedded/default.vs';
     this.fragmentShaderUrl = '_embedded/default.fs';
+    if (animationDefinition.perspective == '2d') {
+        this.vertexShaderUrl   = '_embedded/default2d.vs';
+        this.fragmentShaderUrl = '_embedded/default2d.fs';
+    }
     this.shaderDefinition  = animationDefinition.shader;
 
     if (this.shaderDefinition.name) {

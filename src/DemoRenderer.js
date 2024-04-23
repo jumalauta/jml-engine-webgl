@@ -72,7 +72,6 @@ DemoRenderer.prototype.setupScene = function() {
   */
   settings.createLightsToScene(scene);
   camera = settings.createCamera();
-	scene.add(camera);
 
   this.setOrbitControls(camera);
 }

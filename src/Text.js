@@ -4,6 +4,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry';
 import { loggerTrace } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
+import { getCamera } from './DemoRenderer';
 const settings = new Settings();
 
 let fonts = {};
@@ -39,6 +40,61 @@ Text.prototype.setFont = function(name) {
     this.font = fonts[name];
 }
 
+Text.prototype.createMaterial = function() {
+    const shader = {
+      uniforms: {
+          //texture0: { value: this.texture },
+          color: { value: new THREE.Vector4(1, 1, 1, 1) },
+      },
+      // Manually added vertex shader to get the fragment shader running
+      vertexShader: `
+        out vec2 texCoord;
+  
+        void main() {
+            texCoord = uv;
+            mat4 viewMatrix2d = mat4(1.0);
+
+            gl_Position = projectionMatrix * modelMatrix * viewMatrix2d * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        in vec2 texCoord;
+        out vec4 fragColor;
+        
+        //uniform sampler2D texture0; // this will be automatically binded in the script to animation's first texture
+        uniform vec4 color; // this will be automatically binded to color animation variable, defaults to 1,1,1,1
+        
+        void main() {
+            fragColor = color;// * texture2D(texture0, texCoord);
+        }
+      `
+    };
+  
+    let material = new THREE.ShaderMaterial({
+        glslVersion: THREE.GLSL3,
+        uniforms: THREE.UniformsUtils.clone(shader.uniforms),
+        vertexShader: shader.vertexShader,
+        fragmentShader: shader.fragmentShader,
+        //blending:THREE.CustomBlending,
+        //depthTest: false,
+        //depthWrite: false,
+        //transparent: true,
+        //map: texture,
+    });
+    //material = settings.createMaterial(settings.demo.image.material);
+    material.map = this.texture;
+    material.blending = THREE.CustomBlending;
+    material.depthTest = false;
+    material.depthWrite = false;
+  
+    //material = settings.createMaterial(settings.demo.text.material);
+    //material.map = this.texture;
+    material.castShadow = false;
+    material.receiveShadow = false;
+
+    return material;
+  }
+  
 Text.prototype.setValue = function(text) {
     if (this.text !== text) {
         this.text = text;
@@ -63,14 +119,10 @@ Text.prototype.setValue = function(text) {
         this.zOffset = - 0.5 * ( this.geometry.boundingBox.max.z - this.geometry.boundingBox.min.z );
     
         //this.material = new THREE.MeshBasicMaterial( { color: 0xffffff, blending:THREE.CustomBlending, depthTest: false, depthWrite: false } );
-        this.material = settings.createMaterial(settings.demo.text.material);
-        this.material.map = this.texture;
-        this.material.blending = THREE.CustomBlending;
-        this.material.depthTest = false;
-        this.material.depthWrite = false;
-      
+        this.material = this.createMaterial();
+
         this.mesh = new THREE.Mesh(this.geometry, this.material);
-        this.mesh.position.z = settings.demo.screen.perspective2dZ;
+        //this.mesh.position.z = settings.demo.screen.perspectiveText2dZ;
         this.ptr = this.mesh;    
 
         loggerTrace('Created text mesh "' + text + "'");
@@ -95,7 +147,7 @@ Text.prototype.setRotation = function(degreesX, degreesY, degreesZ) {
 
 Text.prototype.setScale = function(x, y, z) {
     //setTextSize(x, y, z);
-    const compatibilityConstant = 0.1;
+    const compatibilityConstant = 0.025;
     this.mesh.scale.x = x * compatibilityConstant;
     this.mesh.scale.y = y * compatibilityConstant;
     this.mesh.scale.z = z * compatibilityConstant;
@@ -104,14 +156,16 @@ Text.prototype.setScale = function(x, y, z) {
 Text.prototype.setPosition = function(x, y, z) {
     //setTextPosition(x, y, z);
     if (this.perspective2d){
+
         if (settings.demo.compatibility.old2dCoordinates) {
-            x = (-2+((4*(x)/settings.demo.screen.width)));
-            y = (-2+((4*(y)/settings.demo.screen.height)));
+            x = (x)/settings.demo.screen.width - 0.5;
+            y = (y)/settings.demo.screen.height - 0.5;
         }
         x *= settings.demo.screen.aspectRatio;
+        //y /= settings.demo.screen.aspectRatio;
         //x = -2*16/9;
         //y = -2;
-        this.mesh.position.z = settings.demo.screen.perspective2dZ;
+        this.mesh.position.z = -(settings.demo.camera.near + 0.5);
     } else {
         this.mesh.position.z = z + this.zOffset * this.mesh.scale.z;
     }
@@ -155,7 +209,10 @@ Text.prototype.setPerspective2d = function(perspective2d) {
 }
 
 Text.prototype.draw = function() {
-    //drawText();
+    //drawText();    
+    //const camera = getCamera();
+    //camera.projectionMatrix
+
 }
 
 export { Text };

@@ -31,8 +31,8 @@ Settings.prototype.init = function() {
 
   this.demo = {
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
-    /*backgroundColor: { r: 0.0, g: 0.0, b: 0.0 },
-    fog: {
+    //backgroundColor: { r: 0.0, g: 1.0, b: 0.0 },
+    /*fog: {
       color: { r: 0.0, g: 0.0, b: 0.0 },
       near: 0.1,
       far: 900,
@@ -41,15 +41,15 @@ Settings.prototype.init = function() {
       old2dCoordinates: false,
       oldColors: false,
     },
-    text: {
+    /*text: {
       material: {
         type: 'Basic',
       },
-    },
+    },*/
     image: {
-      material: {
+      /*material: {
         type: 'Basic',
-      },
+      },*/
       texture: {
         minFilter: 'LinearFilter',
         magFilter: 'LinearFilter',
@@ -81,7 +81,7 @@ Settings.prototype.init = function() {
       width: 1920,
       height: 1080,
       //aspectRatio calculated below
-      perspective2dZ: -0.651,
+      //perspectiveText2dZ: -0.11,
     },
     shadow: {
       mapSize: {

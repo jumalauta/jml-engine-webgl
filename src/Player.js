@@ -105,10 +105,10 @@ Player.prototype.calculatePivotAnimation = function(time, animation)
 Player.prototype.calculatePerspectiveAnimation = function(time, animation)
 {
     var obj = {
-        'fov': 45.0,
-        'aspect': getCameraAspectRatio(),
-        'near': 1.0,
-        'far': 1000.0
+        'fov': settings.demo.camera.fov,
+        'aspect': settings.demo.camera.aspectRatio,
+        'near': settings.demo.camera.near,
+        'far': settings.demo.camera.far
     };
 
     if (animation.perspective !== void null)
@@ -560,6 +560,7 @@ Player.prototype.drawFboAnimation = function(time, animation)
     if (animation.fbo.action === 'begin')
     {
         //loggerInfo("begin: " + animation.ref.ptr);
+        animation.ref.push();
         animation.ref.bind();
 
         animation.ref.updateViewport();
@@ -568,6 +569,7 @@ Player.prototype.drawFboAnimation = function(time, animation)
     else if (animation.fbo.action === 'end')
     {
         //loggerInfo("end: " + animation.ref.ptr);
+        animation.ref.pop();
         animation.ref.unbind();
         //loggerInfo("end: " + JSON.stringify(animation, null, 2));
         animation.ref.updateViewport();
@@ -591,6 +593,7 @@ Player.prototype.drawFboAnimation = function(time, animation)
     }
     else if (animation.fbo.action === 'unbind')
     {
+        animation.ref.pop();
         animation.ref.unbind();
         animation.ref.updateViewport();
     }
@@ -695,10 +698,10 @@ Player.prototype.drawCameraAnimation = function(time, animation)
         var position = this.calculate3dCoordinateAnimation(time, animation.position, {'x': 0, 'y': 0, 'z': 2});
         animation.ref.setPosition(position.x, position.y, position.z);
     }
-    if (animation.target !== void null)
+    if (animation.lookAt !== void null)
     {
-        var target = this.calculate3dCoordinateAnimation(time, animation.target, {'x': 0, 'y': 0, 'z': 0});
-        animation.ref.setLookAt(target.x, target.y, target.z);
+        var lookAt = this.calculate3dCoordinateAnimation(time, animation.lookAt, {'x': 0, 'y': 0, 'z': 0});
+        animation.ref.setLookAt(lookAt.x, lookAt.y, lookAt.z);
     }
     if (animation.up !== void null)
     {
@@ -726,7 +729,8 @@ Player.prototype.drawCameraAnimation = function(time, animation)
         animation.targetObject = getObjectFromMemory(animation.cameraRelativeTarget);
     }
 
-    (new Graphics()).viewReset();
+    animation.ref.update();
+    //(new Graphics()).viewReset();
 };
 
 // check which timeline elements are active and draw them
