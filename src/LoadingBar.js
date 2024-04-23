@@ -28,11 +28,11 @@ LoadingBar.prototype.init = function() {
           const shader = {
               uniforms: {
                   texture0: { value: instance.loadingBarTexture },
-                  percent: {  value: instance.percent },
+                  percent: { value: instance.percent },
               },
               // Manually added vertex shader to get the fragment shader running
               vertexShader: `
-                  varying vec2 texCoord;
+                  out vec2 texCoord;
         
                   void main() {
                     texCoord = uv;
@@ -44,7 +44,8 @@ LoadingBar.prototype.init = function() {
   
                   uniform sampler2D texture0;
                   uniform float percent;
-                  varying vec2 texCoord;
+                  in vec2 texCoord;
+                  out vec4 fragColor;
         
                   void main() {
                     float curveThickness = 0.75*percent;
@@ -92,12 +93,14 @@ LoadingBar.prototype.init = function() {
                             }
                         }
                      
-                      gl_FragColor = outputColor;
+                      fragColor = outputColor;
                   }
               `
           };
         
           instance.material = new THREE.ShaderMaterial({
+              name: 'LoadingBar',
+              glslVersion: THREE.GLSL3,
               uniforms: THREE.UniformsUtils.clone(shader.uniforms),
               vertexShader: shader.vertexShader,
               fragmentShader: shader.fragmentShader,
