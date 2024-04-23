@@ -1,20 +1,16 @@
-import * as THREE from 'three';
+//import * as THREE from 'three';
 import Stats from 'stats.js'
-import { GUI } from 'dat.gui';
-import ace from 'ace-builds';
+//import { GUI } from 'dat.gui';
+//import ace from 'ace-builds';
 //import 'ace-builds/src-noconflict/mode-javascript';
-import 'ace-builds/src-noconflict/theme-monokai';
+//import 'ace-builds/src-noconflict/theme-monokai';
 //import jsWorkerUrl from "file-loader!ace-builds/src-noconflict/worker-javascript";
 //ace.config.setModuleUrl("ace/mode/javascript_worker", jsWorkerUrl)
 // editor multiple tabs example: https://codepen.io/zymawy/pen/QRLXNE
 
-import { loggerWarning } from './legacy/Bindings.js';
-import { Effect } from './legacy/Effect.js';
-import { DemoRenderer } from './DemoRenderer.js';
-import { Timer } from './Timer.js';
-import { FileManager } from './FileManager.js';
-import { JavaScriptFile } from './JavaScriptFile.js';
-import { Settings } from './Settings.js';
+import { Timer } from './Timer';
+import { FileManager } from './FileManager';
+import { Settings } from './Settings';
 
 const settings = new Settings();
 

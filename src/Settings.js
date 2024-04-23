@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerWarning, loggerDebug } from './legacy/Bindings';
+import { loggerWarning } from './Bindings';
 
 var Settings = function() {
   return this.getInstance();
@@ -19,9 +19,14 @@ Settings.prototype.init = function() {
     demoPathPrefix: 'data/',
     tool: true,
     fileWatchInterval: 250,
+    startDelay: 0, // bump this for demo capturing
     preload: true,
     enabledLogLevels: ['trace', 'debug', 'info', 'warning', 'error'],
   };
+
+  this.menu = {
+    fullscreen: false,
+  }
 
   this.demo = {
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },

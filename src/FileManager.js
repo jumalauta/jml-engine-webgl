@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 import fs from 'vite-plugin-fs/browser';
-import { TTFLoader } from 'three/addons/loaders/TTFLoader.js';
-import { Font } from 'three/addons/loaders/FontLoader.js';
+import { TTFLoader } from 'three/addons/loaders/TTFLoader';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
-import { loggerWarning, loggerDebug } from './legacy/Bindings';
-import { Image } from './legacy/Image';
-import { Text } from './legacy/Text';
-import { Model } from './legacy/Model';
+import { loggerWarning, loggerDebug } from './Bindings';
+import { Image } from './Image';
+import { Text } from './Text';
+import { Model } from './Model';
 import { Settings } from './Settings';
 import { DemoRenderer } from './DemoRenderer';
 

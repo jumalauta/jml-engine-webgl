@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { DemoRenderer, getScene, getCamera, pushView, popView } from '../DemoRenderer';
+import { DemoRenderer, pushView, popView } from './DemoRenderer';
 import { Image } from './Image';
 import { loggerDebug } from './Bindings';
-import { Settings } from '../Settings';
+import { Settings } from './Settings';
 
 const settings = new Settings();
 

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { loggerDebug, loggerInfo } from './legacy/Bindings';
-import { LoadingBar } from './LoadingBar.js';
-import { Fbo } from './legacy/Fbo.js';
-import { Effect } from './legacy/Effect.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls';
+import { loggerDebug, loggerInfo } from './Bindings';
+import { LoadingBar } from './LoadingBar';
+import { Fbo } from './Fbo';
+import { Effect } from './Effect';
 import { Settings } from './Settings';
 
 const settings = new Settings();

@@ -1,5 +1,5 @@
-import { loggerInfo } from "./legacy/Bindings";
-import { Music } from "./legacy/Music";
+import { loggerInfo } from "./Bindings";
+import { Music } from "./Music";
 import { FileManager } from "./FileManager";
 
 var Timer = function() {

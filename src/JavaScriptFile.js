@@ -1,7 +1,5 @@
 import { FileManager } from './FileManager';
-import { loggerDebug, loggerWarning } from './legacy/Bindings';
-import { DemoRenderer } from './DemoRenderer';
-import { Effect } from './legacy/Effect';
+import { loggerDebug, loggerWarning } from './Bindings';
 
 var JavaScriptFile = function() {}
 

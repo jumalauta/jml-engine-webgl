@@ -1,14 +1,14 @@
-import { Utils, Constants } from './Utils.js';
-import { Graphics } from './Graphics.js';
-import { Input } from './Input.js';
-import { Image } from './Image.js';
-import { Shader } from './Shader.js';
-import { Model } from './Model.js';
-import { Text } from './Text.js';
-import { Fbo } from './Fbo.js';
-import { windowSetTitle, loggerError, loggerDebug, loggerWarning } from './Bindings.js';
-import {getScene, getCamera, pushView, popView} from '../DemoRenderer.js';
-import { Settings } from '../Settings.js';
+import { Utils, Constants } from './Utils';
+import { Graphics } from './Graphics';
+import { Input } from './Input';
+import { Image } from './Image';
+import { Shader } from './Shader';
+import { Model } from './Model';
+import { Text } from './Text';
+import { Fbo } from './Fbo';
+import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
+import {getScene, getCamera} from './DemoRenderer';
+import { Settings } from './Settings';
 
 import * as THREE from 'three';
 

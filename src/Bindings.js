@@ -1,5 +1,5 @@
-import { Timer } from '../Timer';
-import { Settings } from '../Settings';
+import { Timer } from './Timer';
+import { Settings } from './Settings';
 const settings = new Settings();
 
 function log(type, txt) {

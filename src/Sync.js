@@ -1,7 +1,6 @@
 import { JSRocket } from "./rocket/jsRocket";
-import { Utils } from "./Utils";
-import { loggerTrace, loggerDebug, loggerWarning } from "./Bindings";
-import { Timer } from "../Timer"
+import { loggerDebug } from "./Bindings";
+import { Timer } from "./Timer"
 
 /** @constructor */
 var Sync = function()

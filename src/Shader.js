@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { Utils } from './Utils.js';
+import { Utils } from './Utils';
 import { loggerDebug, loggerWarning } from './Bindings';
-import { Timer } from '../Timer';
-import { FileManager } from '../FileManager';
+import { Timer } from './Timer';
+import { FileManager } from './FileManager';
   
 /** @constructor */
 var Shader = function(animationDefinition)

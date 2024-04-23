@@ -1,14 +1,14 @@
-import { Loader } from './Loader.js';
-import { Player } from './Player.js';
-import { loggerDebug, loggerInfo, loggerWarning } from './Bindings.js';
-import { Music } from './Music.js';
-import { Sync } from './Sync.js';
-import { LoadingBar } from '../LoadingBar.js';
-import { Timer } from '../Timer.js';
-import { DemoRenderer, getCamera, getScene } from '../DemoRenderer.js';
-import { FileManager } from '../FileManager.js';
-import { Fbo } from '../legacy/Fbo.js';
-import { Settings } from '../Settings';
+import { Loader } from './Loader';
+import { Player } from './Player';
+import { loggerDebug, loggerInfo } from './Bindings';
+import { Music } from './Music';
+import { Sync } from './Sync';
+import { LoadingBar } from './LoadingBar';
+import { Timer } from './Timer';
+import { DemoRenderer, getCamera, getScene } from './DemoRenderer';
+import { FileManager } from './FileManager';
+import { Fbo } from './Fbo';
+import { Settings } from './Settings';
 const settings = new Settings();
 
 /** @constructor */

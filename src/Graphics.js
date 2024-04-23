@@ -1,4 +1,4 @@
-import { loggerDebug, loggerWarning } from "./Bindings.js";
+import { loggerDebug, loggerWarning } from "./Bindings";
 /*
 // TODO:
 var time = getSceneTimeFromStart();

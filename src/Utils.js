@@ -1,5 +1,5 @@
-import { getSceneTimeFromStart } from '../Timer';
-import { Sync } from './Sync.js';
+import { getSceneTimeFromStart } from './Timer';
+import { Sync } from './Sync';
 
 window.getSceneTimeFromStart = getSceneTimeFromStart;
 window.Sync = Sync;

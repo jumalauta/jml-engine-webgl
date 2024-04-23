@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { loggerDebug } from './Bindings';
-import { Timer } from '../Timer';
+import { Timer } from './Timer';
 
 var Music = function() {
     return this.getInstance();

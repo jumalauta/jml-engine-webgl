@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { Fbo } from './Fbo';
-import { loggerDebug, loggerWarning } from './Bindings';
-import { DemoRenderer } from '../DemoRenderer';
-import { FileManager } from '../FileManager';
-import { Settings } from '../Settings';
+import { loggerWarning } from './Bindings';
+import { DemoRenderer } from './DemoRenderer';
+import { FileManager } from './FileManager';
+import { Settings } from './Settings';
 
 const settings = new Settings();
 

@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-import { TTFLoader } from 'three/addons/loaders/TTFLoader.js';
-import { Font } from 'three/addons/loaders/FontLoader.js';
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { loggerTrace, loggerDebug } from './Bindings';
-import { FileManager } from '../FileManager';
-import { Settings } from '../Settings';
+import { Font } from 'three/addons/loaders/FontLoader';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry';
+import { loggerTrace } from './Bindings';
+import { FileManager } from './FileManager';
+import { Settings } from './Settings';
 const settings = new Settings();
 
 let fonts = {};

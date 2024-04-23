@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
 import { loggerDebug } from './Bindings';
-import { FileManager } from '../FileManager';
-import { Settings } from '../Settings';
+import { FileManager } from './FileManager';
+import { Settings } from './Settings';
 const settings = new Settings();
 
 var Model = function() {

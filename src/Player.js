@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-import { Utils } from './Utils.js';
-//import { interpolate } from './Interpolate.js';
-import { Sync } from './Sync.js';
-import { TransformationMatrix, Graphics } from './Graphics.js';
-import { Shader } from './Shader.js';
-import { processFutures } from './Bindings.js';
-import { Timer } from '../Timer';
-import { Settings } from '../Settings';
-import { DemoRenderer } from '../DemoRenderer';
+import { Utils } from './Utils';
+import { Sync } from './Sync';
+import { TransformationMatrix, Graphics } from './Graphics';
+import { Shader } from './Shader';
+import { processFutures } from './Bindings';
+import { Timer } from './Timer';
+import { Settings } from './Settings';
+import { DemoRenderer } from './DemoRenderer';
 
 const settings = new Settings();
 

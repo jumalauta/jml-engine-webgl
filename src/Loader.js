@@ -1,6 +1,6 @@
-import { Scene } from './Scene.js';
-import { Utils } from './Utils.js';
-import { loggerDebug, loggerTrace, loggerWarning, setResourceCount, notifyResourceLoaded } from './Bindings.js';
+import { Scene } from './Scene';
+import { Utils } from './Utils';
+import { loggerDebug, loggerTrace, loggerWarning, setResourceCount, notifyResourceLoaded } from './Bindings';
 
 /** @constructor */
 var Loader = function() {
