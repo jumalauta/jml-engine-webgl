@@ -16,7 +16,7 @@ Settings.prototype.getInstance = function() {
 
 Settings.prototype.init = function() {
   this.engine = {
-    demoPathPrefix: 'data/',
+    demoPathPrefix: 'testdata/',
     tool: true,
     fileWatchInterval: 250,
     startDelay: 0, // bump this for demo capturing
@@ -99,11 +99,11 @@ Settings.prototype.init = function() {
       up: { x: 0.0, y: 1.0, z: 0.0 },
     },
     lights: [
-      {
+      /*{
         type: 'Ambient',
         color: { r: 0.5, g: 0.5, b: 0.5 },
         intensity: 1.0,
-      }/*,
+      }*//*,
       {
         type: 'Directional',
         castShadow: true,

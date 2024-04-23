@@ -14,6 +14,28 @@ var Utils = function()
 {
 };
 
+Utils.updateProperties = function(animation) {
+    const object = animation.light;
+    if (!object) {
+        return;
+    }
+    const threeObject = animation.ref.mesh;
+    if (!threeObject) {
+        return;
+    }
+    const properties = object.properties;
+    if (!properties) {
+        return;
+    }
+
+    for (var key in properties) {
+        if (threeObject.hasOwnProperty(key)) {
+            threeObject[key] = Utils.evaluateVariable(animation, properties[key]);
+        }
+    }
+
+}
+
 Utils.clamp = function(value)
 {
     return Utils.clampRange(value, 0.0, 1.0);

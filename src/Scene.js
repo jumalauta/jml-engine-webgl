@@ -6,6 +6,7 @@ import { Shader } from './Shader';
 import { Model } from './Model';
 import { Text } from './Text';
 import { Fbo } from './Fbo';
+import { Light } from './Light';
 import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
 import {getScene, getCamera} from './DemoRenderer';
 import { Settings } from './Settings';
@@ -953,15 +954,15 @@ Scene.prototype.processAnimation = function()
                 else if (animationDefinition.light !== void null)
                 {
                     animationDefinition.type = 'light';
-                    animationDefinition.ref = new Light(animationDefinition.light.index);
+                    animationDefinition.ref = new Light(animationDefinition);
+                    getScene().add(animationDefinition.ref.mesh);
 
                     animStart = startTime;
                     animEnd = startTime;
                     animDuration = animEnd - animStart;
-                    this.preprocessPositionAnimation(animStart, animDuration, animEnd, animationDefinition,
-                        {'x': 0.0, 'y': 0.0, 'z': 1.0});
+                    //this.preprocessAnimationDefinitions(animStart, animDuration, animEnd, animationDefinition);
 
-                    if (animationDefinition.ambientColor !== void null)
+                    /*if (animationDefinition.ambientColor !== void null)
                     {
                         animStart = startTime;
                         animEnd = startTime;
@@ -984,7 +985,7 @@ Scene.prototype.processAnimation = function()
                         animDuration = animEnd - animStart;
                         this.preprocessColorAnimation(animStart, animDuration, animEnd, animationDefinition,
                             animationDefinition.specularColor);
-                    }
+                    }*/
                 }
                 else if (animationDefinition.camera !== void null)
                 {

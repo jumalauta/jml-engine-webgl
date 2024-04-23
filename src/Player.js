@@ -634,7 +634,13 @@ Player.prototype.drawLightAnimation = function(time, animation)
         animation.ref.setGenerateShadowMap(animation.generateShadowMap);
     }
 
-    if (animation.ambientColor !== void null)
+    if (animation.color !== void null)
+    {
+        var color = this.calculateColorAnimation(time, animation, animation.color);
+        animation.ref.setColor(color.r, color.g, color.b, color.a);
+    }
+
+    /*if (animation.ambientColor !== void null)
     {
         var color = this.calculateColorAnimation(time, animation, animation.ambientColor);
         animation.ref.setAmbientColor(color.r, color.g, color.b, color.a);
@@ -650,7 +656,7 @@ Player.prototype.drawLightAnimation = function(time, animation)
     {
         var color = this.calculateColorAnimation(time, animation, animation.specularColor);
         animation.ref.setSpecularColor(color.r, color.g, color.b, color.a);
-    }
+    }*/
 
     if (animation.position !== void null)
     {
@@ -658,11 +664,11 @@ Player.prototype.drawLightAnimation = function(time, animation)
         animation.ref.setPosition(position.x, position.y, position.z);
     }
 
-    if (animation.direction !== void null)
+    /*if (animation.direction !== void null)
     {
         var direction = this.calculate3dCoordinateAnimation(time, animation.direction, {'x': 0, 'y': 0, 'z': 0});
         animation.ref.setDirection(direction.x, direction.y, direction.z);
-    }
+    }*/
 
     /*
     // FIXME: Fix position handling
@@ -823,6 +829,8 @@ Player.prototype.drawSceneAnimation = function(scene, time)
                     }
 
                     //loggerDebug((animationI+1) + "/" + animationLayersLength + ": layer: " + key + ", animation.type: " + animation.type);
+                    Utils.updateProperties(animation);
+
                     if (animation.type === 'image')
                     {
                         this.drawImageAnimation(time, animation);
