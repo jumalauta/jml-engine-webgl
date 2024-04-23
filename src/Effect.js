@@ -46,7 +46,7 @@ Effect.init = function(effectName)
     {
         const fileManager = new FileManager();
         const music = new Music();
-        effect.loader.promises.push(music.load(fileManager.getPath("music.ogg")));
+        effect.loader.promises.push(music.load(fileManager.getPath("music.mp3")));
         effect.loader.promises.push(Sync.getInstance().init());
 
         let promiseCount = effect.loader.promises.length;
