@@ -11,9 +11,15 @@ import { Settings } from './Settings';
 const settings = new Settings();
 const fileManager = new FileManager();
 const javaScriptFile = new JavaScriptFile();
-javaScriptFile.load("Demo.js");
+javaScriptFile.load("Demo.js").then(() => {  
+  if (import.meta.env.MODE === 'production') {
+    startDemo();
+  }
+});
 
 const timer = new Timer();
+
+let started = false;
 
 var Demo = function() {};
 export {Demo};
@@ -76,6 +82,11 @@ export function animate() {
 }
 
 function startDemo() {
+  if (started) {
+    stopDemo();
+  }
+  started = true;
+
 	const startButton = document.getElementById('start');
 	if (startButton) {
 		startButton.style.display = 'none';
@@ -87,6 +98,9 @@ function startDemo() {
 
 	canvas.style.display = 'block';
 	canvas.style.margin = '0px';
+  if (!settings.engine.tool) {
+    canvas.style.cursor = 'none'; 
+  }
 	
   if (settings.menu.fullscreen) {
     if (canvas.requestFullscreen) {
@@ -128,6 +142,13 @@ function stopDemo() {
 	  startButton.style.display = 'block';
   }
   canvas.style.display = 'none';
+
+  started=false;
+
+  if (settings.engine.webDemoExe) {
+    // magic to make the WebDemoExe exit
+    window.location.hash='webdemoexe_exit';
+  }
 }
 
 function reloadDemo() {
@@ -138,7 +159,9 @@ function reloadDemo() {
 
 function windowResize() {
   demoRenderer.resize();
-  reloadDemo();
+  if (started) {
+    reloadDemo();
+  }
 }
 
 window.addEventListener( 'resize', windowResize, false );
@@ -166,3 +189,4 @@ document.addEventListener('keydown', (event) => {
 		}
 	}	
 });
+

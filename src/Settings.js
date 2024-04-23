@@ -21,7 +21,8 @@ Settings.prototype.init = function() {
     fileWatchInterval: 250,
     startDelay: 0, // bump this for demo capturing
     preload: true,
-    enabledLogLevels: ['trace', 'debug', 'info', 'warning', 'error'],
+    enabledLogLevels: [/*'trace', 'debug',*/ 'info', 'warning', 'error'],
+    webDemoExe: false,
   };
 
   this.menu = {
@@ -85,8 +86,8 @@ Settings.prototype.init = function() {
     },
     shadow: {
       mapSize: {
-        width:  512,
-        height: 512,
+        width:  1024,
+        height: 1024,
       },
     },
     camera: {
@@ -122,6 +123,13 @@ Settings.prototype.init = function() {
   }
   this.demo.screen.aspectRatio = this.demo.screen.width / this.demo.screen.height;
   this.demo.camera.aspectRatio = this.demo.screen.aspectRatio;
+
+
+  if (import.meta.env.MODE === 'production') {
+    this.engine.tool = false;
+    this.engine.enabledLogLevels = ['info','warning','error'];
+    this.engine.webDemoExe = true;
+  }
 }
 
 Settings.prototype.setXyz = function(src, dst) {

@@ -6,7 +6,7 @@ var JavaScriptFile = function() {}
 JavaScriptFile.prototype.load = function(filename) {
   this.filename = filename;
   const fileManager = new FileManager();
-  fileManager.load(filename, this, (instance, data) => {
+  return fileManager.load(filename, this, (instance, data) => {
     try {
       loggerDebug('Executing JavaScript file: ' + instance.filename);
       //(new DemoRenderer()).setupScene();

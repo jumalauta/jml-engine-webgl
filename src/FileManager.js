@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import fs from 'vite-plugin-fs/browser';
 import { TTFLoader } from 'three/addons/loaders/TTFLoader';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
@@ -13,6 +12,13 @@ import { DemoRenderer } from './DemoRenderer';
 THREE.Cache.enabled = true;
 
 const settings = new Settings();
+
+let fs = null;
+if (settings.engine.tool && import.meta.env.MODE !== 'production') {
+  import('vite-plugin-fs/browser').then((module) => {
+    fs = module.default;
+  });
+}
 
 var FileManager = function() {
   return this.getInstance();
@@ -52,10 +58,21 @@ FileManager.prototype.startWatchFileChanges = async function() {
 
 FileManager.prototype.checkFiles = async function() {
   try {
+    if (!fs) {
+      return;
+    }
+    
+
     const fileManager = new FileManager();
     for (const filePath in fileManager.refreshFiles) {
       const path = fileManager.getDiskPath(filePath);
       const stats = await fs.stat(path);
+      
+      if (fileManager.refreshFiles[filePath] === null) {
+        fileManager.refreshFiles[filePath] = stats.mtime;
+        continue;
+      }
+
       if (stats.mtime > fileManager.refreshFiles[filePath]) {
         loggerDebug("File changed: " + filePath);
 
@@ -187,10 +204,14 @@ FileManager.prototype.setRefreshFileTimestamp = function(filePath) {
     return null;
   }
 
-  const path = this.getDiskPath(filePath);
-  fs.stat(path).then(stats => {
-    this.refreshFiles[filePath] = stats.mtime;
-  });
+  if (fs) {
+    const path = this.getDiskPath(filePath);
+    fs.stat(path).then(stats => {
+      this.refreshFiles[filePath] = stats.mtime;
+    });
+  } else {
+    this.refreshFiles[filePath] = null;
+  }
 }
 
 FileManager.prototype.load = function(filePath, instance, callback) {
