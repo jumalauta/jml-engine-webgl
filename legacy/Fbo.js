@@ -21,6 +21,10 @@ var Fbo = function() {
     this.scene.add(this.camera);
 }
 
+Fbo.getFbos = function() {
+    return fbos;
+}
+
 Fbo.dispose = function() {
     for (let key in fbos) {
         let fbo = fbos[key];

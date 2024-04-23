@@ -9,6 +9,7 @@ import { Image } from './legacy/Image';
 import { Text } from './legacy/Text';
 import { Model } from './legacy/Model';
 import { Settings } from './Settings';
+import { DemoRenderer } from './DemoRenderer';
 
 THREE.Cache.enabled = true;
 

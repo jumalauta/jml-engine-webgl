@@ -5,8 +5,11 @@ import { Music } from './Music.js';
 import { Sync } from './Sync.js';
 import { LoadingBar } from '../LoadingBar.js';
 import { Timer } from '../Timer.js';
-import { DemoRenderer } from '../DemoRenderer.js';
+import { DemoRenderer, getCamera, getScene } from '../DemoRenderer.js';
 import { FileManager } from '../FileManager.js';
+import { Fbo } from '../legacy/Fbo.js';
+import { Settings } from '../Settings';
+const settings = new Settings();
 
 /** @constructor */
 var Effect = function()
@@ -53,14 +56,33 @@ Effect.init = function(effectName)
         (async () => {
             loggerDebug("Starting loading");
             let now = new Date().getTime() / 1000;
-            try {            
+            try {   
                 while(effect.loader.promises.length > 0) {
-                    loadingBar.setPercent((promiseCount - effect.loader.promises.length) / (promiseCount + 1));
+                    loadingBar.setPercent((promiseCount - effect.loader.promises.length) / (promiseCount) * 0.8);
                         await effect.loader.promises.shift();
                 }
 
-                loadingBar.setPercent((promiseCount) / (promiseCount + 1));
+                loadingBar.setPercent(0.9);
                 effect.loader.processAnimation();
+
+                const demoRenderer = new DemoRenderer();
+
+                if (settings.engine.preload) {
+                    let preCompileList = [];
+                    const fbos = Fbo.getFbos();
+                    for (let key in fbos) {
+                        let fbo = fbos[key];
+                        preCompileList.push({scene: fbo.scene, camera: fbo.camera});
+                    }
+                    preCompileList.push({scene: getScene(), camera: getCamera()});
+                    for(let i = 0; i < preCompileList.length; i++) {
+                        loadingBar.setPercent(0.9 + (i / preCompileList.length) * 0.1);
+                        const item = preCompileList[i];
+                        // TODO: compile throws errors, render if flexible but still builds at least the shaders
+                        //demoRenderer.renderer.compile(item.scene, item.camera);
+                        demoRenderer.renderer.render( item.scene, item.camera );
+                    }
+                }
 
                 loadingBar.setPercent(1.0);
                 loggerInfo("Starting demo. Loading took " + (new Date().getTime() / 1000 - now).toFixed(2) + " seconds");
@@ -70,7 +92,6 @@ Effect.init = function(effectName)
                     timer.start();
                 }
                 
-                const demoRenderer = new DemoRenderer();
                 demoRenderer.setRenderNeedsUpdate(true);
                 fileManager.setNeedsUpdate(false);
             } catch (error) {

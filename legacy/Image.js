@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Fbo } from './Fbo';
 import { loggerDebug, loggerWarning } from './Bindings';
+import { DemoRenderer } from '../DemoRenderer';
 import { FileManager } from '../FileManager';
 import { Settings } from '../Settings';
 
@@ -51,6 +52,10 @@ Image.prototype.generateMesh = function() {
   //instance.mesh.renderOrder = 100;
   this.ptr = this.mesh;
   this.mesh.position.z = settings.demo.screen.perspective2dZ;
+
+  if (settings.engine.preload) {
+    (new DemoRenderer()).renderer.initTexture(this.texture);
+  }
 }
 
 Image.prototype.load = function(filename) {
