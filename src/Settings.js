@@ -16,7 +16,7 @@ Settings.prototype.getInstance = function() {
 
 Settings.prototype.init = function() {
   this.engine = {
-    demoPathPrefix: 'testdata/',
+    demoPathPrefix: 'data/',
     tool: true,
     fileWatchInterval: 250,
     startDelay: 0, // bump this for demo capturing
@@ -26,6 +26,7 @@ Settings.prototype.init = function() {
 
   this.menu = {
     fullscreen: false,
+    volume: 1.0,
   }
 
   this.demo = {

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { loggerDebug } from './Bindings';
 import { Timer } from './Timer';
+import { Settings } from './Settings';
+const settings = new Settings();
 
 var Music = function() {
     return this.getInstance();
@@ -29,6 +31,7 @@ Music.prototype.load = function(url) {
                 instance.listener = new THREE.AudioListener();
                 instance.audio = new THREE.Audio(instance.listener);            
                 instance.audio.setBuffer(buffer);
+                instance.audio.setVolume(settings.menu.volume);
                 instance.duration = buffer.duration;
                 (new Timer()).setEndTime(instance.duration * 1000);
                 loggerDebug('Loaded music ' + url + ' (length ' + instance.duration + 's)');
