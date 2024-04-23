@@ -54,7 +54,7 @@ FileManager.prototype.checkFiles = async function() {
   try {
     const fileManager = new FileManager();
     for (const filePath in fileManager.refreshFiles) {
-      const path = fileManager.getPath(filePath);
+      const path = fileManager.getDiskPath(filePath);
       const stats = await fs.stat(path);
       if (stats.mtime > fileManager.refreshFiles[filePath]) {
         loggerDebug("File changed: " + filePath);
@@ -151,6 +151,14 @@ FileManager.prototype.getPath = function(filePath) {
   return filePath;
 }
 
+FileManager.prototype.getDiskPath = function(filePath) {
+  const diskPrefix = 'public/';
+  if (!filePath.startsWith("_embedded/")) {
+    return diskPrefix + settings.engine.demoPathPrefix + filePath;
+  }
+  return diskPrefix + filePath;
+}
+
 FileManager.prototype.loadFiles = function(filePaths, instance, callback) {
   const fileManager = this;
   if (!(filePaths instanceof Array)) {
@@ -179,7 +187,7 @@ FileManager.prototype.setRefreshFileTimestamp = function(filePath) {
     return null;
   }
 
-  const path = this.getPath(filePath);
+  const path = this.getDiskPath(filePath);
   fs.stat(path).then(stats => {
     this.refreshFiles[filePath] = stats.mtime;
   });
