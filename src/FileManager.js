@@ -9,6 +9,15 @@ import { Model } from './Model';
 import { Settings } from './Settings';
 import { DemoRenderer } from './DemoRenderer';
 
+import embeddedDefaultFsUrl from './_embedded/default.fs?url'
+import embeddedDefaultVsUrl from './_embedded/default.vs?url'
+import embeddedDefault2dFsUrl from './_embedded/default2d.fs?url'
+import embeddedDefault2dVsUrl from './_embedded/default2d.vs?url'
+import embeddedDefaultFixedViewVsUrl from './_embedded/defaultFixedView.vs?url'
+import embeddedDefaultPlainFsUrl from './_embedded/defaultPlain.fs?url'
+import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png?url'
+import embeddedDefaultWhitePngUrl from './_embedded/defaultWhite.png?url'
+
 THREE.Cache.enabled = true;
 
 const settings = new Settings();
@@ -37,6 +46,17 @@ FileManager.prototype.init = function() {
   this.files = {};
   this.refreshFiles = {};
   this.needsUpdate = false;
+
+  this.staticUrls = {
+    '_embedded/default.fs': embeddedDefaultFsUrl,
+    '_embedded/default.vs': embeddedDefaultVsUrl,
+    '_embedded/default2d.fs': embeddedDefault2dFsUrl,
+    '_embedded/default2d.vs': embeddedDefault2dVsUrl,
+    '_embedded/defaultFixedView.vs': embeddedDefaultFixedViewVsUrl,
+    '_embedded/defaultPlain.fs': embeddedDefaultPlainFsUrl,
+    '_embedded/defaultTransparent.png': embeddedDefaultTransparentPngUrl,
+    '_embedded/defaultWhite.png': embeddedDefaultWhitePngUrl,
+  };  
 }
 
 FileManager.prototype.stopWatchFileChanges = async function() {
@@ -169,11 +189,10 @@ FileManager.prototype.getPath = function(filePath) {
 }
 
 FileManager.prototype.getDiskPath = function(filePath) {
-  const diskPrefix = 'public/';
-  if (!filePath.startsWith("_embedded/")) {
-    return diskPrefix + settings.engine.demoPathPrefix + filePath;
+  if (filePath.startsWith("_embedded/")) {
+    return 'src/' + filePath;
   }
-  return diskPrefix + filePath;
+  return 'public/' + settings.engine.demoPathPrefix + filePath;
 }
 
 FileManager.prototype.loadFiles = function(filePaths, instance, callback) {
@@ -214,6 +233,15 @@ FileManager.prototype.setRefreshFileTimestamp = function(filePath) {
   }
 }
 
+FileManager.prototype.getUrl = function(filePath) {
+  if (this.staticUrls[filePath]) {
+    return this.staticUrls[filePath];
+  }
+
+  return this.getPath(filePath);
+}
+
+
 FileManager.prototype.load = function(filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
@@ -241,7 +269,7 @@ FileManager.prototype.load = function(filePath, instance, callback) {
     }
 
     (new loader()).load(
-    path,
+    this.getUrl(filePath),
     // onLoad callback
     (data) => {
       if (data[0] === '<') {

@@ -1,0 +1,1 @@
+../node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js

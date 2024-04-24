@@ -4,6 +4,8 @@ import { loggerWarning } from './Bindings';
 import { DemoRenderer } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
+import vertexShaderData from './_embedded/default2d.vs?raw'
+import fragmentShaderData from './_embedded/default2d.fs?raw'
 
 const settings = new Settings();
 
@@ -34,43 +36,8 @@ Image.prototype.createMaterial = function() {
         color: { value: new THREE.Vector4(1, 1, 1, 1) },
     },
     // Manually added vertex shader to get the fragment shader running
-    vertexShader: `
-      out vec2 texCoord;
-
-      // Idea for this shader is to render a 2D image with a 2D orthographic projection in the correct (=how old engine supported mixture of 2d and 3d) render order
-      
-      #define aspectRatio 16.0/9.0
-      
-      mat4 ortho(float left, float right, float bottom, float top, float zNear, float zFar) {
-          mat4 m = mat4(1.0);
-          m[0][0] = 2.0 / (right - left);
-          m[1][1] = 2.0 / (top - bottom);
-          m[2][2] = -2.0  / (zFar - zNear);
-          m[3][0] = -(right + left) / (right - left);
-          m[3][1] = -(top + bottom) / (top - bottom);
-          m[3][2] = -(zFar + zNear) / (zFar - zNear);
-          return m; 
-      }
-      
-      void main() {
-          texCoord = uv;
-          mat4 viewMatrix2d = mat4(1.0);
-          mat4 projectionMatrix2d = ortho(-0.5 * aspectRatio, 0.5 * aspectRatio, -0.5, 0.5, -1.0, 1.0);
-      
-          gl_Position = projectionMatrix2d * modelMatrix * viewMatrix2d * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      in vec2 texCoord;
-      out vec4 fragColor;
-      
-      uniform sampler2D texture0; // this will be automatically binded in the script to animation's first texture
-      uniform vec4 color; // this will be automatically binded to color animation variable, defaults to 1,1,1,1
-      
-      void main() {
-          fragColor = color * texture2D(texture0, texCoord);
-      }
-    `
+    vertexShader: vertexShaderData,
+    fragmentShader: fragmentShaderData
   };
 
   let material = new THREE.ShaderMaterial({

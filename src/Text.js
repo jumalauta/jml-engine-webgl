@@ -7,6 +7,9 @@ import { Settings } from './Settings';
 import { getCamera } from './DemoRenderer';
 const settings = new Settings();
 
+import vertexShaderData from './_embedded/defaultFixedView.vs?raw'
+import fragmentShaderData from './_embedded/defaultPlain.fs?raw'
+
 let fonts = {};
 
 var Text = function() {
@@ -47,27 +50,8 @@ Text.prototype.createMaterial = function() {
           color: { value: new THREE.Vector4(1, 1, 1, 1) },
       },
       // Manually added vertex shader to get the fragment shader running
-      vertexShader: `
-        out vec2 texCoord;
-  
-        void main() {
-            texCoord = uv;
-            mat4 viewMatrix2d = mat4(1.0);
-
-            gl_Position = projectionMatrix * modelMatrix * viewMatrix2d * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        in vec2 texCoord;
-        out vec4 fragColor;
-        
-        //uniform sampler2D texture0; // this will be automatically binded in the script to animation's first texture
-        uniform vec4 color; // this will be automatically binded to color animation variable, defaults to 1,1,1,1
-        
-        void main() {
-            fragColor = color;// * texture2D(texture0, texCoord);
-        }
-      `
+      vertexShader: vertexShaderData,
+      fragmentShader: fragmentShaderData
     };
   
     let material = new THREE.ShaderMaterial({

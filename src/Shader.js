@@ -122,7 +122,7 @@ Shader.prototype.load = function() {
 
     return new Promise((resolve, reject) => {
         (new THREE.FileLoader()).load(
-            fileManager.getPath(instance.vertexShaderUrl),
+            fileManager.getUrl(instance.vertexShaderUrl),
             // onLoad callback
             (vertexData) => {
                 if (vertexData[0] === '<') {
@@ -133,7 +133,7 @@ Shader.prototype.load = function() {
                 }
 
                 (new THREE.FileLoader()).load(
-                    fileManager.getPath(instance.fragmentShaderUrl),
+                    fileManager.getUrl(instance.fragmentShaderUrl),
                     // onLoad callback
                     (fragmentData) => {
                         if (fragmentData[0] === '<') {

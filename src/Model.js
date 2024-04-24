@@ -6,6 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
 import { loggerDebug } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
+
 const settings = new Settings();
 
 var Model = function() {
@@ -65,7 +66,8 @@ Model.prototype.load = function(filename) {
         const loader = new GLTFLoader();
 
         const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath( 'dracogltf/' );    
+        dracoLoader.setDecoderPath( './' );
+        dracoLoader.setDecoderConfig({ type: 'js' });
         loader.setDRACOLoader( dracoLoader );
 
         return new Promise((resolve, reject) => {
