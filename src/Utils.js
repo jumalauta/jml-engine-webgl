@@ -1,4 +1,4 @@
-import { getSceneTimeFromStart } from './Timer';
+import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 
 window.getSceneTimeFromStart = getSceneTimeFromStart;

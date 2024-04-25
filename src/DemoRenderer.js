@@ -14,12 +14,12 @@ var DemoRenderer = function() {
 
 DemoRenderer.prototype.getInstance = function() {
     if (!DemoRenderer.prototype._singletonInstance) {
-        DemoRenderer.prototype._singletonInstance = this;
+      DemoRenderer.prototype._singletonInstance = this;
+      this.scenes = {};
     }
 
     return DemoRenderer.prototype._singletonInstance;
 }
-
 
 const aspectRatio = settings.demo.screen.aspectRatio;
 let scene, camera;
@@ -51,7 +51,12 @@ function clearThreeObject(obj) {
     }
   }
 
+
 DemoRenderer.prototype.setupScene = function() {
+  /*this.scenes.forEach(scene => {
+    console.log("removing scene " + scene.uuid);
+    clearThreeObject(scene);
+  });*/
 	scenes.forEach(scene => {
 		console.log("removing scene " + scene.uuid);
 		clearThreeObject(scene);
@@ -62,9 +67,11 @@ DemoRenderer.prototype.setupScene = function() {
 	});
 	scenes = [];
 	cameras = [];
+  this.scenes = {};
 	Fbo.dispose();
 
-	scene = settings.createScene();
+	//scene = settings.createScene();
+  this.setScene("main");
 	/*camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
 	camera.position.z = 2;
 	camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -74,6 +81,14 @@ DemoRenderer.prototype.setupScene = function() {
   camera = settings.createCamera();
 
   this.setOrbitControls(camera);
+}
+
+DemoRenderer.prototype.setScene = function(name) {
+  if (! this.scenes.hasOwnProperty(name)) {
+    this.scenes[name] = settings.createScene();
+  }
+  scene = this.scenes[name];
+  return scene;
 }
 
 DemoRenderer.prototype.init = function() {
@@ -140,6 +155,9 @@ DemoRenderer.prototype.setOrbitControls = function(camera) {
   this.controls.enablePan = false;
   this.controls.enableDamping = true;
 }
+DemoRenderer.prototype.renderScene = function() {
+  this.renderer.render( scene, camera );
+}
 
 DemoRenderer.prototype.render = function() {
   this.renderNeedsUpdate = false;
@@ -173,14 +191,14 @@ DemoRenderer.prototype.render = function() {
   renderer.clear();
 */
 
+this.renderer.clear();
+
 Effect.run("Demo");
 
   //renderer.setRenderTarget(null);
-  this.renderer.clear();
   if (this.controls) {
     this.controls.update();
   }
-  this.renderer.render( scene, camera );
 }
 
 

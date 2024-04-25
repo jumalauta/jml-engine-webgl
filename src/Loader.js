@@ -1,17 +1,33 @@
 import { Scene } from './Scene';
 import { Utils } from './Utils';
 import { loggerDebug, loggerTrace, loggerWarning, setResourceCount, notifyResourceLoaded } from './Bindings';
+import { DemoRenderer } from './DemoRenderer';
 
 /** @constructor */
-var Loader = function() {
-    this.resourceCount = 0;
-    this.resourceUniqueList = [];
 
-    this.scenes = {};
-    this.activeScene = void null;
+var Loader = function() {
+    return this.getInstance();
+};
+
+const defaultSceneName = 'main';
+
+Loader.prototype.getInstance = function() {
+    if (!Loader.prototype._singletonInstance) {
+        Loader.prototype._singletonInstance = this;
+        this.resourceCount = 0;
+        this.resourceUniqueList = [];
     
-    this.timeline = {};
-    this.promises = [];
+        this.scenes = {};
+        this.activeScene = void null;
+        
+        this.timeline = {};
+        this.promises = [];
+
+        // scene not defined, set the fall-back scene
+        this.setScene(defaultSceneName, {"useFbo": false});
+    }
+
+    return Loader.prototype._singletonInstance;
 }
 
 Loader.prototype.sortArray = function(animationLayers)
@@ -144,27 +160,23 @@ Loader.prototype.setScene = function(name, settings) {
     }
 
     this.activeScene = this.scenes[name];
+    this.activeScene.renderScene = (new DemoRenderer()).setScene(name);
 }
-
 
 Loader.prototype.addAnimation = function(animationDefinitions)
 {
-    if (this.activeScene === void null) {
-        // scene not defined, set the fall-back scene
-        this.setScene('Default', {"useFbo": false});
-    }
-
     this.activeScene.addAnimation(animationDefinitions);
 }
 
 Loader.prototype.processAnimation = function()
 {
     if (Utils.isEmptyObject(this.timeline)) {
-        loggerTrace("No timeline defined, adding default timeline");
+        /*loggerTrace("No timeline defined, adding default timeline");
         for (var sceneName in this.scenes) {
             // add scenes to timeline with default values. this is not recommended, but serves as fall-back functionality
             this.addSceneToTimeline({"scene": sceneName});
-        }
+        }*/
+        this.addSceneToTimeline({"scene": defaultSceneName});
     }
 
     for (var sceneName in this.scenes) {

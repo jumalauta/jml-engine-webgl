@@ -9,7 +9,6 @@ import { Fbo } from './Fbo';
 import { Light } from './Light';
 import { Camera } from './Camera';
 import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
-import {getScene, getCamera} from './DemoRenderer';
 import { Settings } from './Settings';
 
 import * as THREE from 'three';
@@ -684,7 +683,7 @@ Scene.prototype.processAnimation = function()
                     animationDefinition.objectFunction !== void null)
                 {
                     animationDefinition.type = 'object';
-                    getScene().add(animationDefinition.ref.mesh);
+                    this.renderScene.add(animationDefinition.ref.mesh);
                     //animationDefinition.ref = new Model();
 
                     if (animationDefinition.object !== void null)
@@ -827,9 +826,9 @@ Scene.prototype.processAnimation = function()
                 {
                     if (animationDefinition.perspective == '2d') {
                         //getCamera().add(animationDefinition.ref.mesh);
-                        getScene().add(animationDefinition.ref.mesh);
+                        this.renderScene.add(animationDefinition.ref.mesh);
                     } else {
-                        getScene().add(animationDefinition.ref.mesh);
+                        this.renderScene.add(animationDefinition.ref.mesh);
                     }
 
         
@@ -910,9 +909,9 @@ Scene.prototype.processAnimation = function()
 
                     if (animationDefinition.perspective == '2d') {
                         //getCamera().add(animationDefinition.ref.mesh);
-                        getScene().add(animationDefinition.ref.mesh);
+                        this.renderScene.add(animationDefinition.ref.mesh);
                     } else {
-                        getScene().add(animationDefinition.ref.mesh);
+                        this.renderScene.add(animationDefinition.ref.mesh);
                     }
 
                     var animStart = startTime;
@@ -960,7 +959,7 @@ Scene.prototype.processAnimation = function()
                 {
                     animationDefinition.type = 'light';
                     animationDefinition.ref = new Light(animationDefinition);
-                    getScene().add(animationDefinition.ref.mesh);
+                    this.renderScene.add(animationDefinition.ref.mesh);
 
                     animStart = startTime;
                     animEnd = startTime;
@@ -1043,6 +1042,9 @@ Scene.prototype.processAnimation = function()
                     Utils.preprocessTimeAnimation(animStart, animDuration, animEnd, animationDefinition.up);
                     this.preprocess3dCoordinateAnimation(animStart, animDuration, animEnd, animationDefinition.up,
                         {'x': 0.0, 'y': 1.0, 'z': 0.0});
+                }
+                else if (animationDefinition.scene !== void null) {
+                    animationDefinition.type = 'scene';
                 }
 
                 if (animationDefinition.initFunction !== void null)

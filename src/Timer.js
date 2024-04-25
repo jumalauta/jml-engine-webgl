@@ -112,10 +112,5 @@ Timer.prototype.isEnd = function() {
 
   return this.getTime() >= this.endTime;
 }
-  
-// Legacy method for backward compatibility
-function getSceneTimeFromStart() {
-  return (new Timer()).getTimeInSeconds();
-}
 
-export { Timer, getSceneTimeFromStart }
+export { Timer }

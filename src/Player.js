@@ -7,6 +7,7 @@ import { processFutures } from './Bindings';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { DemoRenderer } from './DemoRenderer';
+import { Loader } from './Loader';
 
 const settings = new Settings();
 
@@ -798,8 +799,13 @@ function setAnimationVisibility(animation, visible) {
     }
 }
 
+let sceneTimeFromStart = 0;
 Player.prototype.drawSceneAnimation = function(scene, time)
 {
+    sceneTimeFromStart = time;
+    const demoRenderer = new DemoRenderer();
+    demoRenderer.setScene(scene.name);
+
     var graphics = new Graphics();
     var transformationMatrix = new TransformationMatrix();
     //loggerDebug(scene.name + " - drawSceneAnimation: " + time);
@@ -859,6 +865,10 @@ Player.prototype.drawSceneAnimation = function(scene, time)
                     {
                         this.drawCameraAnimation(time, animation);
                     }
+                    else if (animation.type === 'scene')
+                    {
+                        this.drawSceneAnimation((new Loader()).scenes[animation.scene.name], time - animation.start);
+                    }
 
                     if (animation.runFunction !== void null)
                     {
@@ -891,6 +901,13 @@ Player.prototype.drawSceneAnimation = function(scene, time)
 
     graphics.popState();
     transformationMatrix.pop();
+
+    demoRenderer.renderScene();
 }
 
-export { Player };
+// Legacy method for backward compatibility
+function getSceneTimeFromStart() {
+    return sceneTimeFromStart;
+}
+  
+export { Player, getSceneTimeFromStart };
