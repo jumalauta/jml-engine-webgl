@@ -106,6 +106,7 @@ Text.prototype.setValue = function(text) {
         this.material = this.createMaterial();
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+        this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
         //this.mesh.position.z = settings.demo.screen.perspectiveText2dZ;
         this.ptr = this.mesh;    
 

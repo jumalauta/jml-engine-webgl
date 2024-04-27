@@ -81,6 +81,8 @@ Image.prototype.generateMesh = function() {
   //instance.mesh.renderOrder = 100;
   this.ptr = this.mesh;
   this.mesh.position.z = 0;//settings.demo.screen.perspective2dZ;
+  this.mesh.frustumCulled = false;  // Avoid getting clipped in 2d
+
   if (settings.engine.preload) {
     (new DemoRenderer()).renderer.initTexture(this.texture);
   }
