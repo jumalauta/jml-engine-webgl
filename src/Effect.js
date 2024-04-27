@@ -46,19 +46,21 @@ Effect.init = function (effectName) {
     (async () => {
       loggerDebug('Starting loading');
       const now = new Date().getTime() / 1000;
+      let processedPromises = 0;
       try {
-        while (effect.loader.promises.length > 0) {
-          loadingBar.setPercent(
-            ((promiseCount - effect.loader.promises.length) / promiseCount) *
-              0.7
-          );
-          await effect.loader.promises.shift();
+        for (let i = 0; i < effect.loader.promises.length; i++) {
+          effect.loader.promises[i].finally(() => {
+            processedPromises++;
+            const percent = (processedPromises / promiseCount) * 0.9;
+            loadingBar.setPercent(percent);
+          });
         }
 
-        loadingBar.setPercent(0.8);
-        await new Sync().init();
+        await Promise.all(effect.loader.promises);
+        effect.loader.promises = [];
 
         loadingBar.setPercent(0.9);
+        await new Sync().init();
         effect.loader.processAnimation();
 
         const demoRenderer = new DemoRenderer();
