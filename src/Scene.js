@@ -346,6 +346,14 @@ Scene.prototype.addAnimation = function(animationDefinitions)
     {
         var animationDefinition = animationDefinitions[animationI];
 
+        if (animationDefinition.start === void null)
+        {
+            animationDefinition.start = 0;
+        }
+        if (animationDefinition.duration === void null && animationDefinition.end === void null)
+        {
+            animationDefinition.duration = 3600;
+        }
 
         if (animationDefinition.layer === void null)
         {
