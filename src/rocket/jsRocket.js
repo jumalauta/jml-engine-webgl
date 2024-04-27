@@ -161,6 +161,11 @@ JSRocket.SyncDevicePlayer = function (cfg) {
             xml = (new DOMParser()).parseFromString(xmlString, 'text/xml'),
             tracks = xml.getElementsByTagName('tracks');
 
+        if (xml === undefined || tracks === undefined || tracks[0] === undefined) {
+            _eventHandler.error();
+            return;
+        }
+
         //<tracks>
         var trackList = tracks[0].getElementsByTagName('track');
 
@@ -238,6 +243,8 @@ JSRocket.SyncDeviceClient = function (cfg) {
             'pause' :function () {
             },
             'save' :function () {
+            },
+            'error' :function (e) {
             }
         };
 
@@ -306,6 +313,7 @@ JSRocket.SyncDeviceClient = function (cfg) {
 
     function onError(e) {
         console.error(">> connection error'd", e);
+        _eventHandler.error();
     }
 
     _ws.onopen = onOpen;
@@ -404,6 +412,8 @@ JSRocket.SyncDevice = function () {
             'play'  :function () {
             },
             'pause' :function () {
+            },
+            'error' :function () {
             }
         };
 
@@ -418,6 +428,7 @@ JSRocket.SyncDevice = function () {
         _device.on('update', deviceUpdate);
         _device.on('play', devicePlay);
         _device.on('pause', devicePause);
+        _device.on('error', deviceError);
     }
 
     function getConfig() {
@@ -437,6 +448,11 @@ JSRocket.SyncDevice = function () {
     function deviceReady() {
         _connected = true;
         _eventHandler.ready();
+    }
+
+    function deviceError() {
+        _connected = false;
+        _eventHandler.error();
     }
 
     function deviceUpdate(row) {

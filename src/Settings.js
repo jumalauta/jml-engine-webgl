@@ -32,6 +32,15 @@ Settings.prototype.init = function () {
 
   this.demo = {
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+    sync: {
+      mandatory: false,
+      rocketFile: 'sync/sync.rocket',
+      beatsPerMinute: 120,
+      rowsPerBeat: 8
+    },
+    music: {
+      musicFile: 'music.mp3'
+    },
     // backgroundColor: { r: 0.0, g: 1.0, b: 0.0 },
     /* fog: {
       color: { r: 0.0, g: 0.0, b: 0.0 },

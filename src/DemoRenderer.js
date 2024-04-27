@@ -4,6 +4,7 @@ import { LoadingBar } from './LoadingBar';
 import { Fbo } from './Fbo';
 import { Effect } from './Effect';
 import { Settings } from './Settings';
+import { Sync } from './Sync';
 
 const settings = new Settings();
 
@@ -204,6 +205,8 @@ DemoRenderer.prototype.render = function () {
 */
 
   this.renderer.clear();
+
+  new Sync().update();
 
   Effect.run('Demo');
 

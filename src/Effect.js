@@ -1,6 +1,6 @@
 import { Loader } from './Loader';
 import { Player } from './Player';
-import { loggerDebug, loggerInfo } from './Bindings';
+import { loggerDebug, loggerInfo, loggerError } from './Bindings';
 import { Music } from './Music';
 import { Sync } from './Sync';
 import { LoadingBar } from './LoadingBar';
@@ -35,8 +35,9 @@ Effect.init = function (effectName) {
   } else {
     const fileManager = new FileManager();
     const music = new Music();
-    effect.loader.promises.push(music.load(fileManager.getPath('music.mp3')));
-    effect.loader.promises.push(Sync.getInstance().init());
+    effect.loader.promises.push(
+      music.load(fileManager.getPath(settings.demo.music.musicFile))
+    );
 
     const promiseCount = effect.loader.promises.length;
 
@@ -49,10 +50,13 @@ Effect.init = function (effectName) {
         while (effect.loader.promises.length > 0) {
           loadingBar.setPercent(
             ((promiseCount - effect.loader.promises.length) / promiseCount) *
-              0.8
+              0.7
           );
           await effect.loader.promises.shift();
         }
+
+        loadingBar.setPercent(0.8);
+        await new Sync().init();
 
         loadingBar.setPercent(0.9);
         effect.loader.processAnimation();
@@ -91,8 +95,11 @@ Effect.init = function (effectName) {
         demoRenderer.setRenderNeedsUpdate(true);
         fileManager.setNeedsUpdate(false);
       } catch (error) {
-        console.trace(error);
-        alert('Error in loading demo: ' + (error.message || ''));
+        if (error instanceof Error) {
+          loggerError('Error in loading demo: ' + (error.message || ''));
+        } else {
+          loggerError('Error in loading demo');
+        }
       }
     })();
   }

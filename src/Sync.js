@@ -1,59 +1,101 @@
 import { JSRocket } from './rocket/jsRocket';
 import { loggerDebug } from './Bindings';
 import { Timer } from './Timer';
+import { FileManager } from './FileManager';
+import { Settings } from './Settings';
+const settings = new Settings();
 
-/** @constructor */
 const Sync = function () {
-  this.demoMode = true;
+  return this.getInstance();
+};
+
+Sync.prototype.getInstance = function () {
+  if (!Sync.prototype._singletonInstance) {
+    Sync.prototype._singletonInstance = this;
+  }
+
+  return Sync.prototype._singletonInstance;
+};
+
+Sync.prototype.init = async function () {
+  if (settings.engine.tool) {
+    try {
+      await this.initDevice(true);
+    } catch (e) {
+      loggerDebug('Error initializing GNU Rocket WebSocket connection');
+    }
+  }
+
+  try {
+    if (!this.ready) {
+      await this.initDevice(false);
+    }
+  } catch (e) {
+    if (settings.demo.sync.mandatory) {
+      throw e;
+    }
+  }
+};
+
+Sync.prototype.initDevice = function (webSocket) {
   this.syncDevice = new JSRocket.SyncDevice();
   this.previousIntRow = undefined;
   this.timer = new Timer();
-};
+  this.ready = false;
 
-Sync.getInstance = function () {
-  if (Sync.instance === undefined) {
-    Sync.instance = new Sync();
-  }
-
-  return Sync.instance;
-};
-
-// var _demoMode = true, _syncDevice = new JSRocket.SyncDevice(), _previousIntRow, _audio = new Audio();
-
-Sync.prototype.init = function () {
   const instance = this;
   return new Promise((resolve, reject) => {
-    if (instance.demoMode) {
-      instance.syncDevice.setConfig({
-        rocketXML: 'data/sync/fallofman.rocket'
-      });
-      instance.syncDevice.init('demo');
-    } else {
-      // syncDevice.setConfig({'socketURL':'ws://192.168.0.100:1339'});
-      instance.syncDevice.init();
-    }
-
-    instance.rowRate = (120 / 60) * 8; // BPM / 60 * ROWS_PER_BEAT;
+    instance.rowRate =
+      (settings.demo.sync.beatsPerMinute / 60) * settings.demo.sync.rowsPerBeat;
 
     instance.syncDevice.on('ready', () => {
       loggerDebug('GNU Rocket loaded');
+      instance.ready = true;
       resolve();
     });
     instance.syncDevice.on('update', function (row) {
-      instance.timer.setTime(1.23 * 1000);
+      if (!instance.timer.isPaused()) {
+        instance.timer.pause();
+      }
+      const time = (row / instance.rowRate) * 1000;
+      instance.timer.setTime(time);
     });
     instance.syncDevice.on('play', function () {
-      instance.timer.start();
+      instance.timer.pause();
     });
     instance.syncDevice.on('pause', function () {
       instance.timer.pause();
     });
+    instance.syncDevice.on('error', function () {
+      console.log('Error loading GNU Rocket');
+      reject(new Error('Error loading GNU Rocket'));
+    });
+
+    if (webSocket) {
+      // syncDevice.setConfig({'socketURL':'ws://192.168.0.100:1339'});
+      loggerDebug('Loading GNU Rocket via WebSocket');
+      instance.syncDevice.init();
+    } else {
+      const path = new FileManager().getPath(settings.demo.sync.rocketFile);
+      loggerDebug('Loading GNU Rocket from XML: ' + path);
+      instance.syncDevice.setConfig({
+        rocketXML: path
+      });
+      instance.syncDevice.init('demo');
+    }
   });
 };
 
 Sync.prototype.getRow = function () {
   const row = Math.floor(this.timer.getTimeInSeconds() * this.rowRate);
   return row;
+};
+
+Sync.prototype.update = function () {
+  if (this.ready && !this.timer.isPaused()) {
+    const row = this.getRow();
+    this.syncDevice.update(row);
+  }
 };
 
 Sync.syncDefinitions = {};
@@ -105,14 +147,19 @@ Sync.addSync = function (syncDefinitions) {
 const trackCache = {};
 
 Sync.get = function (name) {
+  const sync = new Sync();
+  if (!sync.ready) {
+    return 0;
+  }
+
   let track = trackCache[name];
   if (track === undefined) {
-    track = Sync.getInstance().syncDevice.getTrack(name);
+    track = sync.syncDevice.getTrack(name);
     trackCache[name] = track;
   }
 
   let v = 0;
-  const row = Sync.getInstance().getRow();
+  const row = sync.getRow();
   if (track) {
     v = track.getValue(row) || 0;
   }
