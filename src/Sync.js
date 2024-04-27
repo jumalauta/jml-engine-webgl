@@ -1,61 +1,66 @@
-import { JSRocket } from "./rocket/jsRocket";
-import { loggerDebug } from "./Bindings";
-import { Timer } from "./Timer"
+import { JSRocket } from './rocket/jsRocket';
+import { loggerDebug } from './Bindings';
+import { Timer } from './Timer';
 
 /** @constructor */
-var Sync = function()
-{
-    this.demoMode = true;
-    this.syncDevice = new JSRocket.SyncDevice();
-    this.previousIntRow = undefined;
-    this.timer = new Timer();
+const Sync = function () {
+  this.demoMode = true;
+  this.syncDevice = new JSRocket.SyncDevice();
+  this.previousIntRow = undefined;
+  this.timer = new Timer();
 };
 
-Sync.getInstance = function() {
-    if (Sync.instance === void null)
-    {
-        Sync.instance = new Sync();
+Sync.getInstance = function () {
+  if (Sync.instance === undefined) {
+    Sync.instance = new Sync();
+  }
+
+  return Sync.instance;
+};
+
+// var _demoMode = true, _syncDevice = new JSRocket.SyncDevice(), _previousIntRow, _audio = new Audio();
+
+Sync.prototype.init = function () {
+  const instance = this;
+  return new Promise((resolve, reject) => {
+    if (instance.demoMode) {
+      instance.syncDevice.setConfig({
+        rocketXML: 'data/sync/fallofman.rocket'
+      });
+      instance.syncDevice.init('demo');
+    } else {
+      // syncDevice.setConfig({'socketURL':'ws://192.168.0.100:1339'});
+      instance.syncDevice.init();
     }
 
-    return Sync.instance;
-}
+    instance.rowRate = (120 / 60) * 8; // BPM / 60 * ROWS_PER_BEAT;
 
-//var _demoMode = true, _syncDevice = new JSRocket.SyncDevice(), _previousIntRow, _audio = new Audio();
-
-Sync.prototype.init = function() {
-    let instance = this;
-    return new Promise((resolve, reject) => {
-        if (instance.demoMode) {
-            instance.syncDevice.setConfig({'rocketXML':'data/sync/fallofman.rocket'});
-            instance.syncDevice.init("demo");
-        } else {
-            //syncDevice.setConfig({'socketURL':'ws://192.168.0.100:1339'});
-            instance.syncDevice.init();
-        }
-
-        instance.rowRate = 120 / 60 * 8; // BPM / 60 * ROWS_PER_BEAT;
-
-        instance.syncDevice.on('ready', () => {
-            loggerDebug("GNU Rocket loaded");
-            resolve();
-        });
-        instance.syncDevice.on('update', function(row) { instance.timer.setTime(1.23 * 1000); });
-        instance.syncDevice.on('play', function() { instance.timer.start(); });
-        instance.syncDevice.on('pause', function() { instance.timer.pause(); });
+    instance.syncDevice.on('ready', () => {
+      loggerDebug('GNU Rocket loaded');
+      resolve();
     });
-}
+    instance.syncDevice.on('update', function (row) {
+      instance.timer.setTime(1.23 * 1000);
+    });
+    instance.syncDevice.on('play', function () {
+      instance.timer.start();
+    });
+    instance.syncDevice.on('pause', function () {
+      instance.timer.pause();
+    });
+  });
+};
 
-Sync.prototype.getRow = function() {
-    let row = Math.floor(this.timer.getTimeInSeconds() * this.rowRate);
-    return row;
-}  
-  
+Sync.prototype.getRow = function () {
+  const row = Math.floor(this.timer.getTimeInSeconds() * this.rowRate);
+  return row;
+};
+
 Sync.syncDefinitions = {};
 
-Sync.addSync = function(syncDefinitions)
-{
-    loggerDebug("Sync.addSync is OBSOLETE");
-    /*var startTime = 0;
+Sync.addSync = function (syncDefinitions) {
+  loggerDebug('Sync.addSync is OBSOLETE');
+  /* var startTime = 0;
     var endTime = 0;
     var durationTime = 0;
 
@@ -75,11 +80,11 @@ Sync.addSync = function(syncDefinitions)
             loggerTrace("Rocket sync track '"+syncDefinition.name+"'/'"+syncDefinition.ref.ptr+"' added");
         }
 
-        if (syncDefinition.pattern === void null)
+        if (syncDefinition.pattern === undefined)
         {
             syncDefinition.pattern = [{}];
 
-            if (syncDefinition.ref === void null)
+            if (syncDefinition.ref === undefined)
             {
                 syncDefinition.pattern = [{'start': startTime, 'duration': durationTime}];
             }
@@ -94,65 +99,63 @@ Sync.addSync = function(syncDefinitions)
         }
 
         Sync.syncDefinitions[syncDefinition.name] = syncDefinition;
-    }*/
+    } */
 };
 
-let trackCache = {};
+const trackCache = {};
 
-Sync.get = function(name)
-{
-    let track = trackCache[name];
-    if (track === void null) {
-        track = Sync.getInstance().syncDevice.getTrack(name);
-        trackCache[name] = track;
-    }
+Sync.get = function (name) {
+  let track = trackCache[name];
+  if (track === undefined) {
+    track = Sync.getInstance().syncDevice.getTrack(name);
+    trackCache[name] = track;
+  }
 
-    let v = 0;
-    let row = Sync.getInstance().getRow();
-    if (track) {
-        v = track.getValue(row) || 0;
-    }
+  let v = 0;
+  const row = Sync.getInstance().getRow();
+  if (track) {
+    v = track.getValue(row) || 0;
+  }
 
-    //loggerDebug("Sync track '" + name + "', row: " + row + "' value " + v);
+  // loggerDebug("Sync track '" + name + "', row: " + row + "' value " + v);
 
-    return v;
+  return v;
 
-    /*var sync = Sync.syncDefinitions[name];
-    if (sync !== void null) {
-        if (sync.ref !== void null) {
+  /* var sync = Sync.syncDefinitions[name];
+    if (sync !== undefined) {
+        if (sync.ref !== undefined) {
             var value = syncEditorGetTrackCurrentValue(sync.ref.ptr);
             return value;
         }
-    }*/
+    } */
 
-    //loggerWarning("Sync track not found '" + name + "'");
-    //return 0;
+  // loggerWarning("Sync track not found '" + name + "'");
+  // return 0;
 };
 
 Sync.getSyncValue = Sync.get;
 
-Sync.calculateAnimationSync = function(time, animation)
-{
-    /*if (animation.sync !== void null)
+Sync.calculateAnimationSync = function (time, animation) {
+  /* if (animation.sync !== undefined)
     {
         var sync = Sync.syncDefinitions[animation.sync.name];
-        if (sync !== void null)
+        if (sync !== undefined)
         {
             var syncTime = time % sync.end;
 
             animation.sync.progress = 0;
-            if (sync.ref !== void null)
+            if (sync.ref !== undefined)
             {
                 //GNU Rocket sync
                 animation.sync.progress = syncEditorGetTrackCurrentValue(sync.ref.ptr);
 
-                if (sync.syncStartFunction !== void null && sync.started === void null)
+                if (sync.syncStartFunction !== undefined && sync.started === undefined)
                 {
                     sync.started = true;
                     Utils.evaluateVariable(animation, sync.syncStartFunction);
                 }
 
-                if (sync.syncRunFunction !== void null)
+                if (sync.syncRunFunction !== undefined)
                 {
                     Utils.evaluateVariable(animation, sync.syncRunFunction);
                 }
@@ -178,21 +181,21 @@ Sync.calculateAnimationSync = function(time, animation)
                         pattern.started = true;
                         pattern.startTime = time;
 
-                        if (pattern.syncStartFunction !== void null)
+                        if (pattern.syncStartFunction !== undefined)
                         {
                             Utils.evaluateVariable(animation, pattern.syncStartFunction);
                         }
-                        else if (sync.syncStartFunction !== void null)
+                        else if (sync.syncStartFunction !== undefined)
                         {
                             Utils.evaluateVariable(animation, sync.syncStartFunction);
                         }
                     }
 
-                    if (pattern.syncRunFunction !== void null)
+                    if (pattern.syncRunFunction !== undefined)
                     {
                         Utils.evaluateVariable(animation, pattern.syncRunFunction);
                     }
-                    else if (sync.syncRunFunction !== void null)
+                    else if (sync.syncRunFunction !== undefined)
                     {
                         Utils.evaluateVariable(animation, sync.syncRunFunction);
                     }
@@ -205,18 +208,18 @@ Sync.calculateAnimationSync = function(time, animation)
                     pattern.started = false;
                     animation.sync.progress = 0;
 
-                    if (pattern.syncEndFunction !== void null)
+                    if (pattern.syncEndFunction !== undefined)
                     {
                         Utils.evaluateVariable(animation, pattern.syncEndFunction);
                     }
-                    else if (sync.syncEndFunction !== void null)
+                    else if (sync.syncEndFunction !== undefined)
                     {
                         Utils.evaluateVariable(animation, sync.syncEndFunction);
                     }
                 }
             }
         }
-    }*/
-}
+    } */
+};
 
 export { Sync };

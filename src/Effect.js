@@ -12,126 +12,112 @@ import { Settings } from './Settings';
 const settings = new Settings();
 
 /** @constructor */
-var Effect = function()
-{
-};
+const Effect = function () {};
 
 Effect.effects = [];
 
-Effect.init = function(effectName)
-{
-    var effect = eval('new ' + effectName);
+Effect.init = function (effectName) {
+  /* eslint-disable no-eval */
+  const effect = eval('new ' + effectName);
 
-    //if (effect.loader === void null)
-    {
-        effect.loader = new Loader();
-        effect.loader.clear();
-    }
-    //if (effect.player === void null)
-    {
-        effect.player = new Player();
-    }
+  effect.loader = new Loader();
+  effect.loader.clear();
+  effect.player = new Player();
 
-    Effect.effects[effectName] = effect;
+  Effect.effects[effectName] = effect;
 
-    if (effect.init !== void null)
-    {
-        effect.init();
-    }
+  if (effect.init !== undefined) {
+    effect.init();
+  }
 
-    if (effect.postInit !== void null)
-    {
-        effect.postInit();
-    }
-    else
-    {
-        const fileManager = new FileManager();
-        const music = new Music();
-        effect.loader.promises.push(music.load(fileManager.getPath("music.mp3")));
-        effect.loader.promises.push(Sync.getInstance().init());
+  if (effect.postInit !== undefined) {
+    effect.postInit();
+  } else {
+    const fileManager = new FileManager();
+    const music = new Music();
+    effect.loader.promises.push(music.load(fileManager.getPath('music.mp3')));
+    effect.loader.promises.push(Sync.getInstance().init());
 
-        let promiseCount = effect.loader.promises.length;
+    const promiseCount = effect.loader.promises.length;
 
-        const loadingBar = new LoadingBar();
+    const loadingBar = new LoadingBar();
 
-        (async () => {
-            loggerDebug("Starting loading");
-            let now = new Date().getTime() / 1000;
-            try {   
-                while(effect.loader.promises.length > 0) {
-                    loadingBar.setPercent((promiseCount - effect.loader.promises.length) / (promiseCount) * 0.8);
-                        await effect.loader.promises.shift();
-                }
+    (async () => {
+      loggerDebug('Starting loading');
+      const now = new Date().getTime() / 1000;
+      try {
+        while (effect.loader.promises.length > 0) {
+          loadingBar.setPercent(
+            ((promiseCount - effect.loader.promises.length) / promiseCount) *
+              0.8
+          );
+          await effect.loader.promises.shift();
+        }
 
-                loadingBar.setPercent(0.9);
-                effect.loader.processAnimation();
+        loadingBar.setPercent(0.9);
+        effect.loader.processAnimation();
 
-                const demoRenderer = new DemoRenderer();
+        const demoRenderer = new DemoRenderer();
 
-                if (settings.engine.preload) {
-                    let preCompileList = [];
-                    const fbos = Fbo.getFbos();
-                    for (let key in fbos) {
-                        let fbo = fbos[key];
-                        preCompileList.push({scene: fbo.scene, camera: fbo.camera});
-                    }
-                    preCompileList.push({scene: getScene(), camera: getCamera()});
-                    for(let i = 0; i < preCompileList.length; i++) {
-                        loadingBar.setPercent(0.9 + (i / preCompileList.length) * 0.1);
-                        const item = preCompileList[i];
-                        // TODO: compile throws errors, render if flexible but still builds at least the shaders
-                        //demoRenderer.renderer.compile(item.scene, item.camera);
-                        demoRenderer.renderer.render( item.scene, item.camera );
-                    }
-                }
+        if (settings.engine.preload) {
+          const preCompileList = [];
+          const fbos = Fbo.getFbos();
+          for (const key in fbos) {
+            const fbo = fbos[key];
+            preCompileList.push({ scene: fbo.scene, camera: fbo.camera });
+          }
+          preCompileList.push({ scene: getScene(), camera: getCamera() });
+          for (let i = 0; i < preCompileList.length; i++) {
+            loadingBar.setPercent(0.9 + (i / preCompileList.length) * 0.1);
+            const item = preCompileList[i];
+            // TODO: compile throws errors, render if flexible but still builds at least the shaders
+            // demoRenderer.renderer.compile(item.scene, item.camera);
+            demoRenderer.renderer.render(item.scene, item.camera);
+          }
+        }
 
-                loadingBar.setPercent(1.0);
-                loggerInfo("Starting demo. Loading took " + (new Date().getTime() / 1000 - now).toFixed(2) + " seconds");
+        loadingBar.setPercent(1.0);
+        loggerInfo(
+          'Starting demo. Loading took ' +
+            (new Date().getTime() / 1000 - now).toFixed(2) +
+            ' seconds'
+        );
 
-                const timer = new Timer();
-                if (timer.getTime() <= 0) {
-                    timer.start();
-                }
-                
-                demoRenderer.setRenderNeedsUpdate(true);
-                fileManager.setNeedsUpdate(false);
-            } catch (error) {
-                console.trace(error);
-                alert("Error in loading demo: " + (error.message||''));
-                return;
-            }
-        })();
-    }
+        const timer = new Timer();
+        if (timer.getTime() <= 0) {
+          timer.start();
+        }
+
+        demoRenderer.setRenderNeedsUpdate(true);
+        fileManager.setNeedsUpdate(false);
+      } catch (error) {
+        console.trace(error);
+        alert('Error in loading demo: ' + (error.message || ''));
+      }
+    })();
+  }
 };
 
-Effect.run = function(effectName)
-{
-    var effect = Effect.effects[effectName];
+Effect.run = function (effectName) {
+  const effect = Effect.effects[effectName];
 
-    if (effect.run !== void null)
-    {
-        effect.run();
-    }
-    else
-    {
-        effect.player.drawAnimation(effect.loader);
-    }
+  if (effect.run !== undefined) {
+    effect.run();
+  } else {
+    effect.player.drawAnimation(effect.loader);
+  }
 };
 
-Effect.deinit = function(effectName)
-{
-    var effect = Effect.effects[effectName];
+Effect.deinit = function (effectName) {
+  const effect = Effect.effects[effectName];
 
-    if (effect.deinit !== void null)
-    {
-        effect.deinit();
-    }
-    else
-    {
-        effect.loader.deinitAnimation();
-    }
+  if (effect.deinit !== undefined) {
+    effect.deinit();
+  } else {
+    effect.loader.deinitAnimation();
+  }
 
-    delete Effect.effects[effectName];
-}
+  delete Effect.effects[effectName];
+};
 
 export { Effect };

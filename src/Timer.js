@@ -1,12 +1,12 @@
-import { loggerInfo } from "./Bindings";
-import { Music } from "./Music";
-import { FileManager } from "./FileManager";
+import { loggerInfo } from './Bindings';
+import { Music } from './Music';
+import { FileManager } from './FileManager';
 
-var Timer = function() {
+const Timer = function () {
   return this.getInstance();
-}
+};
 
-Timer.prototype.getInstance = function() {
+Timer.prototype.getInstance = function () {
   if (!Timer.prototype._singletonInstance) {
     this.music = new Music();
     this.time = 0;
@@ -14,36 +14,36 @@ Timer.prototype.getInstance = function() {
   }
 
   return Timer.prototype._singletonInstance;
-}
+};
 
-Timer.prototype.now = function() {
+Timer.prototype.now = function () {
   // TODO: https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
   return Date.now();
-}
+};
 
-Timer.prototype.setEndTime = function(endTime) {
+Timer.prototype.setEndTime = function (endTime) {
   this.endTime = endTime;
-}
+};
 
-Timer.prototype.start = function() {
+Timer.prototype.start = function () {
   loggerInfo('Starting demo timer');
-  (new FileManager()).startWatchFileChanges();
+  new FileManager().startWatchFileChanges();
   this.setTime(0);
-  //this.music.play();
-  //this.update();
-}
+  // this.music.play();
+  // this.update();
+};
 
-Timer.prototype.stop = function() {
+Timer.prototype.stop = function () {
   loggerInfo('Stopping demo timer');
-  (new FileManager()).stopWatchFileChanges();
+  new FileManager().stopWatchFileChanges();
   this.setTime(0);
   this.music.stop();
   this.startTime = undefined;
   this.pauseTime = undefined;
   this.time = 0;
-}
+};
 
-Timer.prototype.pause = function() {
+Timer.prototype.pause = function () {
   if (!this.pauseTime) {
     loggerInfo('Pausing demo timer');
     this.pauseTime = this.now();
@@ -54,13 +54,13 @@ Timer.prototype.pause = function() {
   }
   this.music.pause();
   this.update(true);
-}
+};
 
-Timer.prototype.isPaused = function() {
+Timer.prototype.isPaused = function () {
   return this.pauseTime !== undefined;
-}
+};
 
-Timer.prototype.setTime = function(time) {
+Timer.prototype.setTime = function (time) {
   if (time < 0) {
     time = 0;
   } else if (this.endTime && time > this.endTime) {
@@ -74,43 +74,43 @@ Timer.prototype.setTime = function(time) {
   }
   this.music.setTime(time / 1000);
   this.update(true);
-}
+};
 
-Timer.prototype.update = function(force) {
+Timer.prototype.update = function (force) {
   if (this.startTime === undefined) {
     this.time = 0;
     return;
   }
-  
+
   if (!this.pauseTime || force) {
-    const time = (this.now() - this.startTime);
-  
+    const time = this.now() - this.startTime;
+
     this.time = Math.min(time, this.endTime || time);
   }
-}
+};
 
-Timer.prototype.getTime = function() {
-    return this.time;
-}
+Timer.prototype.getTime = function () {
+  return this.time;
+};
 
-Timer.prototype.getTimePercent = function() {
+Timer.prototype.getTimePercent = function () {
   return this.getTime() / this.endTime;
-}
+};
 
-Timer.prototype.setTimePercent = function(percent) {
+Timer.prototype.setTimePercent = function (percent) {
   this.setTime(percent * this.endTime);
-}
+};
 
-Timer.prototype.getTimeInSeconds = function() {
+Timer.prototype.getTimeInSeconds = function () {
   return this.getTime() / 1000;
-}
+};
 
-Timer.prototype.isEnd = function() {
+Timer.prototype.isEnd = function () {
   if (this.endTime === undefined) {
     return false;
   }
 
   return this.getTime() >= this.endTime;
-}
+};
 
-export { Timer }
+export { Timer };

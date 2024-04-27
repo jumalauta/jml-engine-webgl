@@ -3,198 +3,225 @@ import { Utils } from './Utils';
 import { loggerDebug, loggerWarning } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
-  
-/** @constructor */
-var Shader = function(animationDefinition)
-{
-    this.vertexShaderUrl   = '_embedded/default.vs';
-    this.fragmentShaderUrl = '_embedded/default.fs';
-    if (animationDefinition.perspective == '2d') {
-        this.vertexShaderUrl   = '_embedded/default2d.vs';
-        this.fragmentShaderUrl = '_embedded/default2d.fs';
-    }
-    this.shaderDefinition  = animationDefinition.shader;
 
-    if (this.shaderDefinition.name) {
-        let name = this.shaderDefinition.name instanceof Array ? this.shaderDefinition.name : [this.shaderDefinition.name];
-        name.forEach((shaderUrl) => {
-            if (shaderUrl.toUpperCase().endsWith('.VS') || shaderUrl.toUpperCase().endsWith('.VERT')) {
-                this.vertexShaderUrl = shaderUrl;
-            } else {
-                this.fragmentShaderUrl = shaderUrl;
-            }
-        });
-    }
+/** @constructor */
+const Shader = function (animationDefinition) {
+  this.vertexShaderUrl = '_embedded/default.vs';
+  this.fragmentShaderUrl = '_embedded/default.fs';
+  if (animationDefinition.perspective === '2d') {
+    this.vertexShaderUrl = '_embedded/default2d.vs';
+    this.fragmentShaderUrl = '_embedded/default2d.fs';
+  }
+  this.shaderDefinition = animationDefinition.shader;
+
+  if (this.shaderDefinition.name) {
+    const name =
+      this.shaderDefinition.name instanceof Array
+        ? this.shaderDefinition.name
+        : [this.shaderDefinition.name];
+    name.forEach((shaderUrl) => {
+      if (
+        shaderUrl.toUpperCase().endsWith('.VS') ||
+        shaderUrl.toUpperCase().endsWith('.VERT')
+      ) {
+        this.vertexShaderUrl = shaderUrl;
+      } else {
+        this.fragmentShaderUrl = shaderUrl;
+      }
+    });
+  }
 };
 
-Shader.convertToThreeJsUniformValues = function(value) {
-    let v = Utils.evaluateVariable(null, value);
+Shader.convertToThreeJsUniformValues = function (value) {
+  const v = Utils.evaluateVariable(null, value);
 
-    if (v instanceof Array) {
-        v.forEach((element, index) => {
-            v[index] = Utils.evaluateVariable(null, v[index]);
-        });
-
-        switch(v.length) {
-            case 1:
-                return v[0];
-            case 2:
-                return new THREE.Vector2(v[0], v[1]);
-            case 3:
-                return new THREE.Vector3(v[0], v[1], v[2]);
-            case 4:
-                return new THREE.Vector4(v[0], v[1], v[2], v[3]);
-            default:
-                loggerWarning("Unsupported uniform value length: " + v.length);
-        }
-    }
-
-    return v;
-}
-
-Shader.prototype.createThreeJsUniforms = function() {
-    let uniforms = {};
-
-    if (this.shaderDefinition.variable) {
-        this.shaderDefinition.variable.forEach((variable) => {
-            if (variable.value !== undefined) {
-                uniforms[variable.name] = { value: Shader.convertToThreeJsUniformValues([...variable.value]) };
-            } else {
-                uniforms[variable.name] = { value: undefined };
-            }
-        });
-    }
-
-    return THREE.UniformsUtils.clone(uniforms);
-}
-
-Shader.prototype.createMaterial = function(vertexData, fragmentData) {
-    // Parse uniforms from the fragment shader, note that this does not support excluding commented out uniforms
-    const uniforms = fragmentData.match(/uniform\s+([a-zA-Z0-9]+)\s+([a-zA-Z0-9_]+)\s*;/g);
-    if (uniforms) {
-        uniforms.forEach((match) => {
-            let type = match.split(' ')[1];
-            let name = match.split(' ')[2].replace(';', '');
-
-            // This tries to support the automatic variable assignments
-            if (name === 'texture0' && type === 'sampler2D') {
-                this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-                this.shaderDefinition.variable.push({ name: name, value: undefined });
-            } else if (name === 'time' && type === 'float') {
-                this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-                this.shaderDefinition.variable.push({ name: name, value: undefined });
-            } else if (name === 'color' && type === 'vec4') {
-                this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-                this.shaderDefinition.variable.push({ name: name, value: undefined });
-            }
-        });
-    }
-
-    this.material = new THREE.ShaderMaterial({
-        name: this.fragmentShaderUrl,
-        glslVersion: THREE.GLSL3,
-        uniforms: this.createThreeJsUniforms(),
-        vertexShader: vertexData,
-        fragmentShader: fragmentData,
+  if (v instanceof Array) {
+    v.forEach((element, index) => {
+      v[index] = Utils.evaluateVariable(null, v[index]);
     });
-    this.ptr = this.material;
 
-    loggerDebug('Created shader ' + this.vertexShaderUrl + ' and ' + this.fragmentShaderUrl);
-}
-
-Shader.prototype.load = function() {
-    let instance = this;
-
-    const fileManager = new FileManager();
-
-    if (fileManager.getFileData(instance.vertexShaderUrl) && fileManager.getFileData(instance.fragmentShaderUrl)) {
-        return new Promise((resolve, reject) => {
-            try {
-                instance.createMaterial(fileManager.getFileData(instance.vertexShaderUrl), fileManager.getFileData(instance.fragmentShaderUrl));
-                resolve(instance);
-            } catch (e) {
-                console.error( 'Could not load shader ' + instance.vertexShaderUrl + ' and ' + instance.fragmentShaderUrl );
-                instance.error = true;
-                reject(instance);
-            }
-        });
+    switch (v.length) {
+      case 1:
+        return v[0];
+      case 2:
+        return new THREE.Vector2(v[0], v[1]);
+      case 3:
+        return new THREE.Vector3(v[0], v[1], v[2]);
+      case 4:
+        return new THREE.Vector4(v[0], v[1], v[2], v[3]);
+      default:
+        loggerWarning('Unsupported uniform value length: ' + v.length);
     }
+  }
 
+  return v;
+};
+
+Shader.prototype.createThreeJsUniforms = function () {
+  const uniforms = {};
+
+  if (this.shaderDefinition.variable) {
+    this.shaderDefinition.variable.forEach((variable) => {
+      if (variable.value !== undefined) {
+        uniforms[variable.name] = {
+          value: Shader.convertToThreeJsUniformValues([...variable.value])
+        };
+      } else {
+        uniforms[variable.name] = { value: undefined };
+      }
+    });
+  }
+
+  return THREE.UniformsUtils.clone(uniforms);
+};
+
+Shader.prototype.createMaterial = function (vertexData, fragmentData) {
+  // Parse uniforms from the fragment shader, note that this does not support excluding commented out uniforms
+  const uniforms = fragmentData.match(
+    /uniform\s+([a-zA-Z0-9]+)\s+([a-zA-Z0-9_]+)\s*;/g
+  );
+  if (uniforms) {
+    uniforms.forEach((match) => {
+      const type = match.split(' ')[1];
+      const name = match.split(' ')[2].replace(';', '');
+
+      // This tries to support the automatic variable assignments
+      if (name === 'texture0' && type === 'sampler2D') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
+      } else if (name === 'time' && type === 'float') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
+      } else if (name === 'color' && type === 'vec4') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
+      }
+    });
+  }
+
+  this.material = new THREE.ShaderMaterial({
+    name: this.fragmentShaderUrl,
+    glslVersion: THREE.GLSL3,
+    uniforms: this.createThreeJsUniforms(),
+    vertexShader: vertexData,
+    fragmentShader: fragmentData
+  });
+  this.ptr = this.material;
+
+  loggerDebug(
+    'Created shader ' + this.vertexShaderUrl + ' and ' + this.fragmentShaderUrl
+  );
+};
+
+Shader.prototype.load = function () {
+  const instance = this;
+
+  const fileManager = new FileManager();
+
+  if (
+    fileManager.getFileData(instance.vertexShaderUrl) &&
+    fileManager.getFileData(instance.fragmentShaderUrl)
+  ) {
     return new Promise((resolve, reject) => {
-        (new THREE.FileLoader()).load(
-            fileManager.getUrl(instance.vertexShaderUrl),
-            // onLoad callback
-            (vertexData) => {
-                if (vertexData[0] === '<') {
-                    console.error( 'Could not load vertex shader ' + instance.vertexShaderUrl );
-                    instance.error = true;
-                    reject(instance);
-                    return;    
-                }
-
-                (new THREE.FileLoader()).load(
-                    fileManager.getUrl(instance.fragmentShaderUrl),
-                    // onLoad callback
-                    (fragmentData) => {
-                        if (fragmentData[0] === '<') {
-                            console.error( 'Could not load fragment shader ' + instance.fragmentShaderUrl );
-                            instance.error = true;
-                            reject(instance);
-                            return;    
-                        }
-
-                        // Ensure we have working updates...
-                        fileManager.setRefreshFileTimestamp(instance.vertexShaderUrl);
-                        fileManager.setFileData(instance.vertexShaderUrl, vertexData);
-
-                        fileManager.setRefreshFileTimestamp(instance.fragmentShaderUrl); 
-                        fileManager.setFileData(instance.fragmentShaderUrl, fragmentData);                   
-
-                        instance.createMaterial(vertexData, fragmentData);
-
-                        resolve(instance);
-                    },
-                    // onProgress callback
-                    undefined,
-                    // onError callback
-                    (err) => {
-                        console.error( 'Could not load fragment shader ' + instance.fragmentShaderUrl );
-                        instance.error = true;
-                        reject(instance);
-                    }
-                );
-            },
-            // onProgress callback
-            undefined,
-            // onError callback
-            (err) => {
-                console.error( 'Could not load vertex shader file ' + instance.vertexShaderUrl );
-                instance.error = true;
-                reject(instance);
-            }
+      try {
+        instance.createMaterial(
+          fileManager.getFileData(instance.vertexShaderUrl),
+          fileManager.getFileData(instance.fragmentShaderUrl)
         );
+        resolve(instance);
+      } catch (e) {
+        console.error(
+          'Could not load shader ' +
+            instance.vertexShaderUrl +
+            ' and ' +
+            instance.fragmentShaderUrl
+        );
+        instance.error = true;
+        reject(instance);
+      }
     });
-}
+  }
 
+  return new Promise((resolve, reject) => {
+    new THREE.FileLoader().load(
+      fileManager.getUrl(instance.vertexShaderUrl),
+      // onLoad callback
+      (vertexData) => {
+        if (vertexData[0] === '<') {
+          console.error(
+            'Could not load vertex shader ' + instance.vertexShaderUrl
+          );
+          instance.error = true;
+          reject(instance);
+          return;
+        }
 
-Shader.increaseLoaderResourceCountWithShaders = function()
-{
-/*    if (Settings.demoScript.shaders !== void null)
+        new THREE.FileLoader().load(
+          fileManager.getUrl(instance.fragmentShaderUrl),
+          // onLoad callback
+          (fragmentData) => {
+            if (fragmentData[0] === '<') {
+              console.error(
+                'Could not load fragment shader ' + instance.fragmentShaderUrl
+              );
+              instance.error = true;
+              reject(instance);
+              return;
+            }
+
+            // Ensure we have working updates...
+            fileManager.setRefreshFileTimestamp(instance.vertexShaderUrl);
+            fileManager.setFileData(instance.vertexShaderUrl, vertexData);
+
+            fileManager.setRefreshFileTimestamp(instance.fragmentShaderUrl);
+            fileManager.setFileData(instance.fragmentShaderUrl, fragmentData);
+
+            instance.createMaterial(vertexData, fragmentData);
+
+            resolve(instance);
+          },
+          // onProgress callback
+          undefined,
+          // onError callback
+          (err) => {
+            console.error(
+              `Could not load fragment shader ${instance.fragmentShaderUrl}: ${err}`
+            );
+            instance.error = true;
+            reject(instance);
+          }
+        );
+      },
+      // onProgress callback
+      undefined,
+      // onError callback
+      (err) => {
+        console.error(
+          `Could not load vertex shader ${instance.vertexShaderUrl}: ${err}`
+        );
+        instance.error = true;
+        reject(instance);
+      }
+    );
+  });
+};
+
+Shader.increaseLoaderResourceCountWithShaders = function () {
+  /*    if (Settings.demoScript.shaders !== undefined)
     {
         setResourceCount(Settings.demoScript.shaders.length);
     }
 
-    if (Settings.demoScript.shaderPrograms !== void null)
+    if (Settings.demoScript.shaderPrograms !== undefined)
     {
         setResourceCount(Settings.demoScript.shaderPrograms.length);
-    }*/
+    } */
 };
 
-Shader.compileAndLinkShaders = function()
-{
-    Shader.increaseLoaderResourceCountWithShaders();
+Shader.compileAndLinkShaders = function () {
+  Shader.increaseLoaderResourceCountWithShaders();
 
-    /*if (Settings.demoScript.shaders !== void null)
+  /* if (Settings.demoScript.shaders !== undefined)
     {
         for (var shaderI = 0; shaderI < Settings.demoScript.shaders.length; shaderI++)
         {
@@ -214,7 +241,7 @@ Shader.compileAndLinkShaders = function()
         }
     }
 
-    if (Settings.demoScript.shaderPrograms !== void null)
+    if (Settings.demoScript.shaderPrograms !== undefined)
     {
         for (var programI = 0; programI < Settings.demoScript.shaderPrograms.length; programI++)
         {
@@ -239,13 +266,13 @@ Shader.compileAndLinkShaders = function()
             shaderProgramAttachAndLink(shaderProgram.ref.ptr);
             notifyResourceLoaded();
         }
-    }*/
+    } */
 };
 
-/*Shader.load = function(shader)
+/* Shader.load = function(shader)
 {
     var shaderProgram = getShaderProgramFromMemory(shader.programName);
-    if (shaderProgram.ptr === void null)
+    if (shaderProgram.ptr === undefined)
     {
         shaderProgram = shaderProgramLoad(shader.programName);
         for (var i = 0; i < shader.name.length; i++)
@@ -258,43 +285,44 @@ Shader.compileAndLinkShaders = function()
             }
             else
             {
-                return void null;
+                return undefined;
             }
         }
         shaderProgramAttachAndLink(shaderProgram.ptr);
     }
 
     return shaderProgram;
-};*/
+}; */
 
-Shader.enableShader = function(animation)
-{
-    if (animation.shader !== void null)
-    {
-        //shaderProgramUse(animation.shader.ref.ptr);
+Shader.enableShader = function (animation) {
+  if (animation.shader !== undefined) {
+    // shaderProgramUse(animation.shader.ref.ptr);
 
-        if (animation.shader.ref && animation.shader.variable !== void null)
-        {
-            animation.shader.variable.forEach((variable) => {
-                if (variable.value !== undefined) {
-                    //if (variable.name.startsWith('speed')) {
-                    //}
-                    animation.shader.ref.material.uniforms[variable.name].value = Shader.convertToThreeJsUniformValues([...variable.value]);
-                } else {
-                    if (variable.name === 'texture0' && animation.ref.texture) {
-                        animation.shader.ref.material.uniforms[variable.name].value = animation.ref.texture;
-                    } else if (variable.name === 'time') {
-                        animation.shader.ref.material.uniforms[variable.name].value = (new Timer()).getTimeInSeconds();
-                    } else if (variable.name === 'color') {
-                        animation.shader.ref.material.uniforms[variable.name].value = new THREE.Vector4(1.0, 1.0, 1.0, 1.0);
-                    }
-                }
-            });
+    if (animation.shader.ref && animation.shader.variable !== undefined) {
+      animation.shader.variable.forEach((variable) => {
+        if (variable.value !== undefined) {
+          // if (variable.name.startsWith('speed')) {
+          // }
+          animation.shader.ref.material.uniforms[variable.name].value =
+            Shader.convertToThreeJsUniformValues([...variable.value]);
+        } else {
+          if (variable.name === 'texture0' && animation.ref.texture) {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              animation.ref.texture;
+          } else if (variable.name === 'time') {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              new Timer().getTimeInSeconds();
+          } else if (variable.name === 'color') {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              new THREE.Vector4(1.0, 1.0, 1.0, 1.0);
+          }
+        }
+      });
 
-            /*var _getUniformLocation = getUniformLocation;
+      /* var _getUniformLocation = getUniformLocation;
             var _glUniformi = glUniformi;
             var _glUniformf = glUniformf;
-            var _setUniformFunction = void null;
+            var _setUniformFunction = undefined;
 
             var length = animation.shader.variable.length;
             for (var i = 0; i < length; i++)
@@ -341,17 +369,15 @@ Shader.enableShader = function(animation)
                     default:
                         break;
                 }
-            }*/
-        }
+            } */
     }
+  }
 };
 
-Shader.disableShader = function(animation)
-{
-    if (animation.shader !== void null)
-    {
-        //disableShaderProgram(animation.shader.ref.ptr);
-    }
-}
+Shader.disableShader = function (animation) {
+  if (animation.shader !== undefined) {
+    // disableShaderProgram(animation.shader.ref.ptr);
+  }
+};
 
 export { Shader };

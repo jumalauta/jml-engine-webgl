@@ -7,16 +7,15 @@ import { Image } from './Image';
 import { Text } from './Text';
 import { Model } from './Model';
 import { Settings } from './Settings';
-import { DemoRenderer } from './DemoRenderer';
 
-import embeddedDefaultFsUrl from './_embedded/default.fs?url'
-import embeddedDefaultVsUrl from './_embedded/default.vs?url'
-import embeddedDefault2dFsUrl from './_embedded/default2d.fs?url'
-import embeddedDefault2dVsUrl from './_embedded/default2d.vs?url'
-import embeddedDefaultFixedViewVsUrl from './_embedded/defaultFixedView.vs?url'
-import embeddedDefaultPlainFsUrl from './_embedded/defaultPlain.fs?url'
-import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png?url'
-import embeddedDefaultWhitePngUrl from './_embedded/defaultWhite.png?url'
+import embeddedDefaultFsUrl from './_embedded/default.fs?url';
+import embeddedDefaultVsUrl from './_embedded/default.vs?url';
+import embeddedDefault2dFsUrl from './_embedded/default2d.fs?url';
+import embeddedDefault2dVsUrl from './_embedded/default2d.vs?url';
+import embeddedDefaultFixedViewVsUrl from './_embedded/defaultFixedView.vs?url';
+import embeddedDefaultPlainFsUrl from './_embedded/defaultPlain.fs?url';
+import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png?url';
+import embeddedDefaultWhitePngUrl from './_embedded/defaultWhite.png?url';
 
 THREE.Cache.enabled = true;
 
@@ -29,20 +28,20 @@ if (settings.engine.tool && import.meta.env.MODE !== 'production') {
   });
 }
 
-var FileManager = function() {
+const FileManager = function () {
   return this.getInstance();
-}
+};
 
-FileManager.prototype.getInstance = function() {
+FileManager.prototype.getInstance = function () {
   if (!FileManager.prototype._singletonInstance) {
     this.init();
     FileManager.prototype._singletonInstance = this;
   }
 
   return FileManager.prototype._singletonInstance;
-}
+};
 
-FileManager.prototype.init = function() {
+FileManager.prototype.init = function () {
   this.files = {};
   this.refreshFiles = {};
   this.needsUpdate = false;
@@ -55,17 +54,17 @@ FileManager.prototype.init = function() {
     '_embedded/defaultFixedView.vs': embeddedDefaultFixedViewVsUrl,
     '_embedded/defaultPlain.fs': embeddedDefaultPlainFsUrl,
     '_embedded/defaultTransparent.png': embeddedDefaultTransparentPngUrl,
-    '_embedded/defaultWhite.png': embeddedDefaultWhitePngUrl,
-  };  
-}
+    '_embedded/defaultWhite.png': embeddedDefaultWhitePngUrl
+  };
+};
 
-FileManager.prototype.stopWatchFileChanges = async function() {
+FileManager.prototype.stopWatchFileChanges = async function () {
   if (this.intervalFunction) {
     clearInterval(this.intervalFunction);
   }
-}
+};
 
-FileManager.prototype.startWatchFileChanges = async function() {
+FileManager.prototype.startWatchFileChanges = async function () {
   if (settings.engine.tool) {
     this.stopWatchFileChanges();
 
@@ -74,27 +73,26 @@ FileManager.prototype.startWatchFileChanges = async function() {
       await fileManager.checkFiles();
     }, settings.engine.fileWatchInterval);
   }
-}
+};
 
-FileManager.prototype.checkFiles = async function() {
+FileManager.prototype.checkFiles = async function () {
   try {
     if (!fs) {
       return;
     }
-    
 
     const fileManager = new FileManager();
     for (const filePath in fileManager.refreshFiles) {
       const path = fileManager.getDiskPath(filePath);
       const stats = await fs.stat(path);
-      
+
       if (fileManager.refreshFiles[filePath] === null) {
         fileManager.refreshFiles[filePath] = stats.mtime;
         continue;
       }
 
       if (stats.mtime > fileManager.refreshFiles[filePath]) {
-        loggerDebug("File changed: " + filePath);
+        loggerDebug('File changed: ' + filePath);
 
         fileManager.refreshFiles[filePath] = stats.mtime;
         fileManager.setNeedsUpdate(true);
@@ -103,31 +101,34 @@ FileManager.prototype.checkFiles = async function() {
         if (fileManager.files[filePath]) {
           fileManager.setFileData(filePath, file);
 
-          if (path.toUpperCase().endsWith(".JS")) {
+          if (path.toUpperCase().endsWith('.JS')) {
             try {
               loggerDebug('Executing JavaScript file: ' + filePath);
+              /* eslint-disable no-eval */
               eval(file);
             } catch (e) {
-              loggerWarning('Error loading JavaScript file: ' + filePath + ' ' + e);
+              loggerWarning(
+                'Error loading JavaScript file: ' + filePath + ' ' + e
+              );
             }
           }
-        }  
+        }
       }
     }
   } catch (e) {
     loggerDebug('Error checking files: ' + e);
   }
-}
+};
 
-FileManager.prototype.setNeedsUpdate = function(needsUpdate) {
+FileManager.prototype.setNeedsUpdate = function (needsUpdate) {
   this.needsUpdate = needsUpdate;
-}
+};
 
-FileManager.prototype.isNeedsUpdate = function() {
+FileManager.prototype.isNeedsUpdate = function () {
   return this.needsUpdate;
-}
+};
 
-FileManager.prototype.setFileData = function(filePath, data) {
+FileManager.prototype.setFileData = function (filePath, data) {
   if (filePath instanceof Array) {
     for (let i = 0; i < filePath.length; i++) {
       this.files[filePath[i]] = data[i];
@@ -135,166 +136,215 @@ FileManager.prototype.setFileData = function(filePath, data) {
   } else {
     this.files[filePath] = data;
   }
-}
+};
 
-FileManager.prototype.getFileData = function(filePath) {
+FileManager.prototype.getFileData = function (filePath) {
   return this.files[filePath];
-}
+};
 
-FileManager.prototype.getInstanceName = function(instance) {
+FileManager.prototype.getInstanceName = function (instance) {
   if (instance) {
     return instance.constructor.name;
   }
   return 'Unknown';
-}
+};
 
-FileManager.prototype.processPromise = function(resolve, reject, filePath, instance, data, callback) {
+FileManager.prototype.processPromise = function (
+  resolve,
+  reject,
+  filePath,
+  instance,
+  data,
+  callback
+) {
   let filePathString = filePath;
   if (filePathString instanceof Array) {
-    filePathString = filePathString.join(", ");
+    filePathString = filePathString.join(', ');
   }
 
   if (callback) {
     try {
       if (callback(instance, data)) {
-        if (!((instance instanceof Image) || (instance instanceof Text) || (instance instanceof Model))) {
+        if (
+          !(
+            instance instanceof Image ||
+            instance instanceof Text ||
+            instance instanceof Model
+          )
+        ) {
           this.setFileData(filePath, data);
         }
-        loggerDebug(`${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`);
+        loggerDebug(
+          `${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`
+        );
         resolve(data);
       } else {
-        throw new Error("Callback failed");
+        throw new Error('Callback failed');
       }
     } catch (e) {
-      loggerWarning(`${this.getInstanceName(instance)} file(s) could not be loaded: ${filePathString}`);
+      loggerWarning(
+        `${this.getInstanceName(instance)} file(s) could not be loaded: ${filePathString}`
+      );
       if (instance) {
         instance.error = true;
       }
       reject(data);
     }
   } else {
-    loggerWarning(`${this.getInstanceName(instance)} file(s) could not be loaded, no callback defined: ${filePathString}`);
+    loggerWarning(
+      `${this.getInstanceName(instance)} file(s) could not be loaded, no callback defined: ${filePathString}`
+    );
     if (instance) {
       instance.error = true;
     }
     reject(data);
   }
-}
+};
 
-FileManager.prototype.getPath = function(filePath) {
-  if (!filePath.startsWith("_embedded/")) {
+FileManager.prototype.getPath = function (filePath) {
+  if (!filePath.startsWith('_embedded/')) {
     return settings.engine.demoPathPrefix + filePath;
   }
   return filePath;
-}
+};
 
-FileManager.prototype.getDiskPath = function(filePath) {
-  if (filePath.startsWith("_embedded/")) {
+FileManager.prototype.getDiskPath = function (filePath) {
+  if (filePath.startsWith('_embedded/')) {
     return 'src/' + filePath;
   }
   return 'public/' + settings.engine.demoPathPrefix + filePath;
-}
+};
 
-FileManager.prototype.loadFiles = function(filePaths, instance, callback) {
+FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
   const fileManager = this;
   if (!(filePaths instanceof Array)) {
     filePaths = [filePaths];
   }
 
   return new Promise((resolve, reject) => {
-    let promises = [];
+    const promises = [];
     for (let i = 0; i < filePaths.length; i++) {
-      promises.push(this.load(filePaths[i], instance, (instance, data) => { return true; }));
+      promises.push(
+        this.load(filePaths[i], instance, (instance, data) => {
+          return true;
+        })
+      );
     }
 
-    Promise.all(promises).then((values) => {
-      fileManager.processPromise(resolve, reject, filePaths, instance, values, callback);
-    }).catch((e) => {
-      loggerWarning(`File(s) could not be loaded: ${filePaths.join(", ")}: ${e}`);
-      reject(e);
-    });
+    Promise.all(promises)
+      .then((values) => {
+        fileManager.processPromise(
+          resolve,
+          reject,
+          filePaths,
+          instance,
+          values,
+          callback
+        );
+      })
+      .catch((e) => {
+        loggerWarning(
+          `File(s) could not be loaded: ${filePaths.join(', ')}: ${e}`
+        );
+        reject(e);
+      });
   });
+};
 
-}
-
-
-FileManager.prototype.setRefreshFileTimestamp = function(filePath) {
+FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
   if (this.refreshFiles[filePath]) {
     return null;
   }
 
   if (fs) {
     const path = this.getDiskPath(filePath);
-    fs.stat(path).then(stats => {
+    fs.stat(path).then((stats) => {
       this.refreshFiles[filePath] = stats.mtime;
     });
   } else {
     this.refreshFiles[filePath] = null;
   }
-}
+};
 
-FileManager.prototype.getUrl = function(filePath) {
+FileManager.prototype.getUrl = function (filePath) {
   if (this.staticUrls[filePath]) {
     return this.staticUrls[filePath];
   }
 
   return this.getPath(filePath);
-}
+};
 
-
-FileManager.prototype.load = function(filePath, instance, callback) {
+FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
     const path = fileManager.getPath(filePath);
     fileManager.setRefreshFileTimestamp(filePath);
 
     if (this.files[filePath]) {
-      fileManager.processPromise(resolve, reject, filePath, instance, this.files[filePath], callback);
+      fileManager.processPromise(
+        resolve,
+        reject,
+        filePath,
+        instance,
+        this.files[filePath],
+        callback
+      );
       return;
     }
 
-    let loader = THREE.FileLoader;
+    let Loader = THREE.FileLoader;
     if (instance instanceof Image) {
-      loader = THREE.TextureLoader;
+      Loader = THREE.TextureLoader;
     } else if (instance instanceof Text) {
-      loader = TTFLoader;
+      Loader = TTFLoader;
     } else if (instance instanceof Model) {
-      if (filePath.toUpperCase().endsWith(".OBJ")) {
-        loader = OBJLoader;
-      } else if (filePath.toUpperCase().endsWith(".MTL")) {
-        loader = MTLLoader;
+      if (filePath.toUpperCase().endsWith('.OBJ')) {
+        Loader = OBJLoader;
+      } else if (filePath.toUpperCase().endsWith('.MTL')) {
+        Loader = MTLLoader;
       } else {
-        throw new Error("3D Model fileformat not supported: " + filePath);
+        throw new Error('3D Model fileformat not supported: ' + filePath);
       }
     }
 
-    (new loader()).load(
-    this.getUrl(filePath),
-    // onLoad callback
-    (data) => {
-      if (data[0] === '<') {
-        loggerWarning(`${fileManager.getInstanceName(instance)} file not found: ${path}`);
+    new Loader().load(
+      this.getUrl(filePath),
+      // onLoad callback
+      (data) => {
+        if (data[0] === '<') {
+          loggerWarning(
+            `${fileManager.getInstanceName(instance)} file not found: ${path}`
+          );
+          if (instance) {
+            instance.error = true;
+          }
+          reject(instance);
+          return;
+        }
+
+        fileManager.processPromise(
+          resolve,
+          reject,
+          filePath,
+          instance,
+          data,
+          callback
+        );
+      },
+      // onProgress callback
+      undefined,
+      // onError callback
+      (err) => {
+        loggerWarning(
+          `${fileManager.getInstanceName(instance)} file could not be loaded: ${path}: ${err}`
+        );
         if (instance) {
           instance.error = true;
         }
         reject(instance);
-        return;    
       }
-
-      fileManager.processPromise(resolve, reject, filePath, instance, data, callback);
-    },
-    // onProgress callback
-    undefined,
-    // onError callback
-    (err) => {
-      loggerWarning(`${fileManager.getInstanceName(instance)} file could not be loaded: ${path}`);
-      if (instance) {
-          instance.error = true;
-      }
-      reject(instance);
-    });
+    );
   });
-}
-
+};
 
 export { FileManager };

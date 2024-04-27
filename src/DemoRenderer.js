@@ -1,6 +1,5 @@
-import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
-import { loggerDebug, loggerInfo } from './Bindings';
+import { loggerDebug } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { Fbo } from './Fbo';
 import { Effect } from './Effect';
@@ -8,18 +7,18 @@ import { Settings } from './Settings';
 
 const settings = new Settings();
 
-var DemoRenderer = function() {
-    return this.getInstance();
+const DemoRenderer = function () {
+  return this.getInstance();
 };
 
-DemoRenderer.prototype.getInstance = function() {
-    if (!DemoRenderer.prototype._singletonInstance) {
-      DemoRenderer.prototype._singletonInstance = this;
-      this.scenes = {};
-    }
+DemoRenderer.prototype.getInstance = function () {
+  if (!DemoRenderer.prototype._singletonInstance) {
+    DemoRenderer.prototype._singletonInstance = this;
+    this.scenes = {};
+  }
 
-    return DemoRenderer.prototype._singletonInstance;
-}
+  return DemoRenderer.prototype._singletonInstance;
+};
 
 const aspectRatio = settings.demo.screen.aspectRatio;
 let scene, camera;
@@ -30,96 +29,98 @@ function clearThreeObject(obj) {
   if (!obj) {
     return;
   }
-    while(obj.children.length > 0) { 
-      clearThreeObject(obj.children[0]);
-      obj.remove(obj.children[0]);
-    }
-  
-    if (obj.geometry) { 
-      obj.geometry.dispose();
-    }
-  
-    if (obj.material) { 
-      let materials = Array.isArray(obj.material) ? obj.material : [obj.material];
-  
-      materials.forEach(material => {
-        Object.keys(material).forEach(key => {
-          if (material[key] && typeof material[key]['dispose'] === 'function') {
-            material[key].dispose();                                                      
-          }
-        });
-    
-        material.dispose();
-      });
-    }
+  while (obj.children.length > 0) {
+    clearThreeObject(obj.children[0]);
+    obj.remove(obj.children[0]);
   }
 
+  if (obj.geometry) {
+    obj.geometry.dispose();
+  }
 
-DemoRenderer.prototype.setupScene = function() {
-  Object.values(this.scenes).forEach(scene => {
-    //console.log("removing scene " + scene.uuid);
+  if (obj.material) {
+    const materials = Array.isArray(obj.material)
+      ? obj.material
+      : [obj.material];
+
+    materials.forEach((material) => {
+      Object.keys(material).forEach((key) => {
+        if (material[key] && typeof material[key].dispose === 'function') {
+          material[key].dispose();
+        }
+      });
+
+      material.dispose();
+    });
+  }
+}
+
+DemoRenderer.prototype.setupScene = function () {
+  Object.values(this.scenes).forEach((scene) => {
+    // console.log("removing scene " + scene.uuid);
     clearThreeObject(scene);
   });
 
-	scenes.forEach(scene => {
-		//console.log("removing scene " + scene.uuid);
-		clearThreeObject(scene);
-	});
-	cameras.forEach(scene => {
-		//console.log("removing camera " + scene.uuid);
-		clearThreeObject(scene);
-	});
-	scenes = [];
-	cameras = [];
+  scenes.forEach((scene) => {
+    // console.log("removing scene " + scene.uuid);
+    clearThreeObject(scene);
+  });
+  cameras.forEach((scene) => {
+    // console.log("removing camera " + scene.uuid);
+    clearThreeObject(scene);
+  });
+  scenes = [];
+  cameras = [];
   this.scenes = {};
-	Fbo.dispose();
+  Fbo.dispose();
 
-	//scene = settings.createScene();
-  this.setScene("main");
-	/*camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
-	camera.position.z = 2;
-	camera.lookAt(new THREE.Vector3(0, 0, 0));
-	camera.up = new THREE.Vector3(0, 1, 0);
+  // scene = settings.createScene();
+  this.setScene('main');
+  /* camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 1000 );
+  camera.position.z = 2;
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  camera.up = new THREE.Vector3(0, 1, 0);
   */
   settings.createLightsToScene(scene);
   camera = settings.createCamera();
 
   this.setOrbitControls(camera);
-}
+};
 
-DemoRenderer.prototype.setScene = function(name) {
-  if (! this.scenes.hasOwnProperty(name)) {
+DemoRenderer.prototype.setScene = function (name) {
+  if (this.scenes[name] === undefined) {
     this.scenes[name] = settings.createScene();
   }
   scene = this.scenes[name];
-  //popView();
-  //pushView(scene, getCamera());
+  // popView();
+  // pushView(scene, getCamera());
   return scene;
-}
-DemoRenderer.prototype.getScene = function(name) {
+};
+DemoRenderer.prototype.getScene = function (name) {
   return this.scenes[name];
-}
+};
 
-DemoRenderer.prototype.init = function() {
-    const canvas = document.getElementById("canvas");
-    this.renderer = settings.createRenderer(canvas);
-    
-    const loadingBar = new LoadingBar();
-    loadingBar.setRenderer(this.renderer);
+DemoRenderer.prototype.init = function () {
+  const canvas = document.getElementById('canvas');
+  this.renderer = settings.createRenderer(canvas);
 
-    this.resize();
-    
-    document.body.appendChild( this.renderer.domElement ); 
+  const loadingBar = new LoadingBar();
+  loadingBar.setRenderer(this.renderer);
 
-    this.setupScene();
-}
+  this.resize();
 
-DemoRenderer.prototype.resize = function() {
+  document.body.appendChild(this.renderer.domElement);
+
+  this.setupScene();
+};
+
+DemoRenderer.prototype.resize = function () {
   const scaleDown = settings.demo.screen.quality;
-  const scaleUp = 1.0/scaleDown;
+  const scaleUp = 1.0 / scaleDown;
 
   this.fullCanvasWidth = window.innerWidth * 1.0;
-  this.fullCanvasHeight = window.innerHeight * ((settings.engine.tool) ? 0.9 : 1.0);
+  this.fullCanvasHeight =
+    window.innerHeight * (settings.engine.tool ? 0.9 : 1.0);
   this.canvasWidth = this.fullCanvasWidth;
   this.canvasHeight = this.fullCanvasWidth / aspectRatio;
   if (this.canvasHeight > this.fullCanvasHeight) {
@@ -128,23 +129,25 @@ DemoRenderer.prototype.resize = function() {
   }
   this.canvasWidth *= scaleDown;
   this.canvasHeight *= scaleDown;
-  canvas.style.margin = `${((this.fullCanvasHeight - this.canvasHeight) / 2)}px 0px 0px ${((this.fullCanvasWidth - this.canvasWidth) / 2)}px`;
+
+  const canvas = document.getElementById('canvas');
+  canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px 0px 0px ${(this.fullCanvasWidth - this.canvasWidth) / 2}px`;
   canvas.style.transform = `scale(${scaleUp})`;
 
   loggerDebug('Screen size: ' + this.canvasWidth + 'x' + this.canvasHeight);
-  this.renderer.setSize( this.canvasWidth, this.canvasHeight, true );
-  this.renderer.setPixelRatio( window.devicePixelRatio );
-}
+  this.renderer.setSize(this.canvasWidth, this.canvasHeight, true);
+  this.renderer.setPixelRatio(window.devicePixelRatio);
+};
 
-DemoRenderer.prototype.setRenderNeedsUpdate = function(needsUpdate) {
-    this.renderNeedsUpdate = needsUpdate;
-}
+DemoRenderer.prototype.setRenderNeedsUpdate = function (needsUpdate) {
+  this.renderNeedsUpdate = needsUpdate;
+};
 
-DemoRenderer.prototype.isRenderNeedsUpdate = function() {
-    return this.renderNeedsUpdate;
-}
+DemoRenderer.prototype.isRenderNeedsUpdate = function () {
+  return this.renderNeedsUpdate;
+};
 
-DemoRenderer.prototype.setOrbitControls = function(camera) {
+DemoRenderer.prototype.setOrbitControls = function (camera) {
   if (this.controls) {
     if (this.controls.object === camera) {
       return;
@@ -158,19 +161,19 @@ DemoRenderer.prototype.setOrbitControls = function(camera) {
     return;
   }
 
-  this.controls = new OrbitControls( camera, document.getElementById("canvas") );
-  this.controls.target.set( 0, 0, -10 );
+  this.controls = new OrbitControls(camera, document.getElementById('canvas'));
+  this.controls.target.set(0, 0, -10);
   this.controls.update();
   this.controls.enablePan = false;
   this.controls.enableDamping = true;
-}
-DemoRenderer.prototype.renderScene = function() {
-  this.renderer.render( scene, camera );
-}
+};
+DemoRenderer.prototype.renderScene = function () {
+  this.renderer.render(scene, camera);
+};
 
-DemoRenderer.prototype.render = function() {
+DemoRenderer.prototype.render = function () {
   this.renderNeedsUpdate = false;
-/*
+  /*
     var BPM = 120,
         ROWS_PER_BEAT = 8,
         ROW_RATE = BPM / 60 * ROWS_PER_BEAT;
@@ -186,7 +189,7 @@ DemoRenderer.prototype.render = function() {
         _syncDevice.update(row);
     }
 */
-/*  // Update the time
+  /*  // Update the time
   time = music.currentTime;
 
   // Stop the animation if the time is up
@@ -200,32 +203,45 @@ DemoRenderer.prototype.render = function() {
   renderer.clear();
 */
 
-this.renderer.clear();
+  this.renderer.clear();
 
-Effect.run("Demo");
+  Effect.run('Demo');
 
-  //renderer.setRenderTarget(null);
+  // renderer.setRenderTarget(null);
   if (this.controls) {
     this.controls.update();
   }
+};
+
+// arry.slice(-1);
+function getScene() {
+  return scenes.slice(-1)[0] || scene;
 }
+function getCamera() {
+  return cameras.slice(-1)[0] || camera;
+}
+function pushView(s, c) {
+  scenes.push(s);
+  cameras.push(c);
+}
+function popView() {
+  if (scenes.length === 0) {
+    return;
+  }
+  scenes.pop();
+  cameras.pop();
+}
+export { getScene, getCamera, pushView, popView };
 
-
-//arry.slice(-1);
-function getScene() { return scenes.slice(-1)[0]||scene; }
-function getCamera() { return cameras.slice(-1)[0]||camera; }
-function pushView(s,c) { scenes.push(s); cameras.push(c); }
-function popView() { if (scenes.length == 0) { return; } scenes.pop(); cameras.pop(); }
-export {getScene, getCamera, pushView, popView};
-
-
-function getScreenWidth() { return 1920; }
-function getScreenHeight() { return 1080; }
+function getScreenWidth() {
+  return 1920;
+}
+function getScreenHeight() {
+  return 1080;
+}
 window.getScreenWidth = getScreenWidth;
 window.getScreenHeight = getScreenHeight;
 
-//alert(screenWidth + 'x' + screenHeight);
-
-
+// alert(screenWidth + 'x' + screenHeight);
 
 export { DemoRenderer };
