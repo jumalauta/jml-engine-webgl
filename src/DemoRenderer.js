@@ -27,6 +27,9 @@ let scenes = [];
 let cameras = [];
 
 function clearThreeObject(obj) {
+  if (!obj) {
+    return;
+  }
     while(obj.children.length > 0) { 
       clearThreeObject(obj.children[0]);
       obj.remove(obj.children[0]);
@@ -54,16 +57,16 @@ function clearThreeObject(obj) {
 
 DemoRenderer.prototype.setupScene = function() {
   Object.values(this.scenes).forEach(scene => {
-    console.log("removing scene " + scene.uuid);
+    //console.log("removing scene " + scene.uuid);
     clearThreeObject(scene);
   });
 
 	scenes.forEach(scene => {
-		console.log("removing scene " + scene.uuid);
+		//console.log("removing scene " + scene.uuid);
 		clearThreeObject(scene);
 	});
 	cameras.forEach(scene => {
-		console.log("removing camera " + scene.uuid);
+		//console.log("removing camera " + scene.uuid);
 		clearThreeObject(scene);
 	});
 	scenes = [];
@@ -89,6 +92,8 @@ DemoRenderer.prototype.setScene = function(name) {
     this.scenes[name] = settings.createScene();
   }
   scene = this.scenes[name];
+  //popView();
+  //pushView(scene, getCamera());
   return scene;
 }
 DemoRenderer.prototype.getScene = function(name) {
@@ -210,7 +215,7 @@ Effect.run("Demo");
 function getScene() { return scenes.slice(-1)[0]||scene; }
 function getCamera() { return cameras.slice(-1)[0]||camera; }
 function pushView(s,c) { scenes.push(s); cameras.push(c); }
-function popView() { scenes.pop(); cameras.pop(); }
+function popView() { if (scenes.length == 0) { return; } scenes.pop(); cameras.pop(); }
 export {getScene, getCamera, pushView, popView};
 
 

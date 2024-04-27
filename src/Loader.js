@@ -1,7 +1,7 @@
 import { Scene } from './Scene';
 import { Utils } from './Utils';
 import { loggerDebug, loggerTrace, loggerWarning, setResourceCount, notifyResourceLoaded } from './Bindings';
-import { DemoRenderer } from './DemoRenderer';
+import { DemoRenderer, pushView, popView, getCamera } from './DemoRenderer';
 import { Fbo } from './Fbo';
 
 /** @constructor */
@@ -172,7 +172,10 @@ Loader.prototype.setScene = function(name, settings) {
     }
 
     this.activeScene = this.scenes[name];
-    this.activeScene.renderScene = renderScene;
+    if (this.activeScene.renderScene.length > 1) {
+        this.activeScene.renderScene.pop();
+    }
+    this.activeScene.renderScene.push(renderScene);
 }
 
 Loader.prototype.addAnimation = function(animationDefinitions)

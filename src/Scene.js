@@ -10,6 +10,7 @@ import { Light } from './Light';
 import { Camera } from './Camera';
 import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
 import { Settings } from './Settings';
+import { getScene } from './DemoRenderer';
 
 import * as THREE from 'three';
 
@@ -26,6 +27,7 @@ var Scene = function(name, loader)
     this.fboName = name + "SceneFbo";
     this.fboStart = {"name":this.fboName,"action":"begin"};
     this.fboEnd = {"name":this.fboName,"action":"unbind"};
+    this.renderScene = [];
 };
 
 Scene.prototype.validateResourceLoaded = function(animationDefinition, animationDefinitionRef, errorMessage)
@@ -645,7 +647,7 @@ Scene.prototype.getParentObject = function(animationDefinitions, animationDefini
         }
     }
 
-    return this.renderScene;
+    return this.renderScene.at(-1);
 }
 
 Scene.prototype.processAnimation = function()
@@ -951,8 +953,10 @@ Scene.prototype.processAnimation = function()
                     
                     if (animationDefinition.fbo.action === 'begin') {
                         animationDefinition.ref.push();
+                        this.renderScene.push(animationDefinition.ref.scene);
                     } else if (animationDefinition.fbo.action === 'unbind') {
                         animationDefinition.ref.pop();
+                        this.renderScene.pop();
                     }
 
                     if (animationDefinition.fbo.name === void null)

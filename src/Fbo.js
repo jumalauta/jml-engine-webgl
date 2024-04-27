@@ -107,6 +107,7 @@ Fbo.prototype.setRenderDimensions = function(width, height) {
 
 Fbo.prototype.push = function() {
     pushView(this.scene, this.camera);
+    return this.scene;
 }
 
 Fbo.prototype.pop = function() {

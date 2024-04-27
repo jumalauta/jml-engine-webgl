@@ -6,7 +6,7 @@ import { Shader } from './Shader';
 import { loggerInfo, processFutures } from './Bindings';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
-import { DemoRenderer } from './DemoRenderer';
+import { DemoRenderer, pushView, popView, getCamera } from './DemoRenderer';
 import { Loader } from './Loader';
 
 const settings = new Settings();
