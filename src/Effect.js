@@ -74,7 +74,7 @@ Effect.init = function (effectName) {
           }
           preCompileList.push({ scene: getScene(), camera: getCamera() });
           for (let i = 0; i < preCompileList.length; i++) {
-            loadingBar.setPercent(0.9 + (i / preCompileList.length) * 0.1);
+            loadingBar.setPercent(0.95 + (i / preCompileList.length) * 0.05);
             const item = preCompileList[i];
             // TODO: compile throws errors, render if flexible but still builds at least the shaders
             // demoRenderer.renderer.compile(item.scene, item.camera);
