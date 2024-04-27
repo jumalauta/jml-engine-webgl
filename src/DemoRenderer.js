@@ -53,10 +53,11 @@ function clearThreeObject(obj) {
 
 
 DemoRenderer.prototype.setupScene = function() {
-  /*this.scenes.forEach(scene => {
+  Object.values(this.scenes).forEach(scene => {
     console.log("removing scene " + scene.uuid);
     clearThreeObject(scene);
-  });*/
+  });
+
 	scenes.forEach(scene => {
 		console.log("removing scene " + scene.uuid);
 		clearThreeObject(scene);
@@ -89,6 +90,9 @@ DemoRenderer.prototype.setScene = function(name) {
   }
   scene = this.scenes[name];
   return scene;
+}
+DemoRenderer.prototype.getScene = function(name) {
+  return this.scenes[name];
 }
 
 DemoRenderer.prototype.init = function() {

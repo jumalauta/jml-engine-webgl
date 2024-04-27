@@ -3,7 +3,7 @@ import { Utils } from './Utils';
 import { Sync } from './Sync';
 import { TransformationMatrix, Graphics } from './Graphics';
 import { Shader } from './Shader';
-import { processFutures } from './Bindings';
+import { loggerInfo, processFutures } from './Bindings';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { DemoRenderer } from './DemoRenderer';
@@ -800,11 +800,23 @@ function setAnimationVisibility(animation, visible) {
 }
 
 let sceneTimeFromStart = 0;
-Player.prototype.drawSceneAnimation = function(scene, time)
+let sceneVariable = undefined;
+Player.prototype.drawSceneAnimation = function(scene, time, animation)
 {
     sceneTimeFromStart = time;
     const demoRenderer = new DemoRenderer();
-    demoRenderer.setScene(scene.name);
+    let fbo = null;
+    if (animation && animation.scene && animation.scene.fbo) {
+        //loggerInfo("fbo: " + animation.scene.fbo.name);
+        fbo = animation.scene.fbo.ref;
+    }
+
+    if (fbo) {
+        fbo.push();
+        fbo.bind();
+    } else {
+        demoRenderer.setScene(scene.name);
+    }
 
     var graphics = new Graphics();
     var transformationMatrix = new TransformationMatrix();
@@ -867,7 +879,14 @@ Player.prototype.drawSceneAnimation = function(scene, time)
                     }
                     else if (animation.type === 'scene')
                     {
-                        this.drawSceneAnimation((new Loader()).scenes[animation.scene.name], time - animation.start);
+                        const pushSceneVariable = sceneVariable;
+                        if (animation.scene.variable !== void null)
+                        {
+                            sceneVariable = Utils.evaluateVariable(animation, animation.scene.variable);
+                        }
+
+                        this.drawSceneAnimation((new Loader()).scenes[animation.scene.name], time - animation.start, animation);
+                        sceneVariable = pushSceneVariable;
                     }
 
                     if (animation.runFunction !== void null)
@@ -902,12 +921,23 @@ Player.prototype.drawSceneAnimation = function(scene, time)
     graphics.popState();
     transformationMatrix.pop();
 
-    demoRenderer.renderScene();
+    if (fbo) {
+        fbo.pop();
+        fbo.unbind();
+    } else {
+        demoRenderer.renderScene();
+    }
 }
 
 // Legacy method for backward compatibility
 function getSceneTimeFromStart() {
     return sceneTimeFromStart;
 }
-  
+
+function getSceneVariable() {
+    return sceneVariable;
+}
+window.getSceneTimeFromStart = getSceneTimeFromStart;
+window.getSceneVariable = getSceneVariable;
+
 export { Player, getSceneTimeFromStart };

@@ -2,6 +2,7 @@ import { Scene } from './Scene';
 import { Utils } from './Utils';
 import { loggerDebug, loggerTrace, loggerWarning, setResourceCount, notifyResourceLoaded } from './Bindings';
 import { DemoRenderer } from './DemoRenderer';
+import { Fbo } from './Fbo';
 
 /** @constructor */
 
@@ -14,20 +15,24 @@ const defaultSceneName = 'main';
 Loader.prototype.getInstance = function() {
     if (!Loader.prototype._singletonInstance) {
         Loader.prototype._singletonInstance = this;
-        this.resourceCount = 0;
-        this.resourceUniqueList = [];
-    
-        this.scenes = {};
-        this.activeScene = void null;
-        
-        this.timeline = {};
-        this.promises = [];
-
-        // scene not defined, set the fall-back scene
-        this.setScene(defaultSceneName, {"useFbo": false});
+        this.clear();
     }
 
     return Loader.prototype._singletonInstance;
+}
+
+Loader.prototype.clear = function() {
+    this.resourceCount = 0;
+    this.resourceUniqueList = [];
+
+    this.scenes = {};
+    this.activeScene = void null;
+    
+    this.timeline = {};
+    this.promises = [];
+
+    // scene not defined, set the fall-back scene
+    this.setScene(defaultSceneName, {"useFbo": false});
 }
 
 Loader.prototype.sortArray = function(animationLayers)
@@ -122,12 +127,19 @@ Loader.prototype.notifyResourceLoaded = function(name)
 };
 
 Loader.prototype.setScene = function(name, settings) {
+    const renderScene = (new DemoRenderer()).setScene(name);
     if (! this.scenes.hasOwnProperty(name)) {
         // if scene doesn't exist, create one
         this.scenes[name] = new Scene(name, this);
         var scene = this.scenes[name];
 
-        var useFbo = true;
+        if (settings) {
+            if (settings.fbo) {
+                scene.fbo = Fbo.init(name);
+            }
+        }
+
+        /*var useFbo = true;
         if (settings !== void null) {
             if (settings.useFbo !== void null) {
                 useFbo = settings.useFbo;
@@ -156,11 +168,11 @@ Loader.prototype.setScene = function(name, settings) {
                     ,"fbo":fboEnd
                 });
             }
-        }
+        }*/
     }
 
     this.activeScene = this.scenes[name];
-    this.activeScene.renderScene = (new DemoRenderer()).setScene(name);
+    this.activeScene.renderScene = renderScene;
 }
 
 Loader.prototype.addAnimation = function(animationDefinitions)

@@ -1,7 +1,6 @@
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 
-window.getSceneTimeFromStart = getSceneTimeFromStart;
 window.Sync = Sync;
 
 /*eslint no-extend-native: "off"*/

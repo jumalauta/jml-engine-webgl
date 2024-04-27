@@ -18,11 +18,26 @@ var Model = function() {
 }
 
 Model.prototype.load = function(filename) {
-    const fileManager = new FileManager();
     this.filename = filename;
-    fileManager.setRefreshFileTimestamp(filename);
-
     let instance = this;
+
+    if (!(filename instanceof String) && typeof filename !== 'string') {
+        return new Promise((resolve, reject) => {
+            let object = filename;
+            if (!(object instanceof THREE.Object3D)) {
+                object = new THREE.Object3D();
+            }
+
+            instance.mesh = object;
+            instance.ptr = instance.mesh;
+            instance.setShadow();
+
+            resolve(instance);
+        });
+    }
+
+    const fileManager = new FileManager();
+    fileManager.setRefreshFileTimestamp(filename);
 
     if (this.filename.toUpperCase().endsWith(".OBJ")) {
         const materialFilename = this.filename.replace(".obj", ".mtl").replace(".OBJ", ".MTL");

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DemoRenderer, pushView, popView } from './DemoRenderer';
+import { DemoRenderer, pushView, popView, getCamera } from './DemoRenderer';
 import { Image } from './Image';
 import { loggerDebug } from './Bindings';
 import { Settings } from './Settings';
@@ -10,13 +10,21 @@ const demoRenderer = new DemoRenderer();
 
 var fbos = {};
 
-var Fbo = function() {
+var Fbo = function(name, sceneName) {
     this.ptr = undefined;
-    this.name = undefined;
+    this.name = name;
     this.color = undefined;
-    this.scene = settings.createScene();
 
-    settings.createLightsToScene(this.scene);
+    this.scene = undefined;
+    if (sceneName) {
+        this.scene = demoRenderer.getScene(sceneName);
+    }
+    
+    if (!this.scene) {
+        this.scene = settings.createScene();
+        settings.createLightsToScene(this.scene);
+    }
+
     this.camera = settings.createCamera();
 }
 
@@ -36,12 +44,12 @@ Fbo.get = function(name) {
     return fbos[name];
 }
 
-Fbo.init = function(name) {
+Fbo.init = function(name, sceneName) {
     if (fbos[name]) {
         return fbos[name];
     }
 
-    let fbo = new Fbo();
+    let fbo = new Fbo(name, sceneName);
     fbos[name] = fbo;
     
     /*var legacy = fboInit(name);

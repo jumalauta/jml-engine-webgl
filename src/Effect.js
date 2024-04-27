@@ -25,6 +25,7 @@ Effect.init = function(effectName)
     //if (effect.loader === void null)
     {
         effect.loader = new Loader();
+        effect.loader.clear();
     }
     //if (effect.player === void null)
     {

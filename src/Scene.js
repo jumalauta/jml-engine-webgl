@@ -442,6 +442,13 @@ Scene.prototype.addAnimation = function(animationDefinitions)
             animationDefinition.ref = Fbo.init(animationDefinition.fbo.name);
             this.loader.addNotifyResource(animationDefinition.fbo.name);
         }
+        else if (animationDefinition.scene !== void null)
+        {
+            if (animationDefinition.scene.fbo) {
+                animationDefinition.scene.fbo.ref = Fbo.init(animationDefinition.scene.fbo.name, animationDefinition.scene.name);
+                this.loader.addNotifyResource(animationDefinition.scene.fbo.name);
+            }
+        }
 
         if (animationDefinition.shader !== void null)
         {
@@ -614,6 +621,25 @@ Scene.prototype.addAnimation = function(animationDefinitions)
     this.animationLayers = this.loader.sortArray(animationLayers);
 };
 
+Scene.prototype.getParentObject = function(animationDefinitions, animationDefinition)
+{
+    if (animationDefinition.parent) {
+        if (animationDefinition.parent instanceof THREE.Object3D) {
+            return animationDefinition.parent;
+        } else {
+            var parent = animationDefinitions.find(function(definition) {
+                return definition.id === animationDefinition.parent;
+            });
+
+            if (parent && parent.ref && parent.ref.mesh) {
+                return parent.ref.mesh;
+            }
+        }
+    }
+
+    return this.renderScene;
+}
+
 Scene.prototype.processAnimation = function()
 {
     var graphics = new Graphics();
@@ -661,6 +687,8 @@ Scene.prototype.processAnimation = function()
                     }
                 }
 
+                const parentObject = this.getParentObject(animationLayers[key], animationDefinition);
+
                 if (animationDefinition.shader !== void null)
                 {
                     //animationDefinition.shader.ref = Shader.load(animationDefinition.shader);
@@ -683,7 +711,7 @@ Scene.prototype.processAnimation = function()
                     animationDefinition.objectFunction !== void null)
                 {
                     animationDefinition.type = 'object';
-                    this.renderScene.add(animationDefinition.ref.mesh);
+                    parentObject.add(animationDefinition.ref.mesh);
                     //animationDefinition.ref = new Model();
 
                     if (animationDefinition.object !== void null)
@@ -824,12 +852,7 @@ Scene.prototype.processAnimation = function()
                 }
                 else if (animationDefinition.image !== void null)
                 {
-                    if (animationDefinition.perspective == '2d') {
-                        //getCamera().add(animationDefinition.ref.mesh);
-                        this.renderScene.add(animationDefinition.ref.mesh);
-                    } else {
-                        this.renderScene.add(animationDefinition.ref.mesh);
-                    }
+                    parentObject.add(animationDefinition.ref.mesh);
 
         
                     /* FIXME scene adding
@@ -907,12 +930,7 @@ Scene.prototype.processAnimation = function()
                         animationDefinition.align = Constants.Align.CENTER;
                     }
 
-                    if (animationDefinition.perspective == '2d') {
-                        //getCamera().add(animationDefinition.ref.mesh);
-                        this.renderScene.add(animationDefinition.ref.mesh);
-                    } else {
-                        this.renderScene.add(animationDefinition.ref.mesh);
-                    }
+                    parentObject.add(animationDefinition.ref.mesh);
 
                     var animStart = startTime;
                     var animEnd = endTime;
@@ -959,7 +977,7 @@ Scene.prototype.processAnimation = function()
                 {
                     animationDefinition.type = 'light';
                     animationDefinition.ref = new Light(animationDefinition);
-                    this.renderScene.add(animationDefinition.ref.mesh);
+                    parentObject.add(animationDefinition.ref.mesh);
 
                     animStart = startTime;
                     animEnd = startTime;
