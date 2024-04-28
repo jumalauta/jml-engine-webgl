@@ -52,6 +52,7 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
     instance.videoElement.loop = false;
     instance.videoElement.playsInline = true;
     instance.videoElement.muted = true;
+    instance.setSpeed(1.0);
     instance.videoElement.oncanplaythrough = (event) => {
       instance.texture = new THREE.VideoTexture(instance.videoElement);
       instance.ptr = instance.videoElement;
