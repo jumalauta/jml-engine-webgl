@@ -1,6 +1,7 @@
 import { loggerInfo } from './Bindings';
 import { Music } from './Music';
 import { FileManager } from './FileManager';
+import { Video } from './Video';
 
 const Timer = function () {
   return this.getInstance();
@@ -47,10 +48,12 @@ Timer.prototype.pause = function () {
   if (!this.pauseTime) {
     loggerInfo('Pausing demo timer');
     this.pauseTime = this.now();
+    Video.pauseAll();
   } else {
     loggerInfo('Resuming demo timer');
     this.startTime += this.now() - this.pauseTime;
     this.pauseTime = undefined;
+    Video.playAll();
   }
   this.music.pause();
   this.update(true);
@@ -58,6 +61,10 @@ Timer.prototype.pause = function () {
 
 Timer.prototype.isPaused = function () {
   return this.pauseTime !== undefined;
+};
+
+Timer.prototype.isStarted = function () {
+  return this.startTime !== undefined;
 };
 
 Timer.prototype.setTime = function (time) {
@@ -74,6 +81,7 @@ Timer.prototype.setTime = function (time) {
   }
   this.music.setTime(time / 1000);
   this.update(true);
+  Video.rewindAll();
 };
 
 Timer.prototype.update = function (force) {

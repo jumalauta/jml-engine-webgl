@@ -15,7 +15,6 @@ import {
   loggerTrace
 } from './Bindings';
 import { Settings } from './Settings';
-import { Video } from './Video';
 
 import * as THREE from 'three';
 
@@ -521,12 +520,12 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         animationDefinition.ref.load(animationDefinition.image[0].name)
       );
 
-      if (animationDefinition.image[0].video !== undefined) {
+      /* if (animationDefinition.image[0].video !== undefined) {
         const video = Utils.deepCopyJson(animationDefinition.image[0].video);
         video.ref = new Video();
         promises.push(video.ref.load(animationDefinition.image[0].name));
         animationDefinition.ref.video = video;
-      }
+      } */
 
       animationDefinition.multiTexRef = [animationDefinition.ref];
       for (
@@ -538,14 +537,14 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         promises.push(multiTexRef.load(animationDefinition.image[imageI].name));
 
         animationDefinition.multiTexRef.push(multiTexRef);
-        if (animationDefinition.image[imageI].video !== undefined) {
+        /* if (animationDefinition.image[imageI].video !== undefined) {
           const video = Utils.deepCopyJson(
             animationDefinition.image[imageI].video
           );
           video.ref = new Video();
           promises.push(video.ref.load(animationDefinition.image[imageI].name));
           animationDefinition.multiTexRef[imageI].video = video;
-        }
+        } */
       }
 
       if (animationDefinition.perspective === undefined) {

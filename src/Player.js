@@ -371,39 +371,39 @@ Player.prototype.drawImageAnimation = function (time, animation) {
   for (let videoI = 0; videoI < animation.multiTexRef.length; videoI++) {
     const multiTexRef = animation.multiTexRef[videoI];
     if (multiTexRef.video !== undefined) {
-      multiTexRef.video.ref.setStartTime(animation.start);
+      const videoDefinition = animation.image[videoI];
+      multiTexRef.video.setStartTime(animation.start);
 
-      if (multiTexRef.video.speed !== undefined) {
-        multiTexRef.video.ref.setSpeed(
-          Utils.evaluateVariable(animation, multiTexRef.video.speed)
+      if (videoDefinition.speed !== undefined) {
+        multiTexRef.video.setSpeed(
+          Utils.evaluateVariable(animation, videoDefinition.speed)
         );
       }
 
-      if (multiTexRef.video.fps !== undefined) {
-        multiTexRef.video.ref.setFps(
-          Utils.evaluateVariable(animation, multiTexRef.video.fps)
+      if (videoDefinition.fps !== undefined) {
+        multiTexRef.video.setFps(
+          Utils.evaluateVariable(animation, videoDefinition.fps)
         );
       }
 
-      if (multiTexRef.video.loop !== undefined) {
-        multiTexRef.video.ref.setLoop(
-          Utils.evaluateVariable(animation, multiTexRef.video.loop)
+      if (videoDefinition.loop !== undefined) {
+        multiTexRef.video.setLoop(
+          Utils.evaluateVariable(animation, videoDefinition.loop)
         );
       }
 
-      if (multiTexRef.video.length !== undefined) {
-        multiTexRef.video.ref.setLength(
-          Utils.evaluateVariable(animation, multiTexRef.video.length)
+      if (videoDefinition.length !== undefined) {
+        multiTexRef.video.setLength(
+          Utils.evaluateVariable(animation, videoDefinition.length)
         );
       }
 
-      if (multiTexRef.video.playing === undefined) {
-        multiTexRef.video.ref.play();
-        multiTexRef.video.playing = true;
+      if (!multiTexRef.video.isPlaying()) {
+        multiTexRef.video.play();
       }
 
-      if (multiTexRef.video.playing === true) {
-        multiTexRef.video.ref.draw();
+      if (multiTexRef.video.isPlaying()) {
+        multiTexRef.video.draw();
       }
     }
   }

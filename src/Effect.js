@@ -8,6 +8,7 @@ import { Timer } from './Timer';
 import { DemoRenderer, getCamera, getScene } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Fbo } from './Fbo';
+import { Video } from './Video';
 import { Settings } from './Settings';
 const settings = new Settings();
 
@@ -17,6 +18,16 @@ const Effect = function () {};
 Effect.effects = [];
 
 Effect.init = function (effectName) {
+  const timer = new Timer();
+
+  let forceResume = false;
+  if (timer.isStarted()) {
+    if (!timer.isPaused()) {
+      timer.pause();
+      forceResume = true;
+    }
+  }
+
   /* eslint-disable no-eval */
   const effect = eval('new ' + effectName);
 
@@ -48,6 +59,8 @@ Effect.init = function (effectName) {
       const now = new Date().getTime() / 1000;
       let processedPromises = 0;
       try {
+        Video.clear();
+
         for (let i = 0; i < effect.loader.promises.length; i++) {
           effect.loader.promises[i].finally(() => {
             processedPromises++;
@@ -83,16 +96,19 @@ Effect.init = function (effectName) {
         }
 
         loadingBar.setPercent(1.0);
-        loggerInfo(
-          'Starting demo. Loading took ' +
-            (new Date().getTime() / 1000 - now).toFixed(2) +
-            ' seconds'
-        );
 
-        const timer = new Timer();
-        if (timer.getTime() <= 0) {
+        let action;
+        if (!timer.isStarted()) {
           timer.start();
+          action = 'Starting';
         }
+        if (forceResume) {
+          timer.pause();
+          action = 'Resuming';
+        }
+        loggerInfo(
+          `${action} demo. Loading took ${(new Date().getTime() / 1000 - now).toFixed(2)} seconds`
+        );
 
         demoRenderer.setRenderNeedsUpdate(true);
         fileManager.setNeedsUpdate(false);

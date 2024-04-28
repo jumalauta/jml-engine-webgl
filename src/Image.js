@@ -4,6 +4,7 @@ import { loggerWarning } from './Bindings';
 import { DemoRenderer } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
+import { Video } from './Video';
 import vertexShaderData from './_embedded/default2d.vs?raw';
 import fragmentShaderData from './_embedded/default2d.fs?raw';
 
@@ -19,6 +20,7 @@ const Image = function () {
   this.material = undefined;
   this.mesh = undefined;
   this.perspective2d = true;
+  this.video = undefined;
 };
 
 // var planeGeometry = new THREE.PlaneGeometry(1, 16/9);
@@ -65,14 +67,18 @@ Image.prototype.generateMesh = function () {
     throw new Error('Texture not loaded, cannot generate image mesh');
   }
 
-  this.width = this.texture.image.width;
-  this.height = this.texture.image.height;
-  settings.toThreeJsProperties(settings.demo.image.texture, this.texture);
-
-  if (this.fbo) {
-    this.width = settings.demo.screen.width;
-    this.height = settings.demo.screen.height;
+  if (this.width === undefined || this.height === undefined) {
+    this.width = this.texture.image.width;
+    this.height = this.texture.image.height;
+    if (this.fbo) {
+      this.width = settings.demo.screen.width;
+      this.height = settings.demo.screen.height;
+    }
   }
+
+  settings.toThreeJsProperties(settings.demo.image.texture, this.texture);
+  // loggerTrace(`Generating mesh ${this.filename} (${this.width}x${this.height}), properties: ${JSON.stringify(this.texture)}`);
+
   this.material = this.createMaterial();
   // this.material = new THREE.MeshBasicMaterial({ map: this.texture, blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
   this.mesh = new THREE.Mesh(
@@ -122,6 +128,16 @@ Image.prototype.load = function (filename) {
         loggerWarning('Could not load FBO ' + instance.filename);
         reject(instance);
       }
+    });
+  } else if (instance.filename.toUpperCase().endsWith('.MP4')) {
+    this.video = new Video();
+    return this.video.load(filename, instance, (instance, video) => {
+      instance.texture = video.texture;
+      instance.width = video.videoElement.videoWidth;
+      instance.height = video.videoElement.videoHeight;
+      instance.generateMesh();
+      // loggerDebug('Loaded video ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
+      return true;
     });
   } else {
     return new FileManager().load(filename, instance, (instance, texture) => {
