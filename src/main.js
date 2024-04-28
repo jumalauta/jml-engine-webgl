@@ -175,16 +175,20 @@ document.addEventListener('keydown', (event) => {
     stopDemo();
   } else if (event.key === 'Enter') {
     startDemo();
-  } else if (event.altKey && settings.engine.tool) {
-    if (event.key === '1') {
+  } else if (settings.engine.tool) {
+    if (event.key === '1' || event.key === 'ArrowLeft') {
       timer.setTime(timer.getTime() - 1000);
-    } else if (event.key === '2') {
+    } else if (event.key === '2' || event.key === 'ArrowRight') {
       timer.setTime(timer.getTime() + 1000);
-    } else if (event.key === '3') {
+    } else if (event.key === 'ArrowDown') {
+      timer.setTime(timer.getTime() - 10000);
+    } else if (event.key === 'ArrowUp') {
+      timer.setTime(timer.getTime() + 10000);
+    } else if (event.key === '3' || event.code === 'Space') {
       timer.pause();
-    } else if (event.ctrlKey && event.key === 'End') {
+    } else if (event.key === 'End') {
       timer.setTimePercent(0.99);
-    } else if (event.ctrlKey && event.key === 'Home') {
+    } else if (event.key === 'Home') {
       timer.setTimePercent(0.0);
     }
   }
