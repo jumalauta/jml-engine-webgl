@@ -1,6 +1,11 @@
 import { Loader } from './Loader';
 import { Player } from './Player';
-import { loggerDebug, loggerInfo, loggerError } from './Bindings';
+import {
+  loggerDebug,
+  loggerInfo,
+  loggerError,
+  loggerWarning
+} from './Bindings';
 import { Music } from './Music';
 import { Sync } from './Sync';
 import { LoadingBar } from './LoadingBar';
@@ -10,6 +15,8 @@ import { FileManager } from './FileManager';
 import { Fbo } from './Fbo';
 import { Video } from './Video';
 import { Settings } from './Settings';
+import { isStarted, stopDemo } from './main';
+
 const settings = new Settings();
 
 /** @constructor */
@@ -18,32 +25,42 @@ const Effect = function () {};
 Effect.effects = [];
 
 Effect.init = function (effectName) {
-  const timer = new Timer();
-
-  let forceResume = false;
-  if (timer.isStarted()) {
-    if (!timer.isPaused()) {
-      timer.pause();
-      forceResume = true;
+  (async () => {
+    loggerDebug('Starting loading');
+    if (Effect.loading === true) {
+      loggerWarning(`Already loading ${effectName}! Ignoring init.`);
+      return;
     }
-  }
 
-  /* eslint-disable no-eval */
-  const effect = eval('new ' + effectName);
+    Effect.loading = true;
 
-  effect.loader = new Loader();
-  effect.loader.clear();
-  effect.player = new Player();
+    const timer = new Timer();
 
-  Effect.effects[effectName] = effect;
+    let forceResume = false;
+    if (timer.isStarted()) {
+      if (!timer.isPaused()) {
+        timer.pause();
+        forceResume = true;
+      }
+    }
 
-  if (effect.init !== undefined) {
-    effect.init();
-  }
+    /* eslint-disable no-eval */
+    const effect = eval('new ' + effectName);
 
-  if (effect.postInit !== undefined) {
-    effect.postInit();
-  } else {
+    effect.loader = new Loader();
+    effect.loader.clear();
+    effect.player = new Player();
+
+    Effect.effects[effectName] = effect;
+
+    if (effect.init !== undefined) {
+      effect.init();
+    }
+
+    if (effect.postInit !== undefined) {
+      effect.postInit();
+    }
+
     const fileManager = new FileManager();
     const music = new Music();
     effect.loader.promises.push(
@@ -52,52 +69,60 @@ Effect.init = function (effectName) {
 
     const promiseCount = effect.loader.promises.length;
 
+    const demoRenderer = new DemoRenderer();
+    demoRenderer.clear();
+
     const loadingBar = new LoadingBar();
+    loadingBar.setPercent(0.0);
 
-    (async () => {
-      loggerDebug('Starting loading');
-      const now = new Date().getTime() / 1000;
-      let processedPromises = 0;
-      try {
-        Video.clear();
+    const now = new Date().getTime() / 1000;
+    let processedPromises = 0;
+    try {
+      Video.clear();
 
-        for (let i = 0; i < effect.loader.promises.length; i++) {
-          effect.loader.promises[i].finally(() => {
-            processedPromises++;
-            const percent = (processedPromises / promiseCount) * 0.9;
-            loadingBar.setPercent(percent);
-          });
+      for (let i = 0; i < effect.loader.promises.length; i++) {
+        effect.loader.promises[i].finally(() => {
+          processedPromises++;
+          const percent = (processedPromises / promiseCount) * 0.9;
+          loadingBar.setPercent(percent);
+        });
+      }
+
+      while (effect.loader.promises.length > 0) {
+        if (isStarted() === false) {
+          loggerInfo('Demo stopped, exiting loading');
+          stopDemo();
+          return;
         }
 
-        await Promise.all(effect.loader.promises);
-        effect.loader.promises = [];
+        await effect.loader.promises.shift();
+      }
 
-        loadingBar.setPercent(0.9);
-        await new Sync().init();
-        effect.loader.processAnimation();
+      loadingBar.setPercent(0.9);
+      await new Sync().init();
+      effect.loader.processAnimation();
 
-        const demoRenderer = new DemoRenderer();
-
-        if (settings.engine.preload) {
-          const preCompileList = [];
-          const fbos = Fbo.getFbos();
-          for (const key in fbos) {
-            const fbo = fbos[key];
-            preCompileList.push({ scene: fbo.scene, camera: fbo.camera });
-          }
-          preCompileList.push({ scene: getScene(), camera: getCamera() });
-          for (let i = 0; i < preCompileList.length; i++) {
-            loadingBar.setPercent(0.95 + (i / preCompileList.length) * 0.05);
-            const item = preCompileList[i];
-            // TODO: compile throws errors, render if flexible but still builds at least the shaders
-            // demoRenderer.renderer.compile(item.scene, item.camera);
-            demoRenderer.renderer.render(item.scene, item.camera);
-          }
+      if (settings.engine.preload) {
+        const preCompileList = [];
+        const fbos = Fbo.getFbos();
+        for (const key in fbos) {
+          const fbo = fbos[key];
+          preCompileList.push({ scene: fbo.scene, camera: fbo.camera });
         }
+        preCompileList.push({ scene: getScene(), camera: getCamera() });
+        for (let i = 0; i < preCompileList.length; i++) {
+          loadingBar.setPercent(0.95 + (i / preCompileList.length) * 0.05);
+          const item = preCompileList[i];
+          // TODO: compile throws errors, render if flexible but still builds at least the shaders
+          // demoRenderer.renderer.compile(item.scene, item.camera);
+          demoRenderer.renderer.render(item.scene, item.camera);
+        }
+      }
 
+      let action;
+      if (isStarted()) {
         loadingBar.setPercent(1.0);
 
-        let action;
         if (!timer.isStarted()) {
           timer.start();
           action = 'Starting';
@@ -106,26 +131,33 @@ Effect.init = function (effectName) {
           timer.pause();
           action = 'Resuming';
         }
-        loggerInfo(
-          `${action} demo. Loading took ${(new Date().getTime() / 1000 - now).toFixed(2)} seconds`
-        );
 
         demoRenderer.setRenderNeedsUpdate(true);
         fileManager.setNeedsUpdate(false);
-      } catch (error) {
-        if (error instanceof Error) {
-          loggerError(
-            'Error in loading demo: ' +
-              (error.message || '') +
-              ', stack: ' +
-              (error.stack || '')
-          );
-        } else {
-          loggerError('Error in loading demo');
-        }
+      } else {
+        action = 'Not starting';
+        stopDemo();
       }
-    })();
-  }
+      loggerInfo(
+        `${action} demo. Loading took ${(new Date().getTime() / 1000 - now).toFixed(2)} seconds`
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        loggerError(
+          'Error in loading demo: ' +
+            (error.message || '') +
+            ', stack: ' +
+            (error.stack || '')
+        );
+      } else {
+        loggerError('Error in loading demo');
+      }
+
+      stopDemo();
+    } finally {
+      Effect.loading = false;
+    }
+  })();
 };
 
 Effect.run = function (effectName) {

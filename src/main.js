@@ -1,5 +1,5 @@
 import { Effect } from './Effect';
-import { loggerInfo } from './Bindings';
+import { loggerTrace, loggerInfo } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
 import { DemoRenderer } from './DemoRenderer';
@@ -7,10 +7,67 @@ import { FileManager } from './FileManager';
 import { JavaScriptFile } from './JavaScriptFile';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
+import { Music } from './Music';
 
 const settings = new Settings();
 const fileManager = new FileManager();
 const javaScriptFile = new JavaScriptFile();
+
+const startButton = document.getElementById('start');
+const select = document.getElementById('demoList');
+
+const Demo = function () {};
+export { Demo };
+window.Demo = Demo;
+
+function clearCache() {
+  settings.init();
+  fileManager.init();
+  new Music().init();
+
+  if (select) {
+    if (select.value) {
+      settings.engine.demoPathPrefix = select.value;
+    }
+    javaScriptFile.load('Demo.js');
+  }
+}
+
+window.appendDemoToPlaylist = function (name, path) {
+  if (select) {
+    select.appendChild(new Option(name, path));
+  }
+};
+
+if (select) {
+  // playlist.js is expected to just list available productions, e.g.:  appendDemoToPlaylist('JUHA 001', 'data_juha001/');
+  new JavaScriptFile()
+    .load('./playlist.js')
+    .then(() => {
+      select.style.display = 'block';
+      select.addEventListener('change', () => {
+        clearCache();
+        settings.engine.demoPathPrefix = select.value;
+        startButton.classList.add('disabled');
+        select.classList.add('disabled');
+        javaScriptFile.load('Demo.js').finally(() => {
+          startButton.classList.remove('disabled');
+          select.classList.remove('disabled');
+        });
+      });
+
+      if (select.value) {
+        clearCache();
+        settings.engine.demoPathPrefix = select.value;
+      } else {
+        select.style.display = 'none';
+      }
+    })
+    .catch(() => {
+      loggerTrace('Did not load playlist');
+    });
+}
+
 javaScriptFile.load('Demo.js').then(() => {
   if (import.meta.env.MODE === 'production') {
     startDemo();
@@ -20,10 +77,6 @@ javaScriptFile.load('Demo.js').then(() => {
 const timer = new Timer();
 
 let started = false;
-
-const Demo = function () {};
-export { Demo };
-window.Demo = Demo;
 
 const loadingBar = new LoadingBar();
 
@@ -48,7 +101,7 @@ export function animate() {
     return;
   }
 
-  if (fileManager.isNeedsUpdate()) {
+  if (fileManager.isNeedsUpdate() && isStarted()) {
     loggerInfo('File manager refresh');
     fileManager.setNeedsUpdate(false);
     reloadDemo();
@@ -80,14 +133,21 @@ export function animate() {
 }
 
 function startDemo() {
+  if (Effect.loading) {
+    loggerInfo('Effect is loading, not starting');
+    return;
+  }
+
   if (started) {
     stopDemo();
   }
   started = true;
 
-  const startButton = document.getElementById('start');
   if (startButton) {
     startButton.style.display = 'none';
+  }
+  if (select) {
+    select.style.display = 'none';
   }
 
   if (settings.engine.tool) {
@@ -118,7 +178,7 @@ function startDemo() {
 }
 window.startDemo = startDemo;
 
-function stopDemo() {
+export function stopDemo() {
   console.log('Stopping demo...');
 
   timer.stop();
@@ -134,21 +194,32 @@ function stopDemo() {
     }
   }
 
+  demoRenderer.clear();
+
   cancelAnimationFrame(animationFrameId);
 
   const startButton = document.getElementById('start');
   if (startButton) {
     startButton.style.display = 'block';
   }
+  if (select && select.children.length > 0) {
+    select.style.display = 'block';
+  }
   const canvas = document.getElementById('canvas');
   canvas.style.display = 'none';
 
   started = false;
 
+  clearCache();
+
   if (settings.engine.webDemoExe) {
     // magic to make the WebDemoExe exit
     window.location.hash = 'webdemoexe_exit';
   }
+}
+
+export function isStarted() {
+  return started;
 }
 
 function reloadDemo() {

@@ -172,6 +172,10 @@ DemoRenderer.prototype.renderScene = function () {
   this.renderer.render(scene, camera);
 };
 
+DemoRenderer.prototype.clear = function () {
+  this.renderer.clear();
+};
+
 DemoRenderer.prototype.render = function () {
   this.renderNeedsUpdate = false;
   /*

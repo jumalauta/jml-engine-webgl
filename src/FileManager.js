@@ -202,7 +202,7 @@ FileManager.prototype.processPromise = function (
 };
 
 FileManager.prototype.getPath = function (filePath) {
-  if (!filePath.startsWith('_embedded/')) {
+  if (!filePath.startsWith('_embedded/') && !filePath.startsWith('./')) {
     return settings.engine.demoPathPrefix + filePath;
   }
   return filePath;

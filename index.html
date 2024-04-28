@@ -30,14 +30,25 @@
             background-color: #272822 /*ace/theme/monokai bg*/;
             color: #e0ffe0 /*ace/theme/monokai text*/;
         }
-        #start {
+        .disable{
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .menu {
             position: absolute;
             top: 50%;
-            left: 50%;
-            height: 5em;
-            width: 5em;
+            left: 40%;
             -ms-transform: translateY(-50%);
             transform: translateY(-50%);
+        }
+        #start {
+            height: 5em;
+            width: 10em;
+            font-size: xx-large;
+        }
+        #demoList {
+            height: 3em;
+            width: 10em;
             font-size: xx-large;
         }
         canvas {
@@ -69,7 +80,11 @@
 
 		<!--audio id="music" src="music.mp3"></audio-->
 		<canvas id="canvas" hidden></canvas>
-		<button onclick="startDemo()" id="start">Start</button>
+        <div class="menu">
+            <button onclick="startDemo()" id="start">Start</button>
+            <select name="demoList" id="demoList" hidden></select>
+        </div>
+
 
         <script type="module" src="/src/main.js"></script>
 

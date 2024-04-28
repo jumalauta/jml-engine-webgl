@@ -11,9 +11,18 @@ const Music = function () {
 Music.prototype.getInstance = function () {
   if (!Music.prototype._singletonInstance) {
     Music.prototype._singletonInstance = this;
+    this.init();
   }
 
   return Music.prototype._singletonInstance;
+};
+
+Music.prototype.init = function () {
+  this.stop();
+  this.listener = undefined;
+  this.audio = undefined;
+  this.duration = undefined;
+  this.error = undefined;
 };
 
 Music.prototype.load = function (url) {
@@ -64,10 +73,17 @@ Music.prototype.play = function () {
 };
 
 Music.prototype.stop = function () {
+  if (!this.audio) {
+    return;
+  }
   this.audio.stop();
 };
 
 Music.prototype.pause = function () {
+  if (!this.audio) {
+    return;
+  }
+
   if (new Timer().isPaused()) {
     this.audio.pause();
   } else {
@@ -76,6 +92,9 @@ Music.prototype.pause = function () {
 };
 
 Music.prototype.setTime = function (time) {
+  if (!this.audio) {
+    return;
+  }
   this.stop();
   this.audio.offset = time;
   this.play();

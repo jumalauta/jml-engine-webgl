@@ -2,10 +2,10 @@
 *.BAK
 ace-builds
 dist
-public/_embedded
 data
 data_*
 testdata
+public/playlist.js
 
 # Logs
 logs

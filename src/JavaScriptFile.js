@@ -8,7 +8,9 @@ JavaScriptFile.prototype.load = function (filename) {
   const fileManager = new FileManager();
   return fileManager.load(filename, this, (instance, data) => {
     try {
-      loggerDebug('Executing JavaScript file: ' + instance.filename);
+      loggerDebug(
+        'Executing JavaScript file: ' + fileManager.getPath(instance.filename)
+      );
       // (new DemoRenderer()).setupScene();
       /* eslint-disable no-eval */
       eval(data);
