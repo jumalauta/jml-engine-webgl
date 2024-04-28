@@ -371,7 +371,7 @@ Player.prototype.drawImageAnimation = function (time, animation) {
   for (let videoI = 0; videoI < animation.multiTexRef.length; videoI++) {
     const multiTexRef = animation.multiTexRef[videoI];
     if (multiTexRef.video !== undefined) {
-      const videoDefinition = animation.image[videoI];
+      const videoDefinition = animation.image[videoI].video;
       multiTexRef.video.setStartTime(animation.start);
 
       if (videoDefinition.speed !== undefined) {

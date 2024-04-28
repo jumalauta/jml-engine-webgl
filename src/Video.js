@@ -152,12 +152,11 @@ Video.prototype.stop = function () {
   this.startTime = undefined;
 };
 
-Video.prototype.rewind = function () {
+Video.prototype.getTimeDelta = function () {
   if (this.startTime === undefined) {
-    return;
+    return 0;
   }
 
-  // videoSetTime(this.ptr, time)
   const timeNow = new Timer().getTimeInSeconds();
   let timeDelta = (timeNow - this.startTime) * this.videoElement.playbackRate;
   if (this.videoElement.loop) {
@@ -165,20 +164,23 @@ Video.prototype.rewind = function () {
   }
 
   if (timeDelta < 0) {
-    this.pause();
     timeDelta = 0;
     return;
   } else if (
     timeDelta > this.videoElement.duration &&
     !this.videoElement.loop
   ) {
-    this.pause();
     timeDelta = this.videoElement.duration;
   }
 
-  loggerTrace(
-    `Rewinding video ${this.filename} from ${this.videoElement.currentTime} to ${timeDelta} seconds (video start ${this.startTime})`
-  );
+  return timeDelta;
+};
+
+Video.prototype.rewind = function () {
+  const timeDelta = this.getTimeDelta();
+  // videoSetTime(this.ptr, time)
+
+  // loggerTrace(`Rewinding video ${this.filename} from ${this.videoElement.currentTime} to ${timeDelta} seconds (video start ${this.startTime})`);
   this.videoElement.currentTime = timeDelta;
   this.texture.update();
 };
@@ -186,11 +188,9 @@ Video.prototype.rewind = function () {
 Video.prototype.draw = function () {
   // videoDraw(this.ptr)
   if (this.isPlaying()) {
-    const timeNow = new Timer().getTimeInSeconds();
-    const timeDelta = timeNow - this.startTime;
+    const timeDelta = this.getTimeDelta();
     if (!this.videoElement.loop && timeDelta >= this.videoElement.duration) {
-      this.pause();
-      this.videoElement.currentTime = this.videoElement.duration;
+      this.videoElement.currentTime = timeDelta;
     }
   }
 };
