@@ -827,6 +827,12 @@ Scene.prototype.processAnimation = function () {
               animationDefinition.ref.mesh.material =
                 animationDefinition.shader.ref.material;
             }
+
+            if (settings.engine.preload) {
+              // Shader uniforms need to be processed for prebaking of scenes
+              Shader.enableShader(animationDefinition);
+              Shader.disableShader(animationDefinition);
+            }
           }
           this.validateResourceLoaded(
             animationDefinition,
