@@ -22,6 +22,7 @@
 ## Using tool
 
 - Start tool: `npx vite`
+- To start making demos, create `data` directory inside `public` directory
 
 ## Demo releases
 
