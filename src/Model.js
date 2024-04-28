@@ -30,7 +30,7 @@ Model.prototype.load = function (filename) {
 
       instance.mesh = object;
       instance.ptr = instance.mesh;
-      instance.setShadow();
+      instance.setDefaults();
 
       resolve(instance);
     });
@@ -59,7 +59,7 @@ Model.prototype.load = function (filename) {
             (object) => {
               instance.mesh = object;
               instance.ptr = instance.mesh;
-              instance.setShadow();
+              instance.setDefaults();
               loggerDebug('Loaded OBJ ' + this.filename);
               resolve(instance);
             },
@@ -97,7 +97,7 @@ Model.prototype.load = function (filename) {
           instance.mesh = gltf.scene;
           instance.ptr = instance.mesh;
           instance.gltf = gltf;
-          instance.setShadow();
+          instance.setDefaults();
 
           if (gltf.animations && gltf.animations.length > 0) {
             instance.mixer = new THREE.AnimationMixer(instance.mesh);
@@ -205,6 +205,10 @@ Model.prototype.setNodeRotation = function (
 
 Model.prototype.setNodeScale = function (nodeName, x, y, z) {
   // setObjectNodeScale(this.ptr, nodeName, x, y, z);
+};
+
+Model.prototype.setDefaults = function () {
+  this.setShadow();
 };
 
 Model.prototype.setShadow = function (castShadow, receiveShadow) {
