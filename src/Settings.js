@@ -16,7 +16,7 @@ Settings.prototype.getInstance = function () {
 
 Settings.prototype.init = function () {
   this.engine = {
-    demoPathPrefix: 'data_fallofman/',
+    demoPathPrefix: 'data/',
     tool: true,
     fileWatchInterval: 250,
     startDelay: 0, // bump this for demo capturing

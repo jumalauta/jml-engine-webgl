@@ -486,6 +486,37 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
 
     animation.ref.setAnimationTime(time);
 
+    if (animation.object.animations !== undefined) {
+      for (const animationName in animation.object.animations) {
+        const animationData = animation.object.animations[animationName];
+        animation.ref.play(animationName);
+        if (animationData.weight !== undefined) {
+          animation.ref.setWeight(
+            animationName,
+            Utils.evaluateVariable(animation, animationData.weight)
+          );
+        }
+        if (animationData.timeScale !== undefined) {
+          animation.ref.setTimeScale(
+            animationName,
+            Utils.evaluateVariable(animation, animationData.timescale)
+          );
+        }
+        if (animationData.enabled !== undefined) {
+          animation.ref.setEnabled(
+            animationName,
+            Utils.evaluateVariable(animation, animationData.enabled)
+          );
+        }
+        if (animationData.loop !== undefined) {
+          animation.ref.setLoop(
+            animationName,
+            Utils.evaluateVariable(animation, animationData.loop)
+          );
+        }
+      }
+    }
+
     if (animation.nodes !== undefined) {
       for (const nodeName in animation.nodes) {
         const node = animation.nodes[nodeName];

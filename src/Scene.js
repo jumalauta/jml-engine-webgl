@@ -481,10 +481,18 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
 
     if (animationDefinition.object !== undefined) {
       animationDefinition.ref = new Model();
-      const promises = [];
-      promises.push(animationDefinition.ref.load(animationDefinition.object));
+      if (Utils.isString(animationDefinition.object) === true) {
+        animationDefinition.object = {
+          name: animationDefinition.object
+        };
+      }
 
-      this.loader.addNotifyResource(animationDefinition.object, promises);
+      const promises = [];
+      promises.push(
+        animationDefinition.ref.load(animationDefinition.object.name)
+      );
+
+      this.loader.addNotifyResource(animationDefinition.object.name, promises);
     } else if (animationDefinition.text !== undefined) {
       animationDefinition.ref = new Text();
       const promises = [];

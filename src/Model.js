@@ -101,19 +101,23 @@ Model.prototype.load = function (filename) {
 
           if (gltf.animations && gltf.animations.length > 0) {
             instance.mixer = new THREE.AnimationMixer(instance.mesh);
-            instance.clips = [];
+            instance.clips = {};
             gltf.animations.forEach((clip) => {
               const clipAction = instance.mixer.clipAction(clip);
-              clipAction.play();
+              // clipAction.play();
               // FIXME support for animating / mixing animations
               clipAction.enabled = true;
               clipAction.setEffectiveTimeScale(1);
-              clipAction.setEffectiveWeight(1);
-              instance.clips.push(clipAction);
+              clipAction.setEffectiveWeight(0);
+              clipAction.setLoop(THREE.LoopOnce, 0);
+              instance.clips[clip.name] = clipAction;
             });
+            instance.mixer.clipAction(gltf.animations[0]).setEffectiveWeight(0);
           }
 
-          loggerDebug('Loaded GLTF ' + this.filename);
+          loggerDebug(
+            `Loaded GLTF ${this.filename}. Animations: ${Object.keys(instance.clips)}`
+          );
           resolve(instance);
         },
         undefined,
@@ -256,6 +260,62 @@ Model.prototype.setColor = function (r, g, b, a) {
 
 Model.prototype.draw = function () {
   // drawObject(this.ptr, this.cameraName, this.fps, this.clearDepthBuffer === true ? 1 : 0);
+};
+
+Model.prototype.getClip = function (clipName) {
+  if (this.clips && this.clips[clipName]) {
+    return this.clips[clipName];
+  }
+  return undefined;
+};
+
+Model.prototype.play = function (clipName) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.play();
+  }
+};
+
+Model.prototype.stop = function (clipName) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.stop();
+  }
+};
+
+Model.prototype.pause = function (clipName) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.paused = !clip.paused;
+  }
+};
+
+Model.prototype.setWeight = function (clipName, weight) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.setEffectiveWeight(weight);
+  }
+};
+
+Model.prototype.setTimeScale = function (clipName, speed) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.setEffectiveTimeScale(speed);
+  }
+};
+
+Model.prototype.setLoop = function (clipName, loop) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce);
+  }
+};
+
+Model.prototype.setEnabled = function (clipName, enabled) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.enabled = enabled;
+  }
 };
 
 export { Model };
