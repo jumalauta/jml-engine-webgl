@@ -114,7 +114,12 @@ Effect.init = function (effectName) {
         fileManager.setNeedsUpdate(false);
       } catch (error) {
         if (error instanceof Error) {
-          loggerError('Error in loading demo: ' + (error.message || ''));
+          loggerError(
+            'Error in loading demo: ' +
+              (error.message || '') +
+              ', stack: ' +
+              (error.stack || '')
+          );
         } else {
           loggerError('Error in loading demo');
         }
