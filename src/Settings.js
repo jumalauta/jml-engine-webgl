@@ -114,8 +114,7 @@ Settings.prototype.init = function () {
         type: 'Ambient',
         color: { r: 0.5, g: 0.5, b: 0.5 },
         intensity: 1.0,
-      } */
-      /*,
+      },
       {
         type: 'Directional',
         castShadow: true,
