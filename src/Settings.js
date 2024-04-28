@@ -138,6 +138,7 @@ Settings.prototype.init = function () {
     this.engine.tool = false;
     this.engine.enabledLogLevels = ['info', 'warning', 'error'];
     this.engine.webDemoExe = true;
+    this.menu.fullscreen = true;
   }
 };
 

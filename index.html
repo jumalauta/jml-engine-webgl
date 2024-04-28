@@ -46,6 +46,13 @@
             width: 10em;
             font-size: xx-large;
         }
+        .checkbox {
+            height: 2em;
+            width: 2em;
+            font-size: xx-large;
+            vertical-align: middle;
+            display: inline;
+        }
         #demoList {
             height: 3em;
             width: 10em;
@@ -82,6 +89,7 @@
 		<canvas id="canvas" hidden></canvas>
         <div class="menu">
             <button onclick="startDemo()" id="start">Start</button>
+            <br/><label class="checkbox" id="fullscreenLabel" for="checkbox"><input type="checkbox" id="fullscreen" class="checkbox" name="fullscreen" checked /> Fullscreen</label>
             <select name="demoList" id="demoList" hidden></select>
         </div>
 

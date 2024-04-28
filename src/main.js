@@ -1,5 +1,5 @@
 import { Effect } from './Effect';
-import { loggerTrace, loggerInfo } from './Bindings';
+import { loggerDebug, loggerInfo } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
 import { DemoRenderer } from './DemoRenderer';
@@ -15,6 +15,8 @@ const javaScriptFile = new JavaScriptFile();
 
 const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
+const fullscreenCheckbox = document.getElementById('fullscreen');
+const fullscreenLabel = document.getElementById('fullscreenLabel');
 
 const Demo = function () {};
 export { Demo };
@@ -31,6 +33,13 @@ function clearCache() {
     }
     javaScriptFile.load('Demo.js');
   }
+}
+
+if (fullscreenCheckbox) {
+  fullscreenCheckbox.checked = settings.menu.fullscreen;
+  fullscreenCheckbox.addEventListener('change', () => {
+    settings.menu.fullscreen = fullscreenCheckbox.checked;
+  });
 }
 
 window.appendDemoToPlaylist = function (name, path) {
@@ -64,15 +73,14 @@ if (select) {
       }
     })
     .catch(() => {
-      loggerTrace('Did not load playlist');
+      // load Demo from default path if playlist.js is not defined
+      javaScriptFile.load('Demo.js').then(() => {
+        if (settings.engine.webDemoExe) {
+          startDemo();
+        }
+      });
     });
 }
-
-javaScriptFile.load('Demo.js').then(() => {
-  if (import.meta.env.MODE === 'production') {
-    startDemo();
-  }
-});
 
 const timer = new Timer();
 
@@ -146,6 +154,10 @@ function startDemo() {
   if (startButton) {
     startButton.style.display = 'none';
   }
+  if (fullscreenCheckbox) {
+    fullscreenCheckbox.style.display = 'none';
+    fullscreenLabel.style.display = 'none';
+  }
   if (select) {
     select.style.display = 'none';
   }
@@ -155,12 +167,6 @@ function startDemo() {
   }
 
   const canvas = document.getElementById('canvas');
-  canvas.style.display = 'block';
-  canvas.style.margin = '0px';
-  if (!settings.engine.tool) {
-    canvas.style.cursor = 'none';
-  }
-
   if (settings.menu.fullscreen) {
     if (canvas.requestFullscreen) {
       canvas.requestFullscreen();
@@ -170,9 +176,15 @@ function startDemo() {
       canvas.msRequestFullscreen();
     }
   }
+  canvas.style.display = 'block';
+  canvas.style.margin = '0px';
+  if (!settings.engine.tool) {
+    canvas.style.cursor = 'none';
+  }
 
   setTimeout(() => {
     windowResize();
+    reloadDemo();
     animate();
   }, settings.engine.startDelay);
 }
@@ -186,7 +198,9 @@ export function stopDemo() {
 
   if (settings.menu.fullscreen) {
     if (document.exitFullscreen) {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {
+        loggerDebug('Could not exit fullscreen');
+      });
     } else if (document.webkitExitFullscreen) {
       document.webkitExitFullscreen();
     } else if (document.msExitFullscreen) {
@@ -201,6 +215,10 @@ export function stopDemo() {
   const startButton = document.getElementById('start');
   if (startButton) {
     startButton.style.display = 'block';
+  }
+  if (fullscreenCheckbox) {
+    fullscreenCheckbox.style.display = 'inline';
+    fullscreenLabel.style.display = 'inline';
   }
   if (select && select.children.length > 0) {
     select.style.display = 'block';
@@ -230,9 +248,6 @@ function reloadDemo() {
 
 function windowResize() {
   demoRenderer.resize();
-  if (started) {
-    reloadDemo();
-  }
 }
 
 window.addEventListener('resize', windowResize, false);
