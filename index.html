@@ -35,14 +35,14 @@
             pointer-events: none;
         }
         .menu {
-            position: absolute;
+            position: fixed;
+            left: 50%;
             top: 50%;
-            left: 40%;
-            -ms-transform: translateY(-50%);
-            transform: translateY(-50%);
+            transform: translate(-50%, -50%);
+
         }
         #start {
-            height: 5em;
+            height: 4em;
             width: 10em;
             font-size: xx-large;
         }
@@ -54,7 +54,7 @@
             display: inline;
         }
         #demoList {
-            height: 3em;
+            height: 2em;
             width: 10em;
             font-size: xx-large;
         }
