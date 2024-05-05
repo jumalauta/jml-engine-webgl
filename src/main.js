@@ -18,6 +18,23 @@ const select = document.getElementById('demoList');
 const fullscreenCheckbox = document.getElementById('fullscreen');
 const fullscreenLabel = document.getElementById('fullscreenLabel');
 
+function isFullscreenSupported() {
+  return (
+    document.fullscreenEnabled ||
+    document.webkitFullscreenEnabled ||
+    document.msFullscreenEnabled
+  );
+}
+// do not display fullscreen option if it is not supported
+const fullscreenDefaultStyleDisplay = isFullscreenSupported()
+  ? 'inline'
+  : 'none';
+fullscreenCheckbox.style.display = fullscreenDefaultStyleDisplay;
+fullscreenLabel.style.display = fullscreenDefaultStyleDisplay;
+if (isFullscreenSupported()) {
+  settings.menu.fullscreen = false;
+}
+
 const Demo = function () {};
 export { Demo };
 window.Demo = Demo;
@@ -140,6 +157,14 @@ export function animate() {
   animationFrameId = requestAnimationFrame(animate);
 }
 
+function startDemoAnimation() {
+  setTimeout(() => {
+    windowResize();
+    reloadDemo();
+    animate();
+  }, settings.engine.startDelay);
+}
+
 function startDemo() {
   if (Effect.loading) {
     loggerInfo('Effect is loading, not starting');
@@ -167,6 +192,7 @@ function startDemo() {
   }
 
   const canvas = document.getElementById('canvas');
+  // https://caniuse.com/fullscreen - apparently iPhone iOS does not support Fullscreen API
   if (settings.menu.fullscreen) {
     if (canvas.requestFullscreen) {
       canvas.requestFullscreen();
@@ -182,11 +208,23 @@ function startDemo() {
     canvas.style.cursor = 'none';
   }
 
-  setTimeout(() => {
-    windowResize();
-    reloadDemo();
-    animate();
-  }, settings.engine.startDelay);
+  // HTML5 audio tag needs to be used so that WebAudio can be played also when Apple device hardware mute switch is ON
+  const appleSilence = document.getElementById('appleSilence');
+  if (appleSilence) {
+    appleSilence.onseeked = () => {
+      console.log('AppleSilence ended');
+      startDemoAnimation();
+      appleSilence.onseeked = null;
+    };
+    appleSilence.onerror = () => {
+      console.log('AppleSilence error');
+      alert('error happened with mute switch workaround');
+    };
+
+    appleSilence.play();
+  } else {
+    startDemoAnimation();
+  }
 }
 window.startDemo = startDemo;
 
@@ -217,8 +255,8 @@ export function stopDemo() {
     startButton.style.display = 'block';
   }
   if (fullscreenCheckbox) {
-    fullscreenCheckbox.style.display = 'inline';
-    fullscreenLabel.style.display = 'inline';
+    fullscreenCheckbox.style.display = fullscreenDefaultStyleDisplay;
+    fullscreenLabel.style.display = fullscreenDefaultStyleDisplay;
   }
   if (select && select.children.length > 0) {
     select.style.display = 'block';
