@@ -87,7 +87,7 @@ Sync.prototype.initDevice = function (webSocket) {
 };
 
 Sync.prototype.getRow = function () {
-  const row = Math.floor(this.timer.getTimeInSeconds() * this.rowRate);
+  const row = this.timer.getTimeInSeconds() * this.rowRate;
   return row;
 };
 
