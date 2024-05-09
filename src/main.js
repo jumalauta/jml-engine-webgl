@@ -1,5 +1,5 @@
 import { Effect } from './Effect';
-import { loggerDebug, loggerInfo } from './Bindings';
+import { loggerDebug, loggerInfo, loggerWarning } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
 import { DemoRenderer } from './DemoRenderer';
@@ -25,14 +25,18 @@ function isFullscreenSupported() {
     document.msFullscreenEnabled
   );
 }
-// do not display fullscreen option if it is not supported
 const fullscreenDefaultStyleDisplay = isFullscreenSupported()
   ? 'inline'
   : 'none';
-fullscreenCheckbox.style.display = fullscreenDefaultStyleDisplay;
-fullscreenLabel.style.display = fullscreenDefaultStyleDisplay;
-if (isFullscreenSupported()) {
-  settings.menu.fullscreen = false;
+
+if (fullscreenCheckbox) {
+  // do not display fullscreen option if it is not supported
+  fullscreenCheckbox.style.display = fullscreenDefaultStyleDisplay;
+  fullscreenLabel.style.display = fullscreenDefaultStyleDisplay;
+
+  document.addEventListener('fullscreenchange', () => {
+    fullscreenCheckbox.checked = document.fullscreenElement !== null;
+  });
 }
 
 const Demo = function () {};
@@ -50,13 +54,6 @@ function clearCache() {
     }
     javaScriptFile.load('Demo.js');
   }
-}
-
-if (fullscreenCheckbox) {
-  fullscreenCheckbox.checked = settings.menu.fullscreen;
-  fullscreenCheckbox.addEventListener('change', () => {
-    settings.menu.fullscreen = fullscreenCheckbox.checked;
-  });
 }
 
 window.appendDemoToPlaylist = function (name, path) {
@@ -159,6 +156,7 @@ export function animate() {
 
 function startDemoAnimation() {
   setTimeout(() => {
+    console.log('Demo is starting, please wait a moment');
     windowResize();
     reloadDemo();
     animate();
@@ -192,16 +190,6 @@ function startDemo() {
   }
 
   const canvas = document.getElementById('canvas');
-  // https://caniuse.com/fullscreen - apparently iPhone iOS does not support Fullscreen API
-  if (settings.menu.fullscreen) {
-    if (canvas.requestFullscreen) {
-      canvas.requestFullscreen();
-    } else if (canvas.webkitRequestFullscreen) {
-      canvas.webkitRequestFullscreen();
-    } else if (canvas.msRequestFullscreen) {
-      canvas.msRequestFullscreen();
-    }
-  }
   canvas.style.display = 'block';
   canvas.style.margin = '0px';
   if (!settings.engine.tool) {
@@ -212,15 +200,19 @@ function startDemo() {
   const appleSilence = document.getElementById('appleSilence');
   if (appleSilence) {
     appleSilence.onseeked = () => {
-      console.log('AppleSilence ended');
-      startDemoAnimation();
+      loggerDebug('AppleSilence ended');
       appleSilence.onseeked = null;
+      startDemoAnimation(); // now we should have WebAudio context assuming silence is playing in the background
     };
     appleSilence.onerror = () => {
-      console.log('AppleSilence error');
-      alert('error happened with mute switch workaround');
+      // this might mean that audio won't play with Apple hardware mute switch ON
+      loggerWarning('error in playing silence');
+      if (appleSilence.onseeked) {
+        appleSilence.onseeked();
+      }
     };
 
+    appleSilence.load();
     appleSilence.play();
   } else {
     startDemoAnimation();
@@ -228,23 +220,66 @@ function startDemo() {
 }
 window.startDemo = startDemo;
 
+// Fullscreen toggle is called from checkbox onclick event
+// iOS Safari does not support going to fullscreen from start button, so checkbox click event is used to avoid following error:
+// Unhandled Promise Rejection: NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.
+function toggleFullscreen(fullscreen) {
+  if (isFullscreenSupported() === false) {
+    loggerWarning('Fullscreen not supported, toggle has no effect');
+    return;
+  }
+
+  if (fullscreen === undefined) {
+    fullscreen = fullscreenCheckbox.checked;
+  }
+
+  // https://caniuse.com/fullscreen - apparently iPhone iOS does not support Fullscreen API
+  const screen = document.documentElement;
+  if (fullscreen === true) {
+    const requestFullscreen =
+      screen.requestFullscreen ||
+      screen.webkitRequestFullscreen ||
+      screen.msRequestFullscreen;
+    if (requestFullscreen) {
+      fullscreenCheckbox.checked = true;
+      const promise = requestFullscreen.call(screen);
+      if (promise instanceof Promise) {
+        promise
+          .then(() => {
+            loggerDebug('Fullscreen entered');
+          })
+          .catch(() => {
+            loggerWarning('Could not enter fullscreen');
+          });
+      }
+    }
+  } else {
+    const exitFullscreen =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.msExitFullscreen;
+    if (exitFullscreen) {
+      fullscreenCheckbox.checked = false;
+      const promise = exitFullscreen.call(document);
+      if (promise instanceof Promise) {
+        promise
+          .then(() => {
+            loggerDebug('Fullscreen exited');
+          })
+          .catch(() => {
+            loggerWarning('Could not exit fullscreen');
+          });
+      }
+    }
+  }
+}
+window.toggleFullscreen = toggleFullscreen;
+
 export function stopDemo() {
   console.log('Stopping demo...');
 
   timer.stop();
   toolUi.hide();
-
-  if (settings.menu.fullscreen) {
-    if (document.exitFullscreen) {
-      document.exitFullscreen().catch(() => {
-        loggerDebug('Could not exit fullscreen');
-      });
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  }
 
   demoRenderer.clear();
 

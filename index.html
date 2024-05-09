@@ -76,23 +76,12 @@
 		</style>
 	</head>
 	<body>
-		<!--script type="importmap">
-			{
-				"imports": {
-					"three": "../build/three.module.js",
-					"three/addons/": "./jsm/"
-				}
-			}
-		</script-->
-
-		<!--audio id="music" src="music.mp3"></audio-->
-		<canvas id="canvas" hidden></canvas>
+        <canvas id="canvas" hidden></canvas>
         <div class="menu">
             <button onclick="startDemo()" id="start">Start</button>
-            <br/><label class="checkbox" id="fullscreenLabel" for="checkbox"><input type="checkbox" id="fullscreen" class="checkbox" name="fullscreen" checked /> Fullscreen</label>
+            <br/><label class="checkbox" id="fullscreenLabel" for="checkbox"><input type="checkbox" id="fullscreen" class="checkbox" name="fullscreen" onclick="toggleFullscreen()"/> Fullscreen</label>
             <select name="demoList" id="demoList" hidden></select>
         </div>
-
 
         <script type="module" src="/src/main.js"></script>
         <audio id="appleSilence" src="silence.mp3" type="audio/mpeg" loop></audio>

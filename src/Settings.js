@@ -26,7 +26,6 @@ Settings.prototype.init = function () {
   };
 
   this.menu = {
-    fullscreen: false,
     volume: 1.0
   };
 
@@ -138,7 +137,6 @@ Settings.prototype.init = function () {
     this.engine.tool = false;
     this.engine.enabledLogLevels = ['info', 'warning', 'error'];
     this.engine.webDemoExe = true;
-    this.menu.fullscreen = true;
   }
 };
 
