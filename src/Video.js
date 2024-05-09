@@ -166,7 +166,6 @@ Video.prototype.getTimeDelta = function () {
 
   if (timeDelta < 0) {
     timeDelta = 0;
-    return;
   } else if (
     timeDelta > this.videoElement.duration &&
     !this.videoElement.loop
