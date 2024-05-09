@@ -15,6 +15,7 @@ const javaScriptFile = new JavaScriptFile();
 
 const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
+const quality = document.getElementById('qualityList');
 const fullscreenCheckbox = document.getElementById('fullscreen');
 const fullscreenLabel = document.getElementById('fullscreenLabel');
 
@@ -184,6 +185,10 @@ function startDemo() {
   if (select) {
     select.style.display = 'none';
   }
+  if (quality) {
+    quality.style.display = 'none';
+    settings.menu.quality = parseFloat(quality.value || 1.0);
+  }
 
   if (settings.engine.tool) {
     toolUi.show();
@@ -296,6 +301,10 @@ export function stopDemo() {
   if (select && select.children.length > 0) {
     select.style.display = 'block';
   }
+  if (quality) {
+    quality.style.display = 'block';
+  }
+
   const canvas = document.getElementById('canvas');
   canvas.style.display = 'none';
 

@@ -67,8 +67,12 @@ Fbo.init = function (name, sceneName) {
   fbo.name = name;
 
   fbo.target = new THREE.WebGLRenderTarget(
-    demoRenderer.canvasWidth * settings.demo.fbo.quality,
-    demoRenderer.canvasHeight * settings.demo.fbo.quality
+    demoRenderer.canvasWidth *
+      settings.demo.fbo.quality *
+      settings.menu.quality,
+    demoRenderer.canvasHeight *
+      settings.demo.fbo.quality *
+      settings.menu.quality
   );
   settings.toThreeJsProperties(
     settings.demo.fbo.color.texture,

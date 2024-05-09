@@ -116,7 +116,7 @@ DemoRenderer.prototype.init = function () {
 };
 
 DemoRenderer.prototype.resize = function () {
-  const scaleDown = settings.demo.screen.quality;
+  const scaleDown = settings.demo.screen.quality * settings.menu.quality;
   const scaleUp = 1.0 / scaleDown;
 
   this.fullCanvasWidth = window.innerWidth * 1.0;

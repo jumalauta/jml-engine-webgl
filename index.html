@@ -42,9 +42,10 @@
 
         }
         #start {
-            height: 4em;
+            height: 3em;
             width: 10em;
             font-size: xx-large;
+            display: block;
         }
         .checkbox {
             height: 2em;
@@ -53,10 +54,11 @@
             vertical-align: middle;
             display: inline;
         }
-        #demoList {
+        select {
             height: 2em;
             width: 10em;
             font-size: xx-large;
+            display: block;
         }
         canvas {
             width: 100%;
@@ -79,7 +81,12 @@
         <canvas id="canvas" hidden></canvas>
         <div class="menu">
             <button onclick="startDemo()" id="start">Start</button>
-            <br/><label class="checkbox" id="fullscreenLabel" for="checkbox"><input type="checkbox" id="fullscreen" class="checkbox" name="fullscreen" onclick="toggleFullscreen()"/> Fullscreen</label>
+            <label class="checkbox" id="fullscreenLabel" for="checkbox"><input type="checkbox" id="fullscreen" class="checkbox" name="fullscreen" onclick="toggleFullscreen()"/> Fullscreen</label>
+            <select name="qualityList" id="qualityList">
+                <option value="0.6">Low</option>
+                <option value="0.8">Medium</option>
+                <option value="1.0" selected>High</option>
+            </select>
             <select name="demoList" id="demoList" hidden></select>
         </div>
 

@@ -26,7 +26,8 @@ Settings.prototype.init = function () {
   };
 
   this.menu = {
-    volume: 1.0
+    volume: 1.0,
+    quality: 1.0
   };
 
   this.demo = {
