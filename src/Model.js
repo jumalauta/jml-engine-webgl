@@ -3,7 +3,7 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
-import { loggerDebug } from './Bindings';
+import { loggerDebug, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 
@@ -29,14 +29,35 @@ Model.prototype.getMeshNames = function () {
   return names;
 };
 
+Model.prototype.setShape = function (shape) {
+  this.shape = shape;
+};
+
 Model.prototype.load = function (filename) {
   this.filename = filename;
   const instance = this;
 
-  if (!(filename instanceof String) && typeof filename !== 'string') {
+  if (
+    instance.shape ||
+    (!(filename instanceof String) && typeof filename !== 'string')
+  ) {
     return new Promise((resolve, reject) => {
       let object = filename;
-      if (!(object instanceof THREE.Object3D)) {
+      if (instance.shape) {
+        if (instance.shape.type === 'CUBE') {
+          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+          material.transparent = true;
+          material.castShadow = true;
+          material.receiveShadow = true;
+          object = new THREE.Mesh(
+            new THREE.BoxGeometry(0.4, 0.4, 0.4),
+            material
+          );
+        } else {
+          loggerWarning('Unsupported shape: ' + instance.shape.type);
+          reject(instance);
+        }
+      } else if (!(object instanceof THREE.Object3D)) {
         object = new THREE.Object3D();
       }
 
@@ -226,8 +247,42 @@ Model.prototype.setNodeScale = function (nodeName, x, y, z) {
   // setObjectNodeScale(this.ptr, nodeName, x, y, z);
 };
 
+Model.prototype.setMaterialDefaults = function () {
+  this.mesh.traverse((obj) => {
+    if (obj.isMesh) {
+      // obj.material.transparent = false;
+      // obj.material.opacity = 1;
+      // obj.material.depthWrite = true;
+      // obj.material.depthTest = true;
+      if (settings.demo.compatibility.oldMaterials) {
+        obj.material.side = THREE.DoubleSide;
+      }
+      // obj.material.flatShading = false;
+      // obj.material.needsUpdate = true;
+    }
+  });
+};
+
+Model.prototype.setMaterial = function (material) {
+  if (!(material instanceof THREE.Material)) {
+    loggerWarning('not material, cannot add to mesh');
+    return;
+  }
+  this.mesh.traverse((obj) => {
+    if (obj.isMesh && obj.material) {
+      if (obj.material.map && material.uniforms && material.uniforms.texture0) {
+        material.uniforms.texture0.value = obj.material.map;
+      }
+      obj.material = material;
+    }
+  });
+
+  this.setMaterialDefaults();
+};
+
 Model.prototype.setDefaults = function () {
   this.setShadow();
+  this.setMaterialDefaults();
 };
 
 Model.prototype.setShadow = function (castShadow, receiveShadow) {
@@ -254,23 +309,18 @@ Model.prototype.setColor = function (r, g, b, a) {
     na = a / 0xff;
   }
 
-  if (this.mesh.material instanceof THREE.ShaderMaterial) {
-    if (this.mesh.material.uniforms && this.mesh.material.uniforms.color) {
-      this.mesh.material.uniforms.color.value = new THREE.Vector4(
-        nr,
-        ng,
-        nb,
-        na
-      );
-    }
-  } else {
-    this.mesh.traverse(function (obj) {
-      if (obj.isMesh) {
+  this.mesh.traverse(function (obj) {
+    if (obj.isMesh) {
+      if (obj.material instanceof THREE.ShaderMaterial) {
+        if (obj.material.uniforms && obj.material.uniforms.color) {
+          obj.material.uniforms.color.value = new THREE.Vector4(nr, ng, nb, na);
+        }
+      } else {
         obj.material.color = new THREE.Color(nr, ng, nb);
         obj.material.opacity = na;
       }
-    });
-  }
+    }
+  });
 };
 
 Model.prototype.draw = function () {

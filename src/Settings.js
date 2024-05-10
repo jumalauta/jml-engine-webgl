@@ -49,7 +49,8 @@ Settings.prototype.init = function () {
     }, */
     compatibility: {
       old2dCoordinates: false,
-      oldColors: false
+      oldColors: false,
+      oldMaterials: false
     },
     /* text: {
       material: {

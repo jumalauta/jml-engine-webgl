@@ -5,7 +5,8 @@ import { DemoRenderer } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 import { Video } from './Video';
-import vertexShaderData from './_embedded/default2d.vs?raw';
+import vertexShader3dData from './_embedded/default.vs?raw';
+import vertexShader2dData from './_embedded/default2d.vs?raw';
 import fragmentShaderData from './_embedded/default2d.fs?raw';
 
 const settings = new Settings();
@@ -38,7 +39,7 @@ Image.prototype.createMaterial = function () {
       color: { value: new THREE.Vector4(1, 1, 1, 1) }
     },
     // Manually added vertex shader to get the fragment shader running
-    vertexShader: vertexShaderData,
+    vertexShader: this.perspective2d ? vertexShader2dData : vertexShader3dData,
     fragmentShader: fragmentShaderData
   };
 
@@ -55,9 +56,12 @@ Image.prototype.createMaterial = function () {
   });
   // material = settings.createMaterial(settings.demo.image.material);
   material.map = this.texture;
+
   material.blending = THREE.CustomBlending;
-  material.depthTest = false;
-  material.depthWrite = false;
+  if (this.perspective2d) {
+    material.depthTest = false;
+    material.depthWrite = false;
+  }
 
   return material;
 };
@@ -81,20 +85,23 @@ Image.prototype.generateMesh = function () {
 
   this.material = this.createMaterial();
   // this.material = new THREE.MeshBasicMaterial({ map: this.texture, blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
-  this.mesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(
-      (this.width / settings.demo.screen.width) *
-        settings.demo.screen.aspectRatio,
-      this.height / settings.demo.screen.height
-    ),
-    this.material
-  );
-  this.mesh.castShadow = false;
-  this.mesh.receiveShadow = false;
+  let w =
+    (this.width / settings.demo.screen.width) *
+    settings.demo.screen.aspectRatio;
+  let h = this.height / settings.demo.screen.height;
+  if (!this.perspective2d) {
+    w *= 3;
+    h *= 3;
+  }
+  this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.material);
   // instance.mesh.renderOrder = 100;
   this.ptr = this.mesh;
-  this.mesh.position.z = 0; // settings.demo.screen.perspective2dZ;
-  this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
+  if (this.perspective2d) {
+    this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
+    this.mesh.castShadow = false;
+    this.mesh.receiveShadow = false;
+    this.mesh.position.z = 0; // settings.demo.screen.perspective2dZ;
+  }
 
   if (settings.engine.preload) {
     new DemoRenderer().renderer.initTexture(this.texture);

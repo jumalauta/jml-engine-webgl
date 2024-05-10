@@ -490,6 +490,10 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         };
       }
 
+      if (animationDefinition.shape !== undefined) {
+        animationDefinition.ref.setShape(animationDefinition.shape);
+      }
+
       const promises = [];
       promises.push(
         animationDefinition.ref.load(animationDefinition.object.name)
@@ -525,7 +529,14 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         }
       }
 
+      if (animationDefinition.perspective === undefined) {
+        animationDefinition.perspective = '2d';
+      }
+
       animationDefinition.ref = new Image(animationDefinition.scene);
+      animationDefinition.ref.setPerspective2d(
+        animationDefinition.perspective === '2d'
+      );
       const promises = [];
       promises.push(
         animationDefinition.ref.load(animationDefinition.image[0].name)
@@ -545,6 +556,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         imageI++
       ) {
         const multiTexRef = new Image(animationDefinition.scene);
+        multiTexRef.setPerspective2d(animationDefinition.perspective === '2d');
         promises.push(multiTexRef.load(animationDefinition.image[imageI].name));
 
         animationDefinition.multiTexRef.push(multiTexRef);
@@ -556,10 +568,6 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
           promises.push(video.ref.load(animationDefinition.image[imageI].name));
           animationDefinition.multiTexRef[imageI].video = video;
         } */
-      }
-
-      if (animationDefinition.perspective === undefined) {
-        animationDefinition.perspective = '2d';
       }
 
       if (
@@ -850,6 +858,11 @@ Scene.prototype.processAnimation = function () {
                 THREE.CustomBlending;
               animationDefinition.shader.ref.material.depthTest = false;
               animationDefinition.shader.ref.material.depthWrite = false;
+            }
+            if (animationDefinition.object) {
+              animationDefinition.ref.setMaterial(
+                animationDefinition.shader.ref.material
+              );
             }
             if (animationDefinition.ref.mesh) {
               animationDefinition.ref.mesh.material =
