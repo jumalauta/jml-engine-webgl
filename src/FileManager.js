@@ -162,6 +162,8 @@ FileManager.prototype.processPromise = function (
     filePathString = filePathString.join(', ');
   }
 
+  let rejectPromise = true;
+
   if (callback) {
     try {
       if (callback(instance, data)) {
@@ -177,23 +179,23 @@ FileManager.prototype.processPromise = function (
         loggerDebug(
           `${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`
         );
+        rejectPromise = false;
         resolve(data);
       } else {
-        throw new Error('Callback failed');
+        loggerWarning('Callback failed');
       }
     } catch (e) {
-      loggerWarning(
-        `${this.getInstanceName(instance)} file(s) could not be loaded: ${filePathString}`
-      );
-      if (instance) {
-        instance.error = true;
-      }
-      reject(data);
+      loggerWarning(`Received exception: ${e}`);
     }
-  } else {
+  }
+
+  if (rejectPromise) {
     loggerWarning(
-      `${this.getInstanceName(instance)} file(s) could not be loaded, no callback defined: ${filePathString}`
+      `${this.getInstanceName(instance)} file(s) could not be loaded: ${filePathString}`
     );
+
+    this.removeRefreshFileTimestamp(filePath);
+
     if (instance) {
       instance.error = true;
     }
@@ -251,6 +253,14 @@ FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
   });
 };
 
+FileManager.prototype.removeRefreshFileTimestamp = function (filePath) {
+  const path = filePath;
+  if (this.refreshFiles[path]) {
+    loggerDebug('Removing file from refresh checking: ' + path);
+    delete this.refreshFiles[filePath];
+  }
+};
+
 FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
   if (this.refreshFiles[filePath]) {
     return null;
@@ -262,7 +272,7 @@ FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
       this.refreshFiles[filePath] = stats.mtime;
     });
   } else {
-    this.refreshFiles[filePath] = null;
+    delete this.refreshFiles[filePath];
   }
 };
 

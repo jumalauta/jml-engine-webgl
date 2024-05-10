@@ -64,10 +64,11 @@ window.appendDemoToPlaylist = function (name, path) {
 };
 
 if (select) {
-  // playlist.js is expected to just list available productions, e.g.:  appendDemoToPlaylist('JUHA 001', 'data_juha001/');
+  // playlist.js is expected to just list available productions, e.g., appendDemoToPlaylist('JUHA 001', 'data_juha001/');
   new JavaScriptFile()
     .load('./playlist.js')
     .then(() => {
+      loggerDebug('Initializing playlist');
       select.style.display = 'block';
       select.addEventListener('change', () => {
         clearCache();
@@ -88,6 +89,8 @@ if (select) {
       }
     })
     .catch(() => {
+      loggerDebug('No playlist.js found, loading default demo...');
+      select.style.display = 'none';
       // load Demo from default path if playlist.js is not defined
       javaScriptFile.load('Demo.js').then(() => {
         if (settings.engine.webDemoExe) {
@@ -164,9 +167,6 @@ function togglePlayerUserInterface(show) {
   if (settings.engine.tool) {
     if (show) {
       toolUi.show();
-      canvas.onclick = () => {
-        timer.pause();
-      };
     } else {
       toolUi.hide();
     }
@@ -188,7 +188,7 @@ function togglePlayerUserInterface(show) {
   if (startButton) {
     startButton.style.display = elementStyle;
   }
-  if (select) {
+  if (select && select.value) {
     select.style.display = elementStyle;
   }
   if (quality) {
