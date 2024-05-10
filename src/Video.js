@@ -88,9 +88,6 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
 Video.prototype.setStartTime = function (startTime) {
   // videoSetStartTime(this.ptr, startTime)
   this.animationStartTime = startTime;
-  loggerWarning(
-    `Setting start time for video ${this.filename} to ${startTime}`
-  );
 };
 
 Video.prototype.setFps = function (fps) {
@@ -153,6 +150,11 @@ Video.prototype.stop = function () {
   this.startTime = undefined;
 };
 
+Video.prototype.setAnimationTime = function (time) {
+  // Note that this might be very sluggish if the video has not buffered properly
+  this.currentTime = time;
+};
+
 Video.prototype.getTimeDelta = function () {
   if (this.startTime === undefined) {
     return 0;
@@ -160,6 +162,11 @@ Video.prototype.getTimeDelta = function () {
 
   const timeNow = new Timer().getTimeInSeconds();
   let timeDelta = (timeNow - this.startTime) * this.videoElement.playbackRate;
+
+  if (this.currentTime !== undefined) {
+    timeDelta = this.currentTime;
+  }
+
   if (this.videoElement.loop) {
     timeDelta = timeDelta % this.videoElement.duration;
   }
@@ -189,7 +196,10 @@ Video.prototype.draw = function () {
   // videoDraw(this.ptr)
   if (this.isPlaying()) {
     const timeDelta = this.getTimeDelta();
-    if (!this.videoElement.loop && timeDelta >= this.videoElement.duration) {
+    if (
+      this.currentTime !== undefined ||
+      (!this.videoElement.loop && timeDelta >= this.videoElement.duration)
+    ) {
       this.videoElement.currentTime = timeDelta;
     }
   }

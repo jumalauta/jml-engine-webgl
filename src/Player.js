@@ -374,6 +374,12 @@ Player.prototype.drawImageAnimation = function (time, animation) {
       const videoDefinition = animation.image[videoI].video;
       multiTexRef.video.setStartTime(animation.start);
 
+      if (videoDefinition.time !== undefined) {
+        multiTexRef.video.setAnimationTime(
+          Utils.evaluateVariable(animation, videoDefinition.time)
+        );
+      }
+
       if (videoDefinition.speed !== undefined) {
         multiTexRef.video.setSpeed(
           Utils.evaluateVariable(animation, videoDefinition.speed)
@@ -484,7 +490,13 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
             setPerspective3d(1);
         } */
 
-    animation.ref.setAnimationTime(time);
+    if (animation.object.time !== undefined) {
+      animation.ref.setAnimationTime(
+        Utils.evaluateVariable(animation, animation.object.time)
+      );
+    } else {
+      animation.ref.setAnimationTime(time);
+    }
 
     if (animation.object.animations !== undefined) {
       for (const animationName in animation.object.animations) {
