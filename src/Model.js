@@ -145,6 +145,7 @@ Model.prototype.load = function (filename) {
               clipAction.setEffectiveTimeScale(1);
               clipAction.setEffectiveWeight(0);
               clipAction.setLoop(THREE.LoopOnce, 0);
+              clipAction.clampWhenFinished = true;
               instance.clips[clip.name] = clipAction;
             });
             instance.mixer.clipAction(gltf.animations[0]).setEffectiveWeight(0);
@@ -369,7 +370,7 @@ Model.prototype.setParent = function (object) {
 Model.prototype.play = function (clipName) {
   const clip = this.getClip(clipName);
   if (clip) {
-    clip.play();
+    clip.play().reset();
   }
 };
 
