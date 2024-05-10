@@ -116,7 +116,7 @@ Model.prototype.load = function (filename) {
           }
 
           loggerDebug(
-            `Loaded GLTF ${this.filename}. Animations: ${Object.keys(instance.clips)}`
+            `Loaded GLTF ${this.filename}. Animations: ${Object.keys(instance.clips).join(', ')}`
           );
           resolve(instance);
         },
