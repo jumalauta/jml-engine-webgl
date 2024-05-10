@@ -24,6 +24,7 @@ const settings = new Settings();
 let fs = null;
 if (settings.engine.tool && import.meta.env.MODE !== 'production') {
   import('vite-plugin-fs/browser').then((module) => {
+    loggerDebug('fs plugin for file watching loaded');
     fs = module.default;
   });
 }
@@ -82,8 +83,10 @@ FileManager.prototype.checkFiles = async function () {
     }
 
     const fileManager = new FileManager();
+    // loggerDebug(`Checking files for changes: ${Object.keys(fileManager.refreshFiles).join(', ')}`);
     for (const filePath in fileManager.refreshFiles) {
       const path = fileManager.getDiskPath(filePath);
+      // loggerDebug('Checking file: ' + path);
       const stats = await fs.stat(path);
 
       if (fileManager.refreshFiles[filePath] === null) {
@@ -263,15 +266,26 @@ FileManager.prototype.removeRefreshFileTimestamp = function (filePath) {
 
 FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
   if (this.refreshFiles[filePath]) {
-    return null;
+    return;
   }
 
   if (fs) {
     const path = this.getDiskPath(filePath);
-    fs.stat(path).then((stats) => {
-      this.refreshFiles[filePath] = stats.mtime;
-    });
+    fs.stat(path)
+      .then((stats) => {
+        this.refreshFiles[filePath] = stats.mtime;
+      })
+      .catch((e) => {
+        loggerDebug(
+          `Error setting file refresh timestamp for ${filePath}: ${e}`
+        );
+        delete this.refreshFiles[filePath];
+      });
   } else {
+    if (settings.engine.tool) {
+      loggerWarning(`File watch not available, not checking: ${filePath}`);
+    }
+
     delete this.refreshFiles[filePath];
   }
 };
@@ -288,7 +302,6 @@ FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
     const path = fileManager.getPath(filePath);
-    fileManager.setRefreshFileTimestamp(filePath);
 
     if (this.files[filePath]) {
       fileManager.processPromise(
@@ -340,6 +353,8 @@ FileManager.prototype.load = function (filePath, instance, callback) {
           data,
           callback
         );
+
+        fileManager.setRefreshFileTimestamp(filePath);
       },
       // onProgress callback
       undefined,
