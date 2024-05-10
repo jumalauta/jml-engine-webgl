@@ -17,6 +17,18 @@ const Model = function () {
   this.clearDepthBuffer = true;
 };
 
+Model.prototype.getMeshNames = function () {
+  const names = [];
+  if (this.mesh) {
+    this.mesh.traverse((obj) => {
+      if (obj.isMesh && obj.name) {
+        names.push(obj.name);
+      }
+    });
+  }
+  return names;
+};
+
 Model.prototype.load = function (filename) {
   this.filename = filename;
   const instance = this;
@@ -60,7 +72,9 @@ Model.prototype.load = function (filename) {
               instance.mesh = object;
               instance.ptr = instance.mesh;
               instance.setDefaults();
-              loggerDebug('Loaded OBJ ' + this.filename);
+              loggerDebug(
+                `Loaded OBJ: ${this.filename}, Mesh names: ${instance.getMeshNames().join(', ')}`
+              );
               resolve(instance);
             },
             undefined,
@@ -116,7 +130,7 @@ Model.prototype.load = function (filename) {
           }
 
           loggerDebug(
-            `Loaded GLTF ${this.filename}. Animations: ${Object.keys(instance.clips).join(', ')}`
+            `Loaded GLTF: ${this.filename}. Animations: ${Object.keys(instance.clips).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`
           );
           resolve(instance);
         },
