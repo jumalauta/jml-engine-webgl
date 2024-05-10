@@ -21,7 +21,7 @@ Settings.prototype.init = function () {
     fileWatchInterval: 250,
     startDelay: 0, // bump this for demo capturing
     preload: true,
-    enabledLogLevels: ['trace', 'debug', 'info', 'warning', 'error'],
+    enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
     webDemoExe: false
   };
 
@@ -136,7 +136,7 @@ Settings.prototype.init = function () {
 
   if (import.meta.env.MODE === 'production') {
     this.engine.tool = false;
-    this.engine.enabledLogLevels = ['info', 'warning', 'error'];
+    this.engine.enabledLogLevels = ['info', 'warn', 'error'];
     this.engine.webDemoExe = true;
   }
 };
