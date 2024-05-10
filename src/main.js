@@ -26,19 +26,19 @@ function isFullscreenSupported() {
     document.msFullscreenEnabled
   );
 }
-const fullscreenDefaultStyleDisplay = isFullscreenSupported()
-  ? 'inline'
-  : 'none';
 
-if (fullscreenCheckbox) {
-  // do not display fullscreen option if it is not supported
-  fullscreenCheckbox.style.display = fullscreenDefaultStyleDisplay;
-  fullscreenLabel.style.display = fullscreenDefaultStyleDisplay;
-
-  document.addEventListener('fullscreenchange', () => {
-    fullscreenCheckbox.checked = document.fullscreenElement !== null;
-  });
+function toggleFullscreenCheckboxVisibility(visible) {
+  // Fullscreen API is not supported in phone iOS Safari
+  // iPhone fullscreen can be done by adding the page to iOS Home Screen and opening it from there
+  const fullscreenCheckboxStyle =
+    isFullscreenSupported() && visible ? 'inline' : 'none';
+  if (fullscreenCheckbox) {
+    fullscreenCheckbox.style.display = fullscreenCheckboxStyle;
+    fullscreenLabel.style.display = fullscreenCheckboxStyle;
+  }
 }
+
+toggleFullscreenCheckboxVisibility(true);
 
 const Demo = function () {};
 export { Demo };
@@ -155,6 +155,49 @@ export function animate() {
   animationFrameId = requestAnimationFrame(animate);
 }
 
+function togglePlayerUserInterface(show) {
+  const canvas = document.getElementById('canvas');
+  canvas.style.margin = '0px';
+  canvas.style.cursor = 'auto';
+  canvas.onclick = null;
+
+  if (settings.engine.tool) {
+    if (show) {
+      toolUi.show();
+      canvas.onclick = () => {
+        timer.pause();
+      };
+    } else {
+      toolUi.hide();
+    }
+  } else {
+    if (show) {
+      canvas.style.cursor = 'none';
+      canvas.onclick = () => {
+        // have a gesture mainly for the touch devices to stop the demo
+        stopDemo();
+      };
+    }
+  }
+
+  const elementStyle = !show ? 'block' : 'none';
+  const canvasStyle = show ? 'block' : 'none';
+
+  toggleFullscreenCheckboxVisibility(!show);
+
+  if (startButton) {
+    startButton.style.display = elementStyle;
+  }
+  if (select) {
+    select.style.display = elementStyle;
+  }
+  if (quality) {
+    quality.style.display = elementStyle;
+    settings.menu.quality = parseFloat(quality.value || 1.0);
+  }
+  canvas.style.display = canvasStyle;
+}
+
 function startDemoAnimation() {
   setTimeout(() => {
     console.log('Demo is starting, please wait a moment');
@@ -175,31 +218,7 @@ function startDemo() {
   }
   started = true;
 
-  if (startButton) {
-    startButton.style.display = 'none';
-  }
-  if (fullscreenCheckbox) {
-    fullscreenCheckbox.style.display = 'none';
-    fullscreenLabel.style.display = 'none';
-  }
-  if (select) {
-    select.style.display = 'none';
-  }
-  if (quality) {
-    quality.style.display = 'none';
-    settings.menu.quality = parseFloat(quality.value || 1.0);
-  }
-
-  if (settings.engine.tool) {
-    toolUi.show();
-  }
-
-  const canvas = document.getElementById('canvas');
-  canvas.style.display = 'block';
-  canvas.style.margin = '0px';
-  if (!settings.engine.tool) {
-    canvas.style.cursor = 'none';
-  }
+  togglePlayerUserInterface(true);
 
   // HTML5 audio tag needs to be used so that WebAudio can be played also when Apple device hardware mute switch is ON
   const appleSilence = document.getElementById('appleSilence');
@@ -225,12 +244,16 @@ function startDemo() {
 }
 window.startDemo = startDemo;
 
+document.addEventListener('fullscreenchange', () => {
+  fullscreenCheckbox.checked = document.fullscreenElement !== null;
+});
+
 // Fullscreen toggle is called from checkbox onclick event
 // iOS Safari does not support going to fullscreen from start button, so checkbox click event is used to avoid following error:
 // Unhandled Promise Rejection: NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.
 function toggleFullscreen(fullscreen) {
   if (isFullscreenSupported() === false) {
-    loggerWarning('Fullscreen not supported, toggle has no effect');
+    loggerWarning('Fullscreen not supported');
     return;
   }
 
@@ -284,29 +307,12 @@ export function stopDemo() {
   console.log('Stopping demo...');
 
   timer.stop();
-  toolUi.hide();
 
   demoRenderer.clear();
 
   cancelAnimationFrame(animationFrameId);
 
-  const startButton = document.getElementById('start');
-  if (startButton) {
-    startButton.style.display = 'block';
-  }
-  if (fullscreenCheckbox) {
-    fullscreenCheckbox.style.display = fullscreenDefaultStyleDisplay;
-    fullscreenLabel.style.display = fullscreenDefaultStyleDisplay;
-  }
-  if (select && select.children.length > 0) {
-    select.style.display = 'block';
-  }
-  if (quality) {
-    quality.style.display = 'block';
-  }
-
-  const canvas = document.getElementById('canvas');
-  canvas.style.display = 'none';
+  togglePlayerUserInterface(false);
 
   started = false;
 

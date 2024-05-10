@@ -132,10 +132,12 @@ DemoRenderer.prototype.resize = function () {
   this.canvasHeight *= scaleDown;
 
   const canvas = document.getElementById('canvas');
-  canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px 0px 0px ${(this.fullCanvasWidth - this.canvasWidth) / 2}px`;
+  canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px auto`;
   canvas.style.transform = `scale(${scaleUp})`;
 
-  loggerDebug('Screen size: ' + this.canvasWidth + 'x' + this.canvasHeight);
+  loggerDebug(
+    `Canvas size: ${Math.floor(this.canvasWidth)}x${Math.floor(this.canvasHeight)}`
+  );
   this.renderer.setSize(this.canvasWidth, this.canvasHeight, true);
   this.renderer.setPixelRatio(window.devicePixelRatio);
 };
@@ -178,35 +180,6 @@ DemoRenderer.prototype.clear = function () {
 
 DemoRenderer.prototype.render = function () {
   this.renderNeedsUpdate = false;
-  /*
-    var BPM = 120,
-        ROWS_PER_BEAT = 8,
-        ROW_RATE = BPM / 60 * ROWS_PER_BEAT;
-
-    var row = _audio.currentTime * ROW_RATE;
-
-    if(_audio.paused === false) {
-        //otherwise we may jump into a point in the audio where there's
-        //no timeframe, resulting in Rocket setting row 2 and we report
-        //row 1 back - thus Rocket spasming out
-
-        // this informs Rocket where we are
-        _syncDevice.update(row);
-    }
-*/
-  /*  // Update the time
-  time = music.currentTime;
-
-  // Stop the animation if the time is up
-  if (time >= duration) {
-    console.log("Demo is over.");
-    stopDemo();
-    return;
-  }
-
-  // Render the scene
-  renderer.clear();
-*/
 
   this.renderer.clear();
 
@@ -214,7 +187,6 @@ DemoRenderer.prototype.render = function () {
 
   Effect.run('Demo');
 
-  // renderer.setRenderTarget(null);
   if (this.controls) {
     this.controls.update();
   }

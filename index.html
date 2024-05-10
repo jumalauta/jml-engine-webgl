@@ -1,31 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-		<title>JML Engine</title>
-		<style>
-    #editor { 
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 60%;
-    }
-    #panel { 
-        position: absolute;
-        top: 90%;
-        right: 30%;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-    }
-        body {
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+        <title>JML Engine</title>
+        <style>
+        #editor { 
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 60%;
+        }
+        #panel { 
+            position: absolute;
+            top: 90%;
+            right: 30%;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+        html, body {
             margin: 0;
             padding: 0;
+            border: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
             background-color: #272822 /*ace/theme/monokai bg*/;
             color: #e0ffe0 /*ace/theme/monokai text*/;
@@ -61,8 +66,6 @@
             display: block;
         }
         canvas {
-            width: 100%;
-            height:100%;
             margin: 0px auto;
         }
         .slider {
@@ -75,9 +78,9 @@
         .slider:hover {
             opacity: 1;
         }
-		</style>
-	</head>
-	<body>
+        </style>
+    </head>
+    <body>
         <canvas id="canvas" hidden></canvas>
         <div class="menu">
             <button onclick="startDemo()" id="start">Start</button>
