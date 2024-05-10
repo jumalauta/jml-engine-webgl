@@ -481,7 +481,10 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
 
     if (animationDefinition.object !== undefined) {
       animationDefinition.ref = new Model();
-      if (Utils.isString(animationDefinition.object) === true) {
+      if (
+        Utils.isString(animationDefinition.object) === true ||
+        animationDefinition.object === null
+      ) {
         animationDefinition.object = {
           name: animationDefinition.object
         };
@@ -748,12 +751,29 @@ Scene.prototype.getParentObject = function (
     if (animationDefinition.parent instanceof THREE.Object3D) {
       return animationDefinition.parent;
     } else {
+      const [parentBaseName, parentBaseChildName] =
+        animationDefinition.parent.split('.');
+
       const parent = animationDefinitions.find(function (definition) {
-        return definition.id === animationDefinition.parent;
+        return definition.id === parentBaseName;
       });
 
       if (parent && parent.ref && parent.ref.mesh) {
-        return parent.ref.mesh;
+        if (parentBaseChildName) {
+          const childMesh =
+            parent.ref.mesh.getObjectByName(parentBaseChildName);
+          if (childMesh) {
+            animationDefinition.ref.setParent(childMesh);
+          } else {
+            loggerWarning(
+              `Parent object ${animationDefinition.parent} child object not found: ${animationDefinition.parent}`
+            );
+          }
+        } else {
+          return parent.ref.mesh;
+        }
+      } else {
+        loggerWarning(`Parent object not found: ${animationDefinition.parent}`);
       }
     }
   }

@@ -182,6 +182,7 @@ Model.prototype.setCamera = function (boolean) {
 
 Model.prototype.setPosition = function (x, y, z) {
   // setObjectPosition(this.ptr, x, y, z);
+
   this.mesh.position.x = x;
   this.mesh.position.y = y;
   this.mesh.position.z = z;
@@ -273,6 +274,34 @@ Model.prototype.setColor = function (r, g, b, a) {
 };
 
 Model.prototype.draw = function () {
+  if (this.parent) {
+    // this is a hack to get the correct world position, rotation and scale in cases where the parent is a child object of some Mesh, i.e., "parent":"modelId.meshName"
+
+    const meshPosition = this.mesh.position.clone();
+    const meshRotation = this.mesh.rotation.clone();
+    // const meshScale = this.mesh.scale.clone();
+
+    const worldQuaternion = new THREE.Quaternion();
+    this.parent.getWorldQuaternion(worldQuaternion);
+    this.mesh.rotation.setFromQuaternion(worldQuaternion);
+
+    const worldPosition = new THREE.Vector3();
+    this.parent.getWorldPosition(worldPosition);
+    this.mesh.position.copy(worldPosition);
+
+    // const worldScale = new THREE.Vector3();
+    // this.parent.getWorldScale(worldScale);
+    // this.mesh.scale.copy(worldScale); // scale is not working correctly in testing, so we don't use it for now
+
+    this.mesh.position.add(meshPosition);
+    this.mesh.rotation.x += meshRotation.x;
+    this.mesh.rotation.y += meshRotation.y;
+    this.mesh.rotation.z += meshRotation.z;
+
+    this.mesh.updateMatrixWorld(true);
+    this.mesh.updateMatrix(true);
+  }
+
   // drawObject(this.ptr, this.cameraName, this.fps, this.clearDepthBuffer === true ? 1 : 0);
 };
 
@@ -281,6 +310,10 @@ Model.prototype.getClip = function (clipName) {
     return this.clips[clipName];
   }
   return undefined;
+};
+
+Model.prototype.setParent = function (object) {
+  this.parent = object;
 };
 
 Model.prototype.play = function (clipName) {

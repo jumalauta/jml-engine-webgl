@@ -570,6 +570,8 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
     if (animation.position !== undefined) {
       const position = this.calculatePositionAnimation(time, animation);
       animation.ref.setPosition(position.x, position.y, position.z);
+    } else {
+      animation.ref.setPosition(0, 0, 0);
     }
     if (animation.pivot !== undefined) {
       const pivot = this.calculatePivotAnimation(time, animation);
@@ -585,10 +587,14 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
         angle.y,
         angle.z
       );
+    } else {
+      animation.ref.setRotation(0, 0, 0, 1, 1, 1);
     }
     if (animation.scale !== undefined) {
       const scale = this.calculateScaleAnimation(time, animation);
       animation.ref.setScale(scale.x, scale.y, scale.z);
+    } else {
+      animation.ref.setScale(1, 1, 1);
     }
     if (animation.color !== undefined) {
       const color = this.calculateColorAnimation(

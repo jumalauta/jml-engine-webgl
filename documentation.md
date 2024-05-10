@@ -288,7 +288,7 @@ this.loader.addAnimation([{
 // this is used to rotate this object's child object to "orbit" the original object 
 this.loader.addAnimation([{
   "start": start, "duration":end
-  ,"parent":"allseeing" // parent object ID, object will utilize matrix of this object
+  ,"parent":"allseeing" // parent object ID, object will utilize matrix of this object. If object has child meshes then you can use child mesh as parent, e.g.,  "allseeing.childmesh" (assuming object has child mesh with name 'childmesh')
   ,"id": "allseeing2" // unique ID for this object
   ,"layer": layer
   ,"object":null // this is special notation, there is no object but you can do matrix transformations / animations that child objects can inherit
@@ -305,6 +305,21 @@ this.loader.addAnimation([{
   ,"angle": [{"degreesX":()=>40*getSceneTimeFromStart(),"degreesY":0,"degreesZ":0}]
   ,"color":[{"r":1,"g":0,"b":0,"a":1}]
 }]);
+```
+
+```JavaScript
+// Dynamically change 3D animation timer
+this.loader.addAnimation({
+  "start": start, "duration":end
+  ,"layer": layer
+  ,"object":{
+    "name":"animation.glb",
+    "time":()=>(Math.sin(getSceneTimeFromStart())+1)/2, // this controls the animation timer dynamically
+    "animations": {
+      "Take 001":  {"weight":1.0, "timescale":1.0, "enabled":true, "loop":true}
+    }
+  }
+});
 ```
 
 #### Setup camera
