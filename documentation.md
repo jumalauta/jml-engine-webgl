@@ -468,6 +468,7 @@ this.loader.addAnimation({
 ### Adding new animations
 - Select animated object
 - Select animation you wish to add in **Dope Sheet->Action Editor**
+- Name animation, if it has some nonsensical default name (just press the name in **Action Editor**
 - Press button **Push Down** in **Action Editor** - animation is now added to active armature as **NLA track**
 - Export .glb/.gltf and remember to include animations (they are included by default)
 
