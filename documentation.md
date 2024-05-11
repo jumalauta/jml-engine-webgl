@@ -5,7 +5,8 @@
 * [Shader uniform autobinding](#shader-uniform-autobinding)
 * [Supported file formats](#supported-file-formats)
 * [Demo scripting](#demo-scripting)
-
+* [Exporting animations from Blender](#Exporting-animations)
+* 
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
@@ -461,3 +462,20 @@ this.loader.addAnimation({
   "position":[{"x":0.25,"y":0.0}]
 });
 ```
+
+## Exporting animations
+
+### Adding new animations
+-Select animated object
+-Select animation you wish to add in **Dope Sheet->Action Editor**
+-Press button **Push Down** in **Action Editor** - animation is now added to active armature as **NLA track**
+-Export .glb/.gltf and remember to include animations (they are included by default)
+
+### Modifying existing animations
+-Import .glb/.gltf
+-Select animated object
+-Open Nonlinear Animation and select animation you wish to edit
+-Press TAB - animation is now active
+-Do your changes
+-Press TAB again in Nonlinear Animation - no need to push
+-Export .glb/.gltf and remember to include animations (they are included by default)
