@@ -26,6 +26,11 @@ Music.prototype.init = function () {
 };
 
 Music.prototype.load = function (url) {
+  if (!url.toUpperCase().endsWith('.MP3')) {
+    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
+    throw new Error('Unsupported music format ' + url);
+  }
+
   const instance = this;
   return new Promise((resolve, reject) => {
     if (instance.duration) {

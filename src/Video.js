@@ -43,6 +43,11 @@ Video.rewindAll = function () {
 Video.prototype.load = function (filename, referenceInstance, callback) {
   const instance = this;
 
+  if (!filename.toUpperCase().endsWith('.MP4')) {
+    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
+    throw new Error('Unsupported video format ' + filename);
+  }
+
   return new Promise((resolve, reject) => {
     instance.filename = filename;
     instance.videoElement = document.createElement('video');

@@ -19,6 +19,11 @@ const Text = function () {
 Text.prototype.load = function (name) {
   const instance = this;
 
+  if (!name.toUpperCase().endsWith('.TTF')) {
+    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
+    throw new Error('Unsupported font format ' + name);
+  }
+
   if (fonts[name]) {
     return new Promise((resolve, reject) => {
       instance.font = fonts[name];

@@ -25,8 +25,14 @@ const Shader = function (animationDefinition) {
         shaderUrl.toUpperCase().endsWith('.VERT')
       ) {
         this.vertexShaderUrl = shaderUrl;
-      } else {
+      } else if (
+        shaderUrl.toUpperCase().endsWith('.FS') ||
+        shaderUrl.toUpperCase().endsWith('.FRAG')
+      ) {
         this.fragmentShaderUrl = shaderUrl;
+      } else {
+        // To ensure best possible cross-browser and engine support, supported file formats are being restricted
+        throw new Error('Unsupported shader format ' + shaderUrl);
       }
     });
   }

@@ -146,13 +146,16 @@ Image.prototype.load = function (filename) {
       // loggerDebug('Loaded video ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
-  } else {
+  } else if (instance.filename.toUpperCase().endsWith('.PNG')) {
     return new FileManager().load(filename, instance, (instance, texture) => {
       instance.texture = texture;
       instance.generateMesh();
       // loggerDebug('Loaded texture ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
+  } else {
+    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
+    throw new Error('Unsupported image format ' + instance.filename);
   }
 };
 
