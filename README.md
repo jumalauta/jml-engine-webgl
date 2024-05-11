@@ -13,6 +13,15 @@
 | Space             | Pause/resume demo         |
 | Home              | Rewind demo to start      |
 | End               | Rewind demo to near end   |
+| Mouse controls    | To zoom / rotate around camera look-at |
+
+## Player controls
+
+| Key               | Action                    |
+|-------------------|---------------------------|
+| Enter             | Start demo                |
+| Esc               | Stop demo                 |
+| Single click      | Stop demo                 |
 
 ## Installing tool
 
