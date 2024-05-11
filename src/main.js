@@ -75,7 +75,7 @@ if (select) {
         'select'
       );
       if (selectValue) {
-        select.value = `data_${selectValue}/`;
+        select.value = `${selectValue}/`;
       }
 
       select.style.display = 'block';
