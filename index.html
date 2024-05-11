@@ -8,77 +8,8 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+        <link rel="stylesheet" href="/style.css">
         <title>JML Engine</title>
-        <style>
-        #editor { 
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 60%;
-        }
-        #panel { 
-            position: absolute;
-            top: 90%;
-            right: 30%;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-        }
-        html, body {
-            margin: 0;
-            padding: 0;
-            border: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #272822 /*ace/theme/monokai bg*/;
-            color: #e0ffe0 /*ace/theme/monokai text*/;
-        }
-        .disable{
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-        .menu {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-
-        }
-        #start {
-            height: 3em;
-            width: 10em;
-            font-size: xx-large;
-            display: block;
-        }
-        .checkbox {
-            height: 2em;
-            width: 2em;
-            font-size: xx-large;
-            vertical-align: middle;
-            display: inline;
-        }
-        select {
-            height: 2em;
-            width: 10em;
-            font-size: xx-large;
-            display: block;
-        }
-        canvas {
-            margin: 0px auto;
-        }
-        .slider {
-            appearance: none;
-            width: 100%;
-            height: 1vh;
-            outline: none;
-            opacity: 0.7;
-        }
-        .slider:hover {
-            opacity: 1;
-        }
-        </style>
     </head>
     <body>
         <canvas id="canvas" hidden></canvas>
@@ -96,9 +27,8 @@
         <script type="module" src="/src/main.js"></script>
         <audio id="appleSilence" src="silence.mp3" type="audio/mpeg" loop></audio>
 
-        <!--div id="editor"></div-->
         <div id="panel">
-            <input type="range" min="0" max="1000" value="0" class="slider" id="timeline-slider"/>
+            <input type="range" min="0" max="1000" value="0" class="slider" id="timeline-slider" hidden/>
         </div>
     </body>
 </html>

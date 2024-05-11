@@ -1,0 +1,68 @@
+#editor { 
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 60%;
+}
+#panel { 
+    position: absolute;
+    top: 90%;
+    right: 30%;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #272822 /*ace/theme/monokai bg*/;
+    color: #e0ffe0 /*ace/theme/monokai text*/;
+}
+.disable{
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.menu {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+}
+#start {
+    height: 3em;
+    width: 10em;
+    font-size: xx-large;
+    display: block;
+}
+.checkbox {
+    height: 2em;
+    width: 2em;
+    font-size: xx-large;
+    vertical-align: middle;
+    display: inline;
+}
+select {
+    height: 2em;
+    width: 10em;
+    font-size: xx-large;
+    display: block;
+}
+canvas {
+    margin: 0px auto;
+}
+.slider {
+    appearance: none;
+    width: 100%;
+    height: 1vh;
+    outline: none;
+    opacity: 0.7;
+}
+.slider:hover {
+    opacity: 1;
+}
