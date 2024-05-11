@@ -5,7 +5,8 @@ import { loggerTrace, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 
-import vertexShaderData from './_embedded/defaultFixedView.vs?raw';
+import vertexShader3dData from './_embedded/default.vs?raw';
+import vertexShader2dData from './_embedded/defaultFixedView.vs?raw';
 import fragmentShaderData from './_embedded/defaultPlain.fs?raw';
 const settings = new Settings();
 
@@ -54,7 +55,7 @@ Text.prototype.createMaterial = function () {
       color: { value: new THREE.Vector4(1, 1, 1, 1) }
     },
     // Manually added vertex shader to get the fragment shader running
-    vertexShader: vertexShaderData,
+    vertexShader: this.perspective2d ? vertexShader2dData : vertexShader3dData,
     fragmentShader: fragmentShaderData
   };
 
@@ -72,13 +73,15 @@ Text.prototype.createMaterial = function () {
   // material = settings.createMaterial(settings.demo.image.material);
   material.map = this.texture;
   material.blending = THREE.CustomBlending;
-  material.depthTest = false;
-  material.depthWrite = false;
+  if (this.perspective2d) {
+    material.depthTest = false;
+    material.depthWrite = false;
 
-  // material = settings.createMaterial(settings.demo.text.material);
-  // material.map = this.texture;
-  material.castShadow = false;
-  material.receiveShadow = false;
+    // material = settings.createMaterial(settings.demo.text.material);
+    // material.map = this.texture;
+    material.castShadow = false;
+    material.receiveShadow = false;
+  }
 
   return material;
 };
@@ -89,7 +92,7 @@ Text.prototype.setValue = function (text) {
     // this.geometry.dispose();
     this.geometry = new TextGeometry(text, {
       font: this.font,
-      size: 1.0,
+      size: this.perspective2d ? 1.0 : 4.3,
       depth: 0.01
       // curveSegments: 12,
       // bevelEnabled: false,
@@ -116,9 +119,13 @@ Text.prototype.setValue = function (text) {
     this.material = this.createMaterial();
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);
-    this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
-    // this.mesh.position.z = settings.demo.screen.perspectiveText2dZ;
+    this.mesh.geometry.center();
+    if (this.perspective2d) {
+      this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
+    }
     this.ptr = this.mesh;
+
+    this.setPosition(0, 0, 0);
 
     loggerTrace('Created text mesh "' + text + "'");
   }
@@ -156,17 +163,12 @@ Text.prototype.setPosition = function (x, y, z) {
       y = y / settings.demo.screen.height - 0.5;
     }
     x *= settings.demo.screen.aspectRatio;
-    // y /= settings.demo.screen.aspectRatio;
-    // x = -2*16/9;
-    // y = -2;
     this.mesh.position.z = -(settings.demo.camera.near + 0.5);
   } else {
-    this.mesh.position.z = z + this.zOffset * this.mesh.scale.z;
+    this.mesh.position.z = z;
   }
-  this.mesh.position.x = x + this.xOffset * this.mesh.scale.x;
-  this.mesh.position.y = y + this.yOffset * this.mesh.scale.y;
-
-  //, "position":[{"x":-1.5*16/9,"y":1.5,"z":0}]
+  this.mesh.position.x = x;
+  this.mesh.position.y = y;
 };
 
 Text.prototype.setCenterAlignment = function (align) {

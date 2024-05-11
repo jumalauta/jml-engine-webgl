@@ -501,14 +501,17 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
 
       this.loader.addNotifyResource(animationDefinition.object.name, promises);
     } else if (animationDefinition.text !== undefined) {
+      if (animationDefinition.perspective === undefined) {
+        animationDefinition.perspective = '2d';
+      }
       animationDefinition.ref = new Text();
+      animationDefinition.ref.setPerspective2d(
+        animationDefinition.perspective === '2d'
+      );
       const promises = [];
       promises.push(
         animationDefinition.ref.load(animationDefinition.text.name)
       );
-      if (animationDefinition.perspective === undefined) {
-        animationDefinition.perspective = '2d';
-      }
 
       this.loader.addNotifyResource(animationDefinition.text, promises);
     } else if (animationDefinition.image !== undefined) {
