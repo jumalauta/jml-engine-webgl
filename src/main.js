@@ -69,6 +69,15 @@ if (select) {
     .load('./playlist.js')
     .then(() => {
       loggerDebug('Initializing playlist');
+
+      // auto-select the demo from the URL parameter if given
+      const selectValue = new URLSearchParams(window.location.search).get(
+        'select'
+      );
+      if (selectValue) {
+        select.value = `data_${selectValue}/`;
+      }
+
       select.style.display = 'block';
       select.addEventListener('change', () => {
         clearCache();
