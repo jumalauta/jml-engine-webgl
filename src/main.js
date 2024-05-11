@@ -8,6 +8,9 @@ import { JavaScriptFile } from './JavaScriptFile';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { Music } from './Music';
+import { Fullscreen } from './Fullscreen';
+
+const fullscreen = new Fullscreen();
 
 const settings = new Settings();
 const fileManager = new FileManager();
@@ -16,29 +19,6 @@ const javaScriptFile = new JavaScriptFile();
 const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
-const fullscreenCheckbox = document.getElementById('fullscreen');
-const fullscreenLabel = document.getElementById('fullscreenLabel');
-
-function isFullscreenSupported() {
-  return (
-    document.fullscreenEnabled ||
-    document.webkitFullscreenEnabled ||
-    document.msFullscreenEnabled
-  );
-}
-
-function toggleFullscreenCheckboxVisibility(visible) {
-  // Fullscreen API is not supported in phone iOS Safari
-  // iPhone fullscreen can be done by adding the page to iOS Home Screen and opening it from there
-  const fullscreenCheckboxStyle =
-    isFullscreenSupported() && visible ? 'inline' : 'none';
-  if (fullscreenCheckbox) {
-    fullscreenCheckbox.style.display = fullscreenCheckboxStyle;
-    fullscreenLabel.style.display = fullscreenCheckboxStyle;
-  }
-}
-
-toggleFullscreenCheckboxVisibility(true);
 
 const Demo = function () {};
 export { Demo };
@@ -192,7 +172,7 @@ function togglePlayerUserInterface(show) {
   const elementStyle = !show ? 'block' : 'none';
   const canvasStyle = show ? 'block' : 'none';
 
-  toggleFullscreenCheckboxVisibility(!show);
+  fullscreen.toggleFullscreenCheckboxVisibility(!show);
 
   if (startButton) {
     startButton.style.display = elementStyle;
@@ -252,65 +232,6 @@ function startDemo() {
   }
 }
 window.startDemo = startDemo;
-
-document.addEventListener('fullscreenchange', () => {
-  fullscreenCheckbox.checked = document.fullscreenElement !== null;
-});
-
-// Fullscreen toggle is called from checkbox onclick event
-// iOS Safari does not support going to fullscreen from start button, so checkbox click event is used to avoid following error:
-// Unhandled Promise Rejection: NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.
-function toggleFullscreen(fullscreen) {
-  if (isFullscreenSupported() === false) {
-    loggerWarning('Fullscreen not supported');
-    return;
-  }
-
-  if (fullscreen === undefined) {
-    fullscreen = fullscreenCheckbox.checked;
-  }
-
-  // https://caniuse.com/fullscreen - apparently iPhone iOS does not support Fullscreen API
-  const screen = document.documentElement;
-  if (fullscreen === true) {
-    const requestFullscreen =
-      screen.requestFullscreen ||
-      screen.webkitRequestFullscreen ||
-      screen.msRequestFullscreen;
-    if (requestFullscreen) {
-      fullscreenCheckbox.checked = true;
-      const promise = requestFullscreen.call(screen);
-      if (promise instanceof Promise) {
-        promise
-          .then(() => {
-            loggerDebug('Fullscreen entered');
-          })
-          .catch(() => {
-            loggerWarning('Could not enter fullscreen');
-          });
-      }
-    }
-  } else {
-    const exitFullscreen =
-      document.exitFullscreen ||
-      document.webkitExitFullscreen ||
-      document.msExitFullscreen;
-    if (exitFullscreen) {
-      fullscreenCheckbox.checked = false;
-      const promise = exitFullscreen.call(document);
-      if (promise instanceof Promise) {
-        promise
-          .then(() => {
-            loggerDebug('Fullscreen exited');
-          })
-          .catch(() => {
-            loggerWarning('Could not exit fullscreen');
-          });
-      }
-    }
-  }
-}
-window.toggleFullscreen = toggleFullscreen;
 
 export function stopDemo() {
   console.log('Stopping demo...');
