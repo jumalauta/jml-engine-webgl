@@ -480,3 +480,6 @@ this.loader.addAnimation({
 - Do your changes
 - Press TAB again in Nonlinear Animation - no need to push
 - Export .glb/.gltf and remember to include animations (they are included by default)
+
+### Additional notes
+- It's good idea to have LocRotScale keyframe for all bones, even if they don't have movement. Not having keyframe data can lead to weird behavior, if file has multiple animations.
