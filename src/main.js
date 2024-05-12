@@ -1,5 +1,10 @@
 import { Effect } from './Effect';
-import { loggerDebug, loggerInfo, loggerWarning } from './Bindings';
+import {
+  loggerDebug,
+  loggerInfo,
+  loggerTrace,
+  loggerWarning
+} from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
 import { DemoRenderer } from './DemoRenderer';
@@ -101,10 +106,10 @@ toolUi.init();
 const demoRenderer = new DemoRenderer();
 demoRenderer.init();
 
-let animationFrameId = null;
+let animationFrameId;
 let oldTime;
 
-export function animate() {
+function animate() {
   timer.update();
   toolUi.update();
   toolUi.stats.begin();
@@ -112,7 +117,7 @@ export function animate() {
   if (loadingBar.percent < 1.0) {
     loadingBar.render();
     toolUi.stats.end();
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
     return;
   }
 
@@ -187,12 +192,25 @@ function togglePlayerUserInterface(show) {
   canvas.style.display = canvasStyle;
 }
 
+function stopAnimate() {
+  if (animationFrameId !== undefined) {
+    loggerTrace('Stopping animation frame');
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = undefined;
+  }
+}
+
+function startAnimate() {
+  stopAnimate();
+  animate();
+}
+
 function startDemoAnimation() {
   setTimeout(() => {
     console.log('Demo is starting, please wait a moment');
     windowResize();
     reloadDemo();
-    animate();
+    startAnimate();
   }, settings.engine.startDelay);
 }
 
@@ -240,7 +258,7 @@ export function stopDemo() {
 
   demoRenderer.clear();
 
-  cancelAnimationFrame(animationFrameId);
+  stopAnimate();
 
   togglePlayerUserInterface(false);
 
