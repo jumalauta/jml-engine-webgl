@@ -33,8 +33,7 @@ Settings.prototype.init = function () {
   this.demo = {
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
     sync: {
-      mandatory: false,
-      rocketFile: 'sync/sync.rocket',
+      rocketFile: undefined, // rocket websocket + file connection can be enabled by defining rocket file path, e.g.: 'sync/sync.rocket'
       beatsPerMinute: 120,
       rowsPerBeat: 8
     },

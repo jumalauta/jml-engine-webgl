@@ -1,5 +1,5 @@
 import { JSRocket } from './rocket/jsRocket';
-import { loggerDebug } from './Bindings';
+import { loggerDebug, loggerTrace, loggerWarning } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
@@ -18,6 +18,11 @@ Sync.prototype.getInstance = function () {
 };
 
 Sync.prototype.init = async function () {
+  if (settings.demo.sync.rocketFile === undefined) {
+    loggerTrace('Rocket file not defined, GNU Rocket not enabled');
+    return;
+  }
+
   if (settings.engine.tool) {
     try {
       await this.initDevice(true);
@@ -31,9 +36,8 @@ Sync.prototype.init = async function () {
       await this.initDevice(false);
     }
   } catch (e) {
-    if (settings.demo.sync.mandatory) {
-      throw e;
-    }
+    loggerWarning('Error initializing GNU Rocket from XML file');
+    throw e;
   }
 };
 
