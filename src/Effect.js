@@ -31,6 +31,7 @@ Effect.init = function (effectName) {
       loggerWarning(`Already loading ${effectName}! Ignoring init.`);
       return;
     }
+    const now = new Date().getTime() / 1000;
 
     Effect.loading = true;
 
@@ -75,7 +76,6 @@ Effect.init = function (effectName) {
     const loadingBar = new LoadingBar();
     loadingBar.setPercent(0.0);
 
-    const now = new Date().getTime() / 1000;
     let processedPromises = 0;
     try {
       Video.clear();
@@ -113,16 +113,16 @@ Effect.init = function (effectName) {
         for (let i = 0; i < preCompileList.length && isStarted(); i++) {
           loadingBar.setPercent(0.95 + (i / preCompileList.length) * 0.05);
           const item = preCompileList[i];
-          // TODO: compile throws errors, render if flexible but still builds at least the shaders
+          // TODO: compile throws errors, render is flexible but still builds at least the shaders
           // demoRenderer.renderer.compile(item.scene, item.camera);
           demoRenderer.renderer.render(item.scene, item.camera);
         }
       }
 
+      loadingBar.setPercent(1.0);
+
       let action;
       if (isStarted()) {
-        loadingBar.setPercent(1.0);
-
         if (!timer.isStarted()) {
           timer.start();
           action = 'Starting';
