@@ -90,7 +90,7 @@ Effect.init = function (effectName) {
 
       while (effect.loader.promises.length > 0) {
         if (isStarted() === false) {
-          loggerInfo('Demo stopped, exiting loading');
+          loggerInfo('Demo stopped, exiting asset loading');
           stopDemo();
           return;
         }
@@ -110,7 +110,7 @@ Effect.init = function (effectName) {
           preCompileList.push({ scene: fbo.scene, camera: fbo.camera });
         }
         preCompileList.push({ scene: getScene(), camera: getCamera() });
-        for (let i = 0; i < preCompileList.length; i++) {
+        for (let i = 0; i < preCompileList.length && isStarted(); i++) {
           loadingBar.setPercent(0.95 + (i / preCompileList.length) * 0.05);
           const item = preCompileList[i];
           // TODO: compile throws errors, render if flexible but still builds at least the shaders

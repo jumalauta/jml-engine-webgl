@@ -1,3 +1,5 @@
+import { isStarted } from './main';
+
 const Input = function () {};
 
 Input.prototype.setUserExit = function (userExit) {
@@ -5,6 +7,10 @@ Input.prototype.setUserExit = function (userExit) {
 };
 
 Input.prototype.isUserExit = function () {
+  if (isStarted() === false) {
+    return true;
+  }
+
   return false; // inputIsUserExit();
 };
 
