@@ -234,17 +234,17 @@ Model.prototype.setClearDepthBuffer = function (boolean) {
 };
 
 Model.prototype.setLighting = function (boolean) {
-  loggerDebug('useObjectLighting not implemented');
+  // loggerDebug('useObjectLighting not implemented');
   // useObjectLighting(this.ptr, boolean === true ? 1 : 0);
 };
 
 Model.prototype.setSimpleColors = function (boolean) {
-  loggerDebug('useSimpleColors not implemented');
+  // loggerDebug('useSimpleColors not implemented');
   // useSimpleColors(this.ptr, boolean === true ? 1 : 0);
 };
 
 Model.prototype.setCamera = function (boolean) {
-  loggerDebug('useObjectCamera not implemented');
+  // loggerDebug('useObjectCamera not implemented');
   // useObjectCamera(this.ptr, boolean === true ? 1 : 0);
 };
 
