@@ -35,6 +35,10 @@ Fullscreen.prototype.isFullscreenSupported = function () {
   );
 };
 
+Fullscreen.prototype.isFullscreen = function () {
+  return document.fullscreenElement !== null;
+};
+
 Fullscreen.prototype.toggleFullscreenCheckboxVisibility = function (visible) {
   // Fullscreen API is not supported in phone iOS Safari
   // iPhone fullscreen can be done by adding the page to iOS Home Screen and opening it from there

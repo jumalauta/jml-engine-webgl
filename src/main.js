@@ -322,6 +322,8 @@ document.addEventListener('keydown', (event) => {
       timer.pause();
     } else if (event.key === 'r') {
       deepReloadDemo();
+    } else if (event.key === 'f') {
+      fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
     } else if (event.key === 'End') {
       timer.setTimePercent(0.99);
     } else if (event.key === 'Home') {
