@@ -45,6 +45,9 @@ Effect.init = function (effectName) {
       }
     }
 
+    const fileManager = new FileManager();
+    await fileManager.loadUpdatedFiles();
+
     /* eslint-disable no-eval */
     const effect = eval('new ' + effectName);
 
@@ -62,7 +65,6 @@ Effect.init = function (effectName) {
       effect.postInit();
     }
 
-    const fileManager = new FileManager();
     const music = new Music();
     effect.loader.promises.push(
       music.load(fileManager.getPath(settings.demo.music.musicFile))
@@ -133,7 +135,6 @@ Effect.init = function (effectName) {
         }
 
         demoRenderer.setRenderNeedsUpdate(true);
-        fileManager.setNeedsUpdate(false);
       } else {
         action = 'Not starting';
         stopDemo();

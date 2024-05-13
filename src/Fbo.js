@@ -1,5 +1,10 @@
 import * as THREE from 'three';
-import { DemoRenderer, pushView, popView } from './DemoRenderer';
+import {
+  DemoRenderer,
+  pushView,
+  popView,
+  clearThreeObject
+} from './DemoRenderer';
 import { Image } from './Image';
 import { loggerDebug } from './Bindings';
 import { Settings } from './Settings';
@@ -32,10 +37,13 @@ Fbo.getFbos = function () {
   return fbos;
 };
 
-Fbo.dispose = function () {
+Fbo.clear = function () {
   for (const key in fbos) {
     // const fbo = fbos[key]
     //  FIXME implement proper dispose
+    const fbo = fbos[key];
+    clearThreeObject(fbo.scene);
+    clearThreeObject(fbo.camera);
     delete fbos[key];
   }
 };

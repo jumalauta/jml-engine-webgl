@@ -25,8 +25,17 @@ const aspectRatio = settings.demo.screen.aspectRatio;
 let scene, camera;
 let scenes = [];
 let cameras = [];
+let disposeList = {};
 
-function clearThreeObject(obj) {
+function disposeMemory() {
+  Object.keys(disposeList).forEach((key) => {
+    disposeList[key].dispose();
+  });
+
+  disposeList = {};
+}
+
+export function clearThreeObject(obj) {
   if (!obj) {
     return;
   }
@@ -35,8 +44,9 @@ function clearThreeObject(obj) {
     obj.remove(obj.children[0]);
   }
 
+  // we don't dispose stuff to enable quicker reloading times
   if (obj.geometry) {
-    obj.geometry.dispose();
+    disposeList[obj.geometry.uuid] = obj.geometry;
   }
 
   if (obj.material) {
@@ -47,16 +57,16 @@ function clearThreeObject(obj) {
     materials.forEach((material) => {
       Object.keys(material).forEach((key) => {
         if (material[key] && typeof material[key].dispose === 'function') {
-          material[key].dispose();
+          disposeList[material[key].uuid] = material[key];
         }
       });
 
-      material.dispose();
+      disposeList[material.uuid] = material;
     });
   }
 }
 
-DemoRenderer.prototype.setupScene = function () {
+DemoRenderer.prototype.cleanScene = function (forceDispose) {
   Object.values(this.scenes).forEach((scene) => {
     // console.log("removing scene " + scene.uuid);
     clearThreeObject(scene);
@@ -73,7 +83,15 @@ DemoRenderer.prototype.setupScene = function () {
   scenes = [];
   cameras = [];
   this.scenes = {};
-  Fbo.dispose();
+
+  Fbo.clear();
+  if (!settings.engine.tool || forceDispose) {
+    disposeMemory();
+  }
+};
+
+DemoRenderer.prototype.setupScene = function () {
+  this.cleanScene();
 
   // scene = settings.createScene();
   this.setScene('main');

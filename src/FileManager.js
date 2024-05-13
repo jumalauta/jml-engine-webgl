@@ -45,7 +45,7 @@ FileManager.prototype.getInstance = function () {
 FileManager.prototype.init = function () {
   this.files = {};
   this.refreshFiles = {};
-  this.needsUpdate = false;
+  this.needsUpdateFiles = [];
 
   this.staticUrls = {
     '_embedded/default.fs': embeddedDefaultFsUrl,
@@ -76,46 +76,51 @@ FileManager.prototype.startWatchFileChanges = async function () {
   }
 };
 
+FileManager.prototype.loadUpdatedFiles = async function () {
+  for (const filePath of this.needsUpdateFiles) {
+    loggerDebug('File updated: ' + filePath);
+    const path = this.getDiskPath(filePath);
+    const file = await fs.readFile(path);
+    if (this.files[filePath]) {
+      this.setFileData(filePath, file);
+
+      if (path.toUpperCase().endsWith('.JS')) {
+        try {
+          loggerDebug('Executing JavaScript file: ' + filePath);
+          /* eslint-disable no-eval */
+          eval(file);
+        } catch (e) {
+          loggerWarning('Error loading JavaScript file: ' + filePath + ' ' + e);
+        }
+      }
+    }
+  }
+
+  this.needsUpdateFiles = [];
+};
+
 FileManager.prototype.checkFiles = async function () {
   try {
     if (!fs) {
       return;
     }
 
-    const fileManager = new FileManager();
     // loggerDebug(`Checking files for changes: ${Object.keys(fileManager.refreshFiles).join(', ')}`);
-    for (const filePath in fileManager.refreshFiles) {
-      const path = fileManager.getDiskPath(filePath);
+    for (const filePath in this.refreshFiles) {
+      const path = this.getDiskPath(filePath);
       // loggerDebug('Checking file: ' + path);
       const stats = await fs.stat(path);
 
-      if (fileManager.refreshFiles[filePath] === null) {
-        fileManager.refreshFiles[filePath] = stats.mtime;
+      if (this.refreshFiles[filePath] === null) {
+        this.refreshFiles[filePath] = stats.mtime;
         continue;
       }
 
-      if (stats.mtime > fileManager.refreshFiles[filePath]) {
+      if (stats.mtime > this.refreshFiles[filePath]) {
         loggerDebug('File changed: ' + filePath);
 
-        fileManager.refreshFiles[filePath] = stats.mtime;
-        fileManager.setNeedsUpdate(true);
-
-        const file = await fs.readFile(path);
-        if (fileManager.files[filePath]) {
-          fileManager.setFileData(filePath, file);
-
-          if (path.toUpperCase().endsWith('.JS')) {
-            try {
-              loggerDebug('Executing JavaScript file: ' + filePath);
-              /* eslint-disable no-eval */
-              eval(file);
-            } catch (e) {
-              loggerWarning(
-                'Error loading JavaScript file: ' + filePath + ' ' + e
-              );
-            }
-          }
-        }
+        this.refreshFiles[filePath] = stats.mtime;
+        this.needsUpdateFiles.push(filePath);
       }
     }
   } catch (e) {
@@ -123,12 +128,8 @@ FileManager.prototype.checkFiles = async function () {
   }
 };
 
-FileManager.prototype.setNeedsUpdate = function (needsUpdate) {
-  this.needsUpdate = needsUpdate;
-};
-
 FileManager.prototype.isNeedsUpdate = function () {
-  return this.needsUpdate;
+  return this.needsUpdateFiles.length > 0;
 };
 
 FileManager.prototype.setFileData = function (filePath, data) {

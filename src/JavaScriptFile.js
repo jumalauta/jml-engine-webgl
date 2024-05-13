@@ -14,8 +14,6 @@ JavaScriptFile.prototype.load = function (filename) {
       // (new DemoRenderer()).setupScene();
       /* eslint-disable no-eval */
       eval(data);
-      // Effect.init("Demo");
-      fileManager.setNeedsUpdate(true);
     } catch (e) {
       loggerWarning(
         'Error loading JavaScript file: ' + instance.filename + ' ' + e
