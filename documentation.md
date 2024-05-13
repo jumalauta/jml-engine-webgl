@@ -41,7 +41,7 @@ Create a spectogram from audio track: `ffmpeg -i music.mp3 -lavfi showspectrumpi
 - If `spectogram.png` is found in demo data directory, it will be used in the tool mode as panel background
 - `spectogram.png` can be handy for creating sync in shaders by loading spectogram texture to the shader as an image
 - `spectogram.png` current values can be read in javascript code using:
-  - `Sync.getFftRaw()` returns current column of Spectogram in `Float32Array`. Size is `<color channels> * <spectogram pixel height>`
+  - `Sync.getFftRaw()` returns current column of Spectogram in JavaScript TypeArray. Size is `<color channels> * <spectogram pixel height>`
   - `Sync.getFft(0.0, 1.0)` returns average of frequence, first parameter is start percent and second parameter is end percent
 
 ### Spectogram shader example
