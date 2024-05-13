@@ -6,8 +6,11 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
 import { loggerDebug, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
+import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
 
 const settings = new Settings();
+
+const cache = {};
 
 const Model = function () {
   this.ptr = undefined;
@@ -31,6 +34,45 @@ Model.prototype.getMeshNames = function () {
 
 Model.prototype.setShape = function (shape) {
   this.shape = shape;
+};
+
+Model.prototype.cloneAnimations = function (srcAnimations) {
+  if (!srcAnimations) {
+    srcAnimations = this.animations;
+  }
+
+  if (srcAnimations) {
+    const animations = [];
+    srcAnimations.forEach((clip) => {
+      animations.push(clip.clone());
+    });
+    return animations;
+  }
+
+  return undefined;
+};
+
+Model.prototype.saveToCache = function (path) {
+  const mesh = SkeletonUtils.clone(this.mesh);
+
+  cache[path] = {
+    mesh,
+    ptr: mesh,
+    animations: this.cloneAnimations()
+  };
+};
+
+Model.prototype.loadFromCache = function (path) {
+  const cacheObject = cache[path];
+  if (cacheObject) {
+    this.mesh = SkeletonUtils.clone(cacheObject.mesh);
+    this.ptr = this.mesh;
+    this.animations = this.cloneAnimations(cacheObject.animations);
+
+    this.setDefaults();
+    return true;
+  }
+  return false;
 };
 
 Model.prototype.load = function (filename) {
@@ -71,6 +113,16 @@ Model.prototype.load = function (filename) {
 
   const fileManager = new FileManager();
   fileManager.setRefreshFileTimestamp(filename);
+  const path = fileManager.getPath(this.filename);
+
+  if (this.loadFromCache(path)) {
+    return new Promise((resolve, reject) => {
+      loggerDebug(
+        `Loaded model from cache: ${instance.filename}. Animations: ${Object.keys(instance.clips || {}).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`
+      );
+      resolve(instance);
+    });
+  }
 
   if (this.filename.toUpperCase().endsWith('.OBJ')) {
     const materialFilename = this.filename
@@ -88,11 +140,13 @@ Model.prototype.load = function (filename) {
           const objLoader = new OBJLoader();
           objLoader.setMaterials(materials);
           objLoader.load(
-            fileManager.getPath(this.filename),
+            path,
             (object) => {
               instance.mesh = object;
               instance.ptr = instance.mesh;
               instance.setDefaults();
+              instance.saveToCache(path);
+
               loggerDebug(
                 `Loaded OBJ: ${this.filename}, Mesh names: ${instance.getMeshNames().join(', ')}`
               );
@@ -127,29 +181,21 @@ Model.prototype.load = function (filename) {
 
     return new Promise((resolve, reject) => {
       loader.load(
-        fileManager.getPath(this.filename),
+        path,
         (gltf) => {
           instance.mesh = gltf.scene;
           instance.ptr = instance.mesh;
-          instance.gltf = gltf;
-          instance.setDefaults();
+          instance.animations = gltf.animations;
 
-          if (gltf.animations && gltf.animations.length > 0) {
-            instance.mixer = new THREE.AnimationMixer(instance.mesh);
-            instance.clips = {};
-            gltf.animations.forEach((clip) => {
-              const clipAction = instance.mixer.clipAction(clip);
-              // clipAction.play();
-              // FIXME support for animating / mixing animations
-              clipAction.enabled = true;
-              clipAction.setEffectiveTimeScale(1);
-              clipAction.setEffectiveWeight(0);
-              clipAction.setLoop(THREE.LoopOnce, 0);
-              clipAction.clampWhenFinished = true;
-              instance.clips[clip.name] = clipAction;
-            });
-            instance.mixer.clipAction(gltf.animations[0]).setEffectiveWeight(0);
-          }
+          // gltf.animations = null;
+          // gltf.animations; // Array<THREE.AnimationClip>
+          // gltf.scene; // THREE.Group
+          // gltf.scenes; // Array<THREE.Group>
+          // gltf.cameras; // Array<THREE.Camera>
+          // gltf.asset; // Object
+
+          instance.setDefaults();
+          instance.saveToCache(path);
 
           loggerDebug(
             `Loaded GLTF: ${this.filename}. Animations: ${Object.keys(instance.clips).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`
@@ -248,18 +294,28 @@ Model.prototype.setNodeScale = function (nodeName, x, y, z) {
   // setObjectNodeScale(this.ptr, nodeName, x, y, z);
 };
 
+Model.prototype.cloneMaterials = function () {
+  this.mesh.traverse((obj) => {
+    if (obj.isMesh && obj.material) {
+      obj.material = obj.material.clone(); // material changes (e.g., color tweaking) should not affect other objects
+    }
+  });
+};
+
 Model.prototype.setMaterialDefaults = function () {
   this.mesh.traverse((obj) => {
-    if (obj.isMesh) {
-      // obj.material.transparent = false;
-      // obj.material.opacity = 1;
-      // obj.material.depthWrite = true;
-      // obj.material.depthTest = true;
+    if (obj.isMesh && obj.material) {
+      obj.material.transparent = false;
+      obj.material.opacity = 1;
+      obj.material.depthWrite = true;
+      obj.material.depthTest = true;
+      obj.material.side = THREE.FrontSide;
+      obj.material.flatShading = false;
+      obj.material.needsUpdate = true;
+
       if (settings.demo.compatibility.oldMaterials) {
         obj.material.side = THREE.DoubleSide;
       }
-      // obj.material.flatShading = false;
-      // obj.material.needsUpdate = true;
     }
   });
 };
@@ -282,8 +338,29 @@ Model.prototype.setMaterial = function (material) {
 };
 
 Model.prototype.setDefaults = function () {
+  this.cloneMaterials();
   this.setShadow();
   this.setMaterialDefaults();
+  // this.setColor(1,1,1,1);
+  this.setPosition(0, 0, 0);
+  this.setRotation(0, 0, 0);
+  this.setScale(1, 1, 1);
+  if (this.animations && this.animations.length > 0) {
+    this.mixer = new THREE.AnimationMixer(this.mesh);
+    this.clips = {};
+    this.animations.forEach((clip) => {
+      const clipAction = this.mixer.clipAction(clip);
+      // clipAction.play();
+      // FIXME support for animating / mixing animations
+      clipAction.enabled = true;
+      clipAction.setEffectiveTimeScale(1);
+      clipAction.setEffectiveWeight(0);
+      clipAction.setLoop(THREE.LoopOnce, 0);
+      clipAction.clampWhenFinished = true;
+      this.clips[clip.name] = clipAction;
+    });
+    this.mixer.clipAction(this.animations[0]).setEffectiveWeight(0);
+  }
 };
 
 Model.prototype.setShadow = function (castShadow, receiveShadow) {
