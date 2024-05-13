@@ -295,6 +295,7 @@ function deepReloadDemo() {
 
 function windowResize() {
   demoRenderer.resize();
+  demoRenderer.setRenderNeedsUpdate(true);
 }
 
 window.addEventListener('resize', windowResize, false);
