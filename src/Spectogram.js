@@ -46,6 +46,10 @@ Spectogram.prototype.init = async function () {
 };
 
 Spectogram.prototype.show = function (visible) {
+  if (!settings.engine.tool) {
+    return;
+  }
+
   const panel = document.getElementById('panel');
   if (panel) {
     if (!visible || !this.available) {
