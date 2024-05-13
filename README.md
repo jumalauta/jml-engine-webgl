@@ -14,6 +14,9 @@
 | Home              | Rewind demo to start      |
 | End               | Rewind demo to near end   |
 | Mouse controls    | To zoom / rotate around camera look-at |
+| R                 | Deep reload demo and dispose used memory |
+
+Tool is watching for file changes automatically and attempting to do shallow reloads on changes.
 
 ## Player controls
 

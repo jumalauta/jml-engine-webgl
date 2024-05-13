@@ -26,7 +26,6 @@ const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
 
 const Demo = function () {};
-export { Demo };
 window.Demo = Demo;
 
 function clearCache() {
@@ -82,8 +81,8 @@ if (select) {
         select.style.display = 'none';
       }
     })
-    .catch(() => {
-      loggerDebug('No playlist.js found, loading default demo...');
+    .catch((e) => {
+      loggerDebug('No playlist.js found, loading default demo...: ' + e);
       select.style.display = 'none';
       // load Demo from default path if playlist.js is not defined
       javaScriptFile.load('Demo.js').then(() => {
@@ -123,7 +122,6 @@ function animate() {
 
   if (fileManager.isNeedsUpdate() && isStarted()) {
     loggerInfo('File manager refresh');
-    fileManager.setNeedsUpdate(false);
     reloadDemo();
   }
 
@@ -264,6 +262,7 @@ export function stopDemo() {
 
   started = false;
 
+  demoRenderer.cleanScene(true);
   clearCache();
 
   if (settings.engine.webDemoExe) {
@@ -280,6 +279,18 @@ function reloadDemo() {
   loggerInfo('Reloading demo');
   demoRenderer.setupScene();
   Effect.init('Demo');
+}
+
+function deepReloadDemo() {
+  loggerInfo('Deep reload demo');
+  const isPause = timer.isPaused();
+  const time = timer.getTime();
+  stopDemo();
+  startDemo();
+  timer.setTime(time);
+  if (isPause) {
+    timer.pause();
+  }
 }
 
 function windowResize() {
@@ -308,6 +319,8 @@ document.addEventListener('keydown', (event) => {
       timer.setTime(timer.getTime() + 10000);
     } else if (event.key === '3' || event.code === 'Space') {
       timer.pause();
+    } else if (event.key === 'r') {
+      deepReloadDemo();
     } else if (event.key === 'End') {
       timer.setTimePercent(0.99);
     } else if (event.key === 'Home') {
