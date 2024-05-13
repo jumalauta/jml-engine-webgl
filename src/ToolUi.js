@@ -9,10 +9,12 @@ import Stats from 'stats.js';
 // editor multiple tabs example: https://codepen.io/zymawy/pen/QRLXNE
 
 import { Timer } from './Timer';
+// import { Settings } from './Settings';
+import { Spectogram } from './Spectogram';
 // import { FileManager } from './FileManager'
 // import { Settings } from './Settings'
 
-// const settings = new Settings()
+// const settings = new Settings();
 
 /* const gui = new GUI()
 const cubeFolder = gui.addFolder('Cube')
@@ -76,6 +78,7 @@ ToolUi.prototype.init = function () {
         return true;
     }); */
 
+  this.panel = document.getElementById('panel');
   this.timelineSlider = document.getElementById('timeline-slider');
   this.timelineSlider.addEventListener(
     'input',
@@ -93,11 +96,14 @@ ToolUi.prototype.init = function () {
 ToolUi.prototype.show = function () {
   this.stats.dom.style.display = 'block';
   this.timelineSlider.style.display = 'block';
+
+  new Spectogram().show(true);
 };
 
 ToolUi.prototype.hide = function () {
   this.stats.dom.style.display = 'none';
   this.timelineSlider.style.display = 'none';
+  new Spectogram().show(false);
 };
 
 ToolUi.prototype.update = function () {

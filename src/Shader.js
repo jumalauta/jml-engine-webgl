@@ -98,6 +98,9 @@ Shader.prototype.createMaterial = function (vertexData, fragmentData) {
       } else if (name === 'time' && type === 'float') {
         this.shaderDefinition.variable = this.shaderDefinition.variable || [];
         this.shaderDefinition.variable.push({ name, value: undefined });
+      } else if (name === 'timePercent' && type === 'float') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
       } else if (name === 'color' && type === 'vec4') {
         this.shaderDefinition.variable = this.shaderDefinition.variable || [];
         this.shaderDefinition.variable.push({ name, value: undefined });
@@ -318,6 +321,9 @@ Shader.enableShader = function (animation) {
           } else if (variable.name === 'time') {
             animation.shader.ref.material.uniforms[variable.name].value =
               new Timer().getTimeInSeconds();
+          } else if (variable.name === 'timePercent') {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              new Timer().getTimePercent();
           } else if (variable.name === 'color') {
             animation.shader.ref.material.uniforms[variable.name].value =
               new THREE.Vector4(1.0, 1.0, 1.0, 1.0);

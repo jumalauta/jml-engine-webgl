@@ -1,17 +1,19 @@
-# engine
+# JML Demo engine
 
 ## Table of contents
 
 * [Shader uniform autobinding](#shader-uniform-autobinding)
 * [Supported file formats](#supported-file-formats)
+* [Music spectogram](#music-spectogram)
 * [Demo scripting](#demo-scripting)
-* [Exporting animations from Blender](#Exporting-animations)
+* [Exporting animations from Blender](#exporting-animations)
   
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
 ```
 uniform float      time;                    // Current time in seconds
+uniform float      timePercent;             // Current time in percent of the total duration from 0.0 to 1.0
 uniform vec4       color;                   // Main color of the vertex
 uniform sampler2D  texture0;                // Samplers for input textures i
 ```
@@ -30,6 +32,41 @@ uniform sampler2D  texture0;                // Samplers for input textures i
 | .VS         | Vertex shader             |
 | .FS         | Fragment shader           |
 | .ROCKET     | GNU Rocket syncs          |
+
+## Music spectogram
+
+Create a spectogram from audio track: `ffmpeg -i music.mp3 -lavfi showspectrumpic=s=1920x1080:legend=disabled spectogram.png`
+
+- Spectogram image is expected to show time from left to right, and low to high frequencies from bottom to top
+- If `spectogram.png` is found in demo data directory, it will be used in the tool mode as panel background
+- `spectogram.png` can be handy for creating sync in shaders by loading spectogram texture to the shader as an image
+- `spectogram.png` current values can be read in javascript code using:
+  - `Sync.getFftRaw()` returns current column of Spectogram in `Float32Array`. Size is `<color channels> * <spectogram pixel height>`
+  - `Sync.getFft(0.0, 1.0)` returns average of frequence, first parameter is start percent and second parameter is end percent
+
+### Spectogram shader example
+
+Example that displays the FFT from spectogram in a shader
+
+```JavaScript
+	this.loader.addAnimation({"image": ["spectogram.png"], "shader":{"name":"spectogram.fs"}});
+```
+
+```c
+// spectogram.fs
+in vec2 texCoord;
+out vec4 fragColor;
+
+uniform sampler2D texture0;
+uniform float timePercent;
+
+void main()
+{
+    vec2 coord = texCoord.xy;
+    coord.x = timePercent;
+    fragColor = texture(texture0, coord);
+}
+```
 
 ## Demo scripting
 
@@ -236,6 +273,10 @@ this.loader.addAnimation([
 #### Use GNU Rocket syncing in an animation
 
 ```JavaScript
+// define location of GNU Rocket XML file
+const settings = new Settings();
+settings.demo.sync.rocketFile = 'sync/fallofman.rocket'; // XML file needs to be defined also when trying to start WebSocket connection to GNU Rocket
+
 //Create a GNU Rocket sync pattern but apply only to one variable in the animation
 this.loader.addAnimation({
      "start": 0, "duration": 30

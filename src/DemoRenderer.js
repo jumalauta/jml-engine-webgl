@@ -5,6 +5,7 @@ import { Fbo } from './Fbo';
 import { Effect } from './Effect';
 import { Settings } from './Settings';
 import { Sync } from './Sync';
+import { Spectogram } from './Spectogram';
 
 const settings = new Settings();
 
@@ -198,6 +199,8 @@ DemoRenderer.prototype.clear = function () {
 
 DemoRenderer.prototype.render = function () {
   this.renderNeedsUpdate = false;
+
+  new Spectogram().update();
 
   this.renderer.clear();
 

@@ -38,7 +38,8 @@ Settings.prototype.init = function () {
       rowsPerBeat: 8
     },
     music: {
-      musicFile: 'music.mp3'
+      musicFile: 'music.mp3',
+      spectogram: true
     },
     // backgroundColor: { r: 0.0, g: 1.0, b: 0.0 },
     /* fog: {

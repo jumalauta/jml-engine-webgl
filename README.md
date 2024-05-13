@@ -1,5 +1,9 @@
 # JML demo engine, WebGL edition
 
+## Tool and scripting language documentation
+
+See [documentation.md](documentation.md)
+
 ## Tool controls
 
 | Key               | Action                    |

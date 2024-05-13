@@ -14,6 +14,7 @@ import { DemoRenderer, getCamera, getScene } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Fbo } from './Fbo';
 import { Video } from './Video';
+import { Spectogram } from './Spectogram';
 import { Settings } from './Settings';
 import { isStarted, stopDemo } from './main';
 
@@ -64,6 +65,8 @@ Effect.init = function (effectName) {
     if (effect.postInit !== undefined) {
       effect.postInit();
     }
+
+    effect.loader.promises.push(new Spectogram().init());
 
     const music = new Music();
     effect.loader.promises.push(
@@ -125,6 +128,8 @@ Effect.init = function (effectName) {
 
       let action;
       if (isStarted()) {
+        new Spectogram().show(true);
+
         if (!timer.isStarted()) {
           timer.start();
           action = 'Starting';

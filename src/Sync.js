@@ -2,6 +2,7 @@ import { JSRocket } from './rocket/jsRocket';
 import { loggerDebug, loggerTrace, loggerWarning } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
+import { Spectogram } from './Spectogram';
 import { Settings } from './Settings';
 const settings = new Settings();
 
@@ -103,6 +104,31 @@ Sync.prototype.update = function () {
 };
 
 Sync.syncDefinitions = {};
+
+Sync.getFftRaw = function () {
+  return new Spectogram().readBuffer;
+};
+
+Sync.getFft = function (start, end) {
+  const buffer = new Spectogram().readBuffer;
+  if (buffer === undefined) {
+    return 0.0;
+  }
+
+  end = end || 1.0;
+  start = Math.min(start || 0.0, end);
+
+  let avg = 0;
+  const startI = Math.floor(start * buffer.length);
+  const endI = Math.floor(end * buffer.length);
+  for (let i = startI; i < endI; i++) {
+    avg += buffer[i];
+  }
+  avg /= endI - startI;
+  avg /= 255.0;
+
+  return avg;
+};
 
 Sync.addSync = function (syncDefinitions) {
   loggerDebug('Sync.addSync is OBSOLETE');
