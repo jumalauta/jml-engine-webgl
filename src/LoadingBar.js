@@ -18,6 +18,7 @@ LoadingBar.prototype.init = function () {
   this.scene.add(this.camera);
   this.camera.position.z = 5;
   this.percent = -1.0;
+  this.now = Date.now();
 
   this.cube = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
@@ -38,7 +39,8 @@ LoadingBar.prototype.init = function () {
       const shader = {
         uniforms: {
           texture0: { value: instance.loadingBarTexture },
-          percent: { value: instance.percent }
+          percent: { value: instance.percent },
+          time: { value: 0.0 }
         },
         // Manually added vertex shader to get the fragment shader running
         vertexShader: vertexShaderData,
@@ -107,6 +109,10 @@ LoadingBar.prototype.render = function () {
   }
 
   this.renderer.clear();
+
+  if (this.material) {
+    this.material.uniforms.time.value = (Date.now() - this.now) / 1000.0;
+  }
 
   this.cube.rotation.x += 0.01;
   this.cube.rotation.y += 0.01;

@@ -2,6 +2,7 @@
 
 uniform sampler2D texture0;
 uniform float percent;
+uniform float time;
 in vec2 texCoord;
 out vec4 fragColor;
 
@@ -16,14 +17,13 @@ void main() {
   float maxLights = 24.0;
   
   vec2 coord=texCoord.xy;
-  vec2 screenCoords = coord;
 
   float fade = 1.0;
-  fade = smoothstep(fadeStart, fadeEnd, distance(screenCoords,vec2(0.5, 0.5)));
+  fade = smoothstep(fadeStart, fadeEnd, distance(coord,vec2(0.5, 0.5)));
 
   float x = coord.x;
   float y = coord.y;
-  //float d = sqrt(x*x + y*y);
+
   vec2 position = vec2(-0.446, -0.5);
 
   vec4 col = vec4(0.,0.,0.,0.);
@@ -32,24 +32,23 @@ void main() {
   float curvesRad = radians(curvesDegrees);
   float bend = curveBendRad*log(length(coord));
   
+  coord.x += sin(time*3.0+coord.y*10.0)*0.01;
+  coord.y += cos(time*3.0+coord.x*10.0)*0.01;
 
-    float d = mod(2.*M_PI-1.9+atan(coord.x,coord.y)+bend, curvesRad);
-    if (d < curvesRad*curveThickness) {
-      float cx = position.x+x;
-      float cy = position.y+y;
-      float circle = 1.0/sqrt(cx*cx + cy*cy);
+  float d = mod(2.*M_PI-1.9+atan(coord.x,coord.y)+bend, curvesRad);
+  if (d < curvesRad*curveThickness) {
+    col = vec4(1.,0.,0.,1.);
+  }
 
-      col = vec4(1.,0.,0.,1.);
-    }
-
-      vec4 outputColor = texture2D(texture0, texCoord);
-      if (outputColor.a > 0.1 && outputColor.g < 0.9) {
-          if (col.a > 0.0) {
-            outputColor = col*texture2D(texture0, texCoord);
-          } else {
-            outputColor = vec4(0.,0.,0.,0.);
-          }
+  vec2 coord2 = texCoord.xy;
+  vec4 outputColor = texture2D(texture0, coord2);
+  if (outputColor.a > 0.1 && outputColor.g < 0.9) {
+      if (col.a > 0.0) {
+        outputColor = col*texture2D(texture0, coord2);
+      } else {
+        outputColor = vec4(0.,0.,0.,0.);
       }
-    
-    fragColor = outputColor;
+  }
+  
+  fragColor = outputColor;
 }
