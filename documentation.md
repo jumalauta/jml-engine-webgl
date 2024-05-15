@@ -229,8 +229,7 @@ this.loader.addAnimation({
 #### Text drawing examples
 Draw 2D text to the screen:
 ```JavaScript
-this.loader.addAnimation([
-{
+this.loader.addAnimation({
     "start": 0, "duration": 30
     ,"text":{
       "string":"Here is a 2D text string!"
@@ -251,8 +250,7 @@ this.loader.addAnimation([
 
 Draw 3D text to the screen:
 ```JavaScript
-this.loader.addAnimation([
-{
+this.loader.addAnimation({
      "start": 0, "duration": 30
     ,"text":{"string":"Here is a 3D text string!", "name":"font.ttf", "perspective":"3d"}
     ,"scale": [
@@ -318,7 +316,7 @@ this.loader.addAnimation({
 
 ```JavaScript
 // Display +50% scaled 3D object that rotates by Y axis
-this.loader.addAnimation([{
+this.loader.addAnimation({
   "start": start, "duration":end
   ,"id":"allseeing" // give ID to object so it can be used as a parent
   ,"layer": layer
@@ -326,10 +324,10 @@ this.loader.addAnimation([{
   ,"position":[{"x":2,"y":-2,"z":-4}]
   ,"scale":[{"uniform3d":1.5}]
   ,"angle": [{"degreesY":()=>-20*getSceneTimeFromStart(),"degreesZ":0,"degreesX":0}]
-}]);
+});
 
 // this is used to rotate this object's child object to "orbit" the original object 
-this.loader.addAnimation([{
+this.loader.addAnimation({
   "start": start, "duration":end
   ,"parent":"allseeing" // parent object ID, object will utilize matrix of this object. If object has child meshes then you can use child mesh as parent, e.g.,  "allseeing.childmesh" (assuming object has child mesh with name 'childmesh')
   ,"id": "allseeing2" // unique ID for this object
@@ -338,16 +336,16 @@ this.loader.addAnimation([{
   ,"position":[{"x":2,"y":-2,"z":-4}]
   ,"scale":[{"uniform3d":1.5}]
   ,"angle": [{"degreesY":()=>20*getSceneTimeFromStart(),"degreesZ":0,"degreesX":0}]
-}]);
+});
 
-this.loader.addAnimation([{
+this.loader.addAnimation({
   "start": start, "duration":end,
   ,"parent":"allseeing2" // parent object ID, object will utilize matrix of this object
   ,"layer": layer
   ,"object":"obj_allseeing.obj"
   ,"angle": [{"degreesX":()=>40*getSceneTimeFromStart(),"degreesY":0,"degreesZ":0}]
   ,"color":[{"r":1,"g":0,"b":0,"a":1}]
-}]);
+});
 ```
 
 ```JavaScript
@@ -368,8 +366,7 @@ this.loader.addAnimation({
 #### Setup camera
 Look at origo (0,0,0) from z:10:
 ```JavaScript
-this.loader.addAnimation([
-{
+this.loader.addAnimation({
      "start": 0, "duration": 30, "camera": "cam1",
      //where camera is located
      ,"position":[
@@ -441,7 +438,7 @@ Definition in the init method:
     this.loader.addAnimation({
          "start": 10, "end": 58
         ,"initFunction":(animation)=>{initFunction(animation)}
-        ,"runFunction":(animation)=>drawFunction(animation)}
+        ,"runFunction":(animation)=>{drawFunction(animation)}
     });
 ```
 
