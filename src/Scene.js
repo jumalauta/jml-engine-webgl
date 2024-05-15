@@ -8,6 +8,7 @@ import { Text } from './Text';
 import { Fbo } from './Fbo';
 import { Light } from './Light';
 import { Camera } from './Camera';
+import { ToolUi } from './ToolUi';
 import {
   windowSetTitle,
   loggerError,
@@ -1310,6 +1311,11 @@ Scene.prototype.processAnimation = function () {
           );
         } else if (animationDefinition.scene !== undefined) {
           animationDefinition.type = 'scene';
+          new ToolUi().addSceneToTimeline(
+            animationDefinition.scene.name,
+            animationDefinition.start,
+            animationDefinition.end
+          );
         }
 
         if (animationDefinition.initFunction !== undefined) {

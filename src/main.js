@@ -157,9 +157,7 @@ function togglePlayerUserInterface(show) {
   canvas.onclick = null;
 
   if (settings.engine.tool) {
-    if (show) {
-      toolUi.show();
-    } else {
+    if (!show) {
       toolUi.hide();
     }
   } else {

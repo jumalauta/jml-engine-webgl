@@ -17,6 +17,7 @@ import { Video } from './Video';
 import { Spectogram } from './Spectogram';
 import { Settings } from './Settings';
 import { isStarted, stopDemo } from './main';
+import { ToolUi } from './ToolUi';
 
 const settings = new Settings();
 
@@ -80,6 +81,7 @@ Effect.init = function (effectName) {
 
     const loadingBar = new LoadingBar();
     loadingBar.setPercent(0.0);
+    new ToolUi().clearScenes();
 
     let processedPromises = 0;
     try {
@@ -128,7 +130,7 @@ Effect.init = function (effectName) {
 
       let action;
       if (isStarted()) {
-        new Spectogram().show(true);
+        new ToolUi().show();
 
         if (!timer.isStarted()) {
           timer.start();

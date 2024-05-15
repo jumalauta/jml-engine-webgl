@@ -9,12 +9,13 @@ import Stats from 'stats.js';
 // editor multiple tabs example: https://codepen.io/zymawy/pen/QRLXNE
 
 import { Timer } from './Timer';
-// import { Settings } from './Settings';
+import { Settings } from './Settings';
 import { Spectogram } from './Spectogram';
+import { loggerWarning } from './Bindings';
 // import { FileManager } from './FileManager'
 // import { Settings } from './Settings'
 
-// const settings = new Settings();
+const settings = new Settings();
 
 /* const gui = new GUI()
 const cubeFolder = gui.addFolder('Cube')
@@ -43,6 +44,7 @@ ToolUi.prototype.init = function () {
   this.stats = new Stats();
   this.stats.showPanel(0);
   document.body.appendChild(this.stats.dom);
+  this.sceneState = {};
 
   // const fileManager = new FileManager()
 
@@ -94,6 +96,10 @@ ToolUi.prototype.init = function () {
 };
 
 ToolUi.prototype.show = function () {
+  if (!settings.engine.tool) {
+    return;
+  }
+
   this.stats.dom.style.display = 'block';
   this.timelineSlider.style.display = 'block';
 
@@ -104,6 +110,63 @@ ToolUi.prototype.hide = function () {
   this.stats.dom.style.display = 'none';
   this.timelineSlider.style.display = 'none';
   new Spectogram().show(false);
+
+  this.clearScenes();
+};
+
+ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
+  if (!settings.engine.tool) {
+    return;
+  }
+
+  const endTime = (new Timer().endTime || 0) / 1000;
+  if (!endTime) {
+    loggerWarning(`Not adding scene ${sceneName} because there is no end time`);
+    return;
+  }
+
+  const startPercent = start / endTime;
+  const durationPercent = (end - start) / endTime;
+
+  let row = 1;
+  let sceneState;
+  for (let i = 1; i <= 3; i++) {
+    sceneState = this.sceneState[i] || { width: 0 };
+    if (startPercent >= sceneState.width) {
+      row = i;
+      sceneState.width += durationPercent;
+      this.sceneState[i] = { ...sceneState };
+      break;
+    }
+  }
+
+  if (sceneState === undefined) {
+    loggerWarning(
+      `Not adding scene ${sceneName} because there is no room in timeline`
+    );
+    return;
+  }
+
+  const sceneElement = document.createElement('div');
+  sceneElement.innerHTML = sceneName;
+  sceneElement.className = 'scene';
+  sceneElement.style.width = `${(durationPercent * 100).toFixed(2)}%`;
+  sceneElement.style.top = `${row * 1.05}em`;
+  sceneElement.style.left = `${(startPercent * 100).toFixed(2)}%`;
+  sceneElement.addEventListener('click', () => {
+    new Timer().setTimePercent(startPercent);
+  });
+
+  const panel = document.getElementById('panel');
+  panel.appendChild(sceneElement);
+};
+
+ToolUi.prototype.clearScenes = function () {
+  this.sceneState = {};
+  const sceneElements = document.getElementsByClassName('scene');
+  while (sceneElements.length > 0) {
+    sceneElements[0].parentNode.removeChild(sceneElements[0]);
+  }
 };
 
 ToolUi.prototype.update = function () {

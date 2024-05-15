@@ -25,6 +25,20 @@ html, body {
     background-color: #272822 /*ace/theme/monokai bg*/;
     color: #e0ffe0 /*ace/theme/monokai text*/;
 }
+.scene {
+    background-color: #151613;
+    color: #e0ffe0;
+    opacity: 0.5;
+    font-size: medium;
+    text-align: center;
+    height: 1.0em;
+    position: absolute;
+    z-index: 0;
+}
+.scene:hover {
+    opacity: 1;
+    border: 1px solid;
+}
 .disable{
     cursor: not-allowed;
     pointer-events: none;
