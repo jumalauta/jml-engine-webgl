@@ -96,6 +96,7 @@ this.loader.addAnimation(
         "start":<time>     //start time, default is the animation block's start time
         ,"duration":<time> //duration time, default is the animation block's duration time
         ,"end":<time>      //end time, default is the animation block's end time
+        ,"time":<time or function> //to override the animation time programmatically. start and duration/end will be honored normally.
         /*more animation variables per animation primitive*/
     }
      ,{/*animation primitive 2*/}

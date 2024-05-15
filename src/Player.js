@@ -964,8 +964,15 @@ Player.prototype.drawSceneAnimation = function (
 
           setAnimationVisibility(animation, true);
 
+          const currentTime =
+            animation.time !== undefined
+              ? animation.start +
+                Utils.evaluateVariable(animation, animation.time)
+              : time;
+          sceneTimeFromStart = currentTime;
+
           graphics.setColor(1, 1, 1, 1);
-          Sync.calculateAnimationSync(time, animation);
+          Sync.calculateAnimationSync(currentTime, animation);
 
           if (animation.shader !== undefined) {
             // loggerInfo("shader enable!");
@@ -976,17 +983,17 @@ Player.prototype.drawSceneAnimation = function (
           Utils.updateProperties(animation);
 
           if (animation.type === 'image') {
-            this.drawImageAnimation(time, animation);
+            this.drawImageAnimation(currentTime, animation);
           } else if (animation.type === 'text') {
-            this.drawTextAnimation(time, animation);
+            this.drawTextAnimation(currentTime, animation);
           } else if (animation.type === 'object') {
-            this.drawObjectAnimation(time, animation);
+            this.drawObjectAnimation(currentTime, animation);
           } else if (animation.type === 'fbo') {
-            this.drawFboAnimation(time, animation);
+            this.drawFboAnimation(currentTime, animation);
           } else if (animation.type === 'light') {
-            this.drawLightAnimation(time, animation);
+            this.drawLightAnimation(currentTime, animation);
           } else if (animation.type === 'camera') {
-            this.drawCameraAnimation(time, animation);
+            this.drawCameraAnimation(currentTime, animation);
           } else if (animation.type === 'scene') {
             const pushSceneVariable = sceneVariable;
             if (animation.scene.variable !== undefined) {
@@ -998,7 +1005,7 @@ Player.prototype.drawSceneAnimation = function (
 
             this.drawSceneAnimation(
               new Loader().scenes[animation.scene.name],
-              time - animation.start,
+              currentTime - animation.start,
               animation
             );
             sceneVariable = pushSceneVariable;
