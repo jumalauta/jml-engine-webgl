@@ -1,5 +1,4 @@
 import { Utils, Constants } from './Utils';
-import { Graphics } from './Graphics';
 import { Input } from './Input';
 import { Image } from './Image';
 import { Shader } from './Shader';
@@ -9,12 +8,7 @@ import { Fbo } from './Fbo';
 import { Light } from './Light';
 import { Camera } from './Camera';
 import { ToolUi } from './ToolUi';
-import {
-  windowSetTitle,
-  loggerError,
-  loggerWarning,
-  loggerTrace
-} from './Bindings';
+import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
 import { Settings } from './Settings';
 
 import * as THREE from 'three';
@@ -794,12 +788,8 @@ Scene.prototype.getParentObject = function (
 };
 
 Scene.prototype.processAnimation = function () {
-  const graphics = new Graphics();
-
   this.animationLayers = this.loader.sortArray(this.animationLayers);
   const animationLayers = this.animationLayers;
-
-  // threadWaitAsyncCalls();
 
   let startTime = 0;
   let endTime;
@@ -884,9 +874,6 @@ Scene.prototype.processAnimation = function () {
             animationDefinition.shader.ref,
             'Could not load shader program ' +
               animationDefinition.shader.programName
-          );
-          this.loader.notifyResourceLoaded(
-            animationDefinition.shader.programName
           );
         }
 
@@ -989,24 +976,6 @@ Scene.prototype.processAnimation = function () {
             } else {
               // animationDefinition.ref.load(animationDefinition.object);
             }
-
-            if (
-              this.validateResourceLoaded(
-                animationDefinition,
-                animationDefinition.ref,
-                'Could not load ' + animationDefinition.object
-              )
-            ) {
-              animationDefinition.ref.setLighting(
-                animationDefinition.objectLighting
-              );
-              animationDefinition.ref.setSimpleColors(
-                animationDefinition.simpleColors
-              );
-              animationDefinition.ref.setCamera(
-                animationDefinition.objectCamera
-              );
-            }
           }
 
           if (animationDefinition.fps === undefined) {
@@ -1015,15 +984,9 @@ Scene.prototype.processAnimation = function () {
           if (animationDefinition.camera === undefined) {
             animationDefinition.camera = 'Camera01';
           }
-          if (animationDefinition.clearDepthBuffer === undefined) {
-            animationDefinition.clearDepthBuffer = false;
-          }
 
           animationDefinition.ref.setFps(animationDefinition.fps);
           animationDefinition.ref.setCameraName(animationDefinition.camera);
-          animationDefinition.ref.setClearDepthBuffer(
-            animationDefinition.clearDepthBuffer
-          );
 
           const animStart = startTime;
           const animEnd = endTime;
@@ -1046,8 +1009,6 @@ Scene.prototype.processAnimation = function () {
               );
             }
           }
-
-          this.loader.notifyResourceLoaded(animationDefinition.object);
         } else if (animationDefinition.image !== undefined) {
           parentObject.add(animationDefinition.ref.mesh);
 
@@ -1101,19 +1062,10 @@ Scene.prototype.processAnimation = function () {
               message
             );
           }
-
-          this.loader.notifyResourceLoaded(animationDefinition.image[0].name);
         } else if (animationDefinition.text !== undefined) {
           animationDefinition.type = 'text';
           if (animationDefinition.text.perspective === undefined) {
             animationDefinition.text.perspective = '2d';
-          } else if (animationDefinition.text.perspective === '3d') {
-            if (animationDefinition.clearDepthBuffer === undefined) {
-              animationDefinition.clearDepthBuffer = 0;
-            } else {
-              animationDefinition.clearDepthBuffer =
-                animationDefinition.clearDepthBuffer === true ? 1 : 0;
-            }
           }
 
           if (animationDefinition.text.name !== undefined) {
@@ -1162,30 +1114,6 @@ Scene.prototype.processAnimation = function () {
             animationDefinition.fbo.name = 'fbo';
           }
 
-          if (
-            this.validateResourceLoaded(
-              animationDefinition,
-              animationDefinition.ref,
-              'Could not load ' + animationDefinition.fbo.name
-            )
-          ) {
-            if (animationDefinition.ref.id === 0) {
-              animationDefinition.ref.setStoreDepth(
-                animationDefinition.fbo.storeDepth
-              );
-              if (
-                animationDefinition.fbo.width !== undefined &&
-                animationDefinition.fbo.height !== undefined
-              ) {
-                animationDefinition.ref.setDimensions(
-                  animationDefinition.fbo.width,
-                  animationDefinition.fbo.height
-                );
-              }
-              animationDefinition.ref.generateFramebuffer();
-            }
-          }
-
           const animStart = startTime;
           const animEnd = startTime;
           const animDuration = animEnd - animStart;
@@ -1195,42 +1123,10 @@ Scene.prototype.processAnimation = function () {
             animEnd,
             animationDefinition
           );
-
-          this.loader.notifyResourceLoaded(animationDefinition.fbo.name);
         } else if (animationDefinition.light !== undefined) {
           animationDefinition.type = 'light';
           animationDefinition.ref = new Light(animationDefinition);
           parentObject.add(animationDefinition.ref.mesh);
-
-          // const animStart = startTime
-          // const animEnd = startTime
-          // const animDuration = animEnd - animStart
-          // this.preprocessAnimationDefinitions(animStart, animDuration, animEnd, animationDefinition);
-
-          /* if (animationDefinition.ambientColor !== undefined)
-                    {
-                        animStart = startTime;
-                        animEnd = startTime;
-                        animDuration = animEnd - animStart;
-                        this.preprocessColorAnimation(animStart, animDuration, animEnd, animationDefinition,
-                            animationDefinition.ambientColor);
-                    }
-                    if (animationDefinition.diffuseColor !== undefined)
-                    {
-                        animStart = startTime;
-                        animEnd = startTime;
-                        animDuration = animEnd - animStart;
-                        this.preprocessColorAnimation(animStart, animDuration, animEnd, animationDefinition,
-                            animationDefinition.diffuseColor);
-                    }
-                    if (animationDefinition.specularColor !== undefined)
-                    {
-                        animStart = startTime;
-                        animEnd = startTime;
-                        animDuration = animEnd - animStart;
-                        this.preprocessColorAnimation(animStart, animDuration, animEnd, animationDefinition,
-                            animationDefinition.specularColor);
-                    } */
         } else if (animationDefinition.camera !== undefined) {
           animationDefinition.type = 'camera';
           animationDefinition.ref = new Camera();
@@ -1323,7 +1219,6 @@ Scene.prototype.processAnimation = function () {
             animationDefinition,
             animationDefinition.initFunction
           );
-          this.loader.notifyResourceLoaded(animationDefinition.initFunction);
         }
 
         if (endTime !== undefined) {
@@ -1332,22 +1227,6 @@ Scene.prototype.processAnimation = function () {
 
         if (durationTime !== undefined) {
           endTime = startTime + durationTime;
-        }
-
-        if (graphics.handleErrors() === 1) {
-          if (animationDefinition.error === undefined) {
-            animationDefinition.error =
-              'Graphics handling error occurred during loading';
-            loggerWarning(
-              'Graphics error in: ' +
-                JSON.stringify(animationDefinition, null, 2)
-            );
-          } else {
-            loggerTrace(
-              'Graphics error in: ' +
-                JSON.stringify(animationDefinition, null, 2)
-            );
-          }
         }
       }
     }

@@ -1,11 +1,6 @@
 import { Scene } from './Scene';
 import { Utils } from './Utils';
-import {
-  loggerDebug,
-  loggerWarning,
-  setResourceCount,
-  notifyResourceLoaded
-} from './Bindings';
+import { loggerDebug, loggerWarning } from './Bindings';
 import { DemoRenderer } from './DemoRenderer';
 import { Fbo } from './Fbo';
 
@@ -110,14 +105,6 @@ Loader.prototype.addNotifyResource = function (name, promises) {
       this.promises.push(promise);
     });
   }
-
-  setResourceCount(1);
-
-  return true;
-};
-
-Loader.prototype.notifyResourceLoaded = function (name) {
-  notifyResourceLoaded();
 
   return true;
 };

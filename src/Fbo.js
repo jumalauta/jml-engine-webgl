@@ -60,18 +60,6 @@ Fbo.init = function (name, sceneName) {
   const fbo = new Fbo(name, sceneName);
   fbos[name] = fbo;
 
-  /* var legacy = fboInit(name);
-
-    this.name = name;
-    this.ptr = legacy.ptr;
-
-    if (legacy.color.ptr !== undefined) {
-        this.color = new Image();
-        this.color.ptr = legacy.color.ptr;
-        this.color.id = legacy.color.id;
-    } */
-  // if ( target ) target.dispose();
-
   fbo.name = name;
 
   fbo.target = new THREE.WebGLRenderTarget(
@@ -111,22 +99,6 @@ Fbo.init = function (name, sceneName) {
   return fbo;
 };
 
-Fbo.prototype.setStoreDepth = function (storeDepth) {
-  // fboStoreDepth(this.ptr, storeDepth === true ? 1 : 0);
-};
-
-Fbo.prototype.setDimensions = function (width, height) {
-  // fboSetDimensions(this.ptr, width, height);
-};
-
-Fbo.prototype.generateFramebuffer = function () {
-  // fboGenerateFramebuffer(this.ptr);
-};
-
-Fbo.prototype.setRenderDimensions = function (width, height) {
-  // fboSetRenderDimensions(this.ptr, width, height);
-};
-
 Fbo.prototype.push = function () {
   pushView(this.scene, this.camera);
   return this.scene;
@@ -137,34 +109,13 @@ Fbo.prototype.pop = function () {
 };
 
 Fbo.prototype.bind = function () {
-  // console.warn('fbo bind');
-  // fboBind(this.ptr);
-  // pushView(this.scene, getCamera());
   demoRenderer.renderer.setRenderTarget(this.target);
   demoRenderer.renderer.clear();
 };
 
 Fbo.prototype.unbind = function () {
-  // fboUnbind(this.ptr);
-  // console.warn('fbo unbind');
-
   demoRenderer.renderer.render(this.scene, this.camera);
   demoRenderer.renderer.setRenderTarget(null);
-  // popView();
-};
-
-Fbo.prototype.updateViewport = function () {
-  // fboUpdateViewport(this.ptr);
-  // console.warn('fbo update viewport');
-  // renderer.clear();
-};
-
-Fbo.prototype.bindTextures = function () {
-  // fboBindTextures(this.ptr);
-};
-
-Fbo.prototype.unbindTextures = function () {
-  // fboUnbindTextures(this.ptr);
 };
 
 export { Fbo };

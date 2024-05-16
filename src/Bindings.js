@@ -37,21 +37,6 @@ export function loggerError(txt) {
   log('error', txt);
 }
 
-export function processFutures() {
-  // console.log('processFutures');
-}
-
-// notifyResourceLoaded, setResourceCount
-
-// let resourceCount = 0
-export function setResourceCount(c) {
-  // resourceCount = c
-}
-
-export function notifyResourceLoaded() {
-  // resourceCount--
-}
-
 export function windowSetTitle(title) {
   document.title = title;
 }
