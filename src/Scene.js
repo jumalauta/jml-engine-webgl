@@ -515,6 +515,8 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         animationDefinition.image = [animationDefinition.image];
       }
 
+      const filenames = [];
+
       for (
         let imageI = 0;
         imageI < animationDefinition.image.length;
@@ -525,6 +527,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
             name: animationDefinition.image[imageI]
           };
         }
+        filenames.push(animationDefinition.image[imageI].name);
       }
 
       if (animationDefinition.perspective === undefined) {
@@ -536,37 +539,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         animationDefinition.perspective === '2d'
       );
       const promises = [];
-      promises.push(
-        animationDefinition.ref.load(animationDefinition.image[0].name)
-      );
-
-      /* if (animationDefinition.image[0].video !== undefined) {
-        const video = Utils.deepCopyJson(animationDefinition.image[0].video);
-        video.ref = new Video();
-        promises.push(video.ref.load(animationDefinition.image[0].name));
-        animationDefinition.ref.video = video;
-      } */
-
-      animationDefinition.multiTexRef = [animationDefinition.ref];
-      for (
-        let imageI = 1;
-        imageI < animationDefinition.image.length;
-        imageI++
-      ) {
-        const multiTexRef = new Image(animationDefinition.scene);
-        multiTexRef.setPerspective2d(animationDefinition.perspective === '2d');
-        promises.push(multiTexRef.load(animationDefinition.image[imageI].name));
-
-        animationDefinition.multiTexRef.push(multiTexRef);
-        /* if (animationDefinition.image[imageI].video !== undefined) {
-          const video = Utils.deepCopyJson(
-            animationDefinition.image[imageI].video
-          );
-          video.ref = new Video();
-          promises.push(video.ref.load(animationDefinition.image[imageI].name));
-          animationDefinition.multiTexRef[imageI].video = video;
-        } */
-      }
+      promises.push(animationDefinition.ref.load(filenames));
 
       if (
         animationDefinition.align === undefined &&
@@ -1054,14 +1027,6 @@ Scene.prototype.processAnimation = function () {
             animationDefinition.ref,
             message
           );
-          for (let i = 0; i < animationDefinition.multiTexRef.length; i++) {
-            const multiTexRef = animationDefinition.multiTexRef[i];
-            this.validateResourceLoaded(
-              animationDefinition,
-              multiTexRef,
-              message
-            );
-          }
         } else if (animationDefinition.text !== undefined) {
           animationDefinition.type = 'text';
           if (animationDefinition.text.perspective === undefined) {

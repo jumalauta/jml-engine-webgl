@@ -297,17 +297,6 @@ Player.prototype.drawImageAnimation = function (time, animation) {
     );
   }
 
-  for (
-    let multiTexI = 1;
-    multiTexI < animation.multiTexRef.length;
-    multiTexI++
-  ) {
-    animation.ref.setUnitTexture(
-      multiTexI,
-      animation.multiTexRef[multiTexI].ptr
-    );
-  }
-
   if (animation.angle !== undefined) {
     const angle = this.calculateAngleAnimation(time, animation);
     animation.ref.setRotation(
@@ -338,8 +327,8 @@ Player.prototype.drawImageAnimation = function (time, animation) {
   const color = this.calculateColorAnimation(time, animation, animation.color);
   animation.ref.setColor(color.r, color.g, color.b, color.a);
 
-  for (let videoI = 0; videoI < animation.multiTexRef.length; videoI++) {
-    const multiTexRef = animation.multiTexRef[videoI];
+  for (let videoI = 0; videoI < animation.ref.texture.length; videoI++) {
+    const multiTexRef = animation.ref.texture[videoI];
     if (multiTexRef.video !== undefined) {
       const videoDefinition = animation.image[videoI].video;
       multiTexRef.video.setStartTime(animation.start);

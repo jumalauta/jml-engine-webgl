@@ -17,27 +17,24 @@ const Image = function () {
   this.filename = undefined;
   this.width = undefined;
   this.height = undefined;
-  this.texture = undefined;
+  this.texture = [];
   this.material = undefined;
   this.mesh = undefined;
   this.perspective2d = true;
   this.video = undefined;
 };
 
-// var planeGeometry = new THREE.PlaneGeometry(1, 16/9);
-// var planeMaterial = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("s3_bg.png"), depthTest: false, depthWrite:false });
-// data.plane = new THREE.Mesh(planeGeometry, planeMaterial);
-// data.plane.position.x = 0;
-// data.plane.position.y = 0;
-// data.plane.position.z = 0;
-// data.bgScene.add(data.plane);
-
 Image.prototype.createMaterial = function () {
+  const uniforms = {
+    color: { value: new THREE.Vector4(1, 1, 1, 1) }
+  };
+
+  for (let i = 0; i < this.texture.length; i++) {
+    uniforms['texture' + i] = { value: this.texture[i] };
+  }
+
   const shader = {
-    uniforms: {
-      texture0: { value: this.texture },
-      color: { value: new THREE.Vector4(1, 1, 1, 1) }
-    },
+    uniforms,
     // Manually added vertex shader to get the fragment shader running
     vertexShader: this.perspective2d ? vertexShader2dData : vertexShader3dData,
     fragmentShader: fragmentShaderData
@@ -55,7 +52,7 @@ Image.prototype.createMaterial = function () {
     // map: texture,
   });
   // material = settings.createMaterial(settings.demo.image.material);
-  material.map = this.texture;
+  material.map = this.texture[0];
 
   material.blending = THREE.CustomBlending;
   if (this.perspective2d) {
@@ -67,24 +64,24 @@ Image.prototype.createMaterial = function () {
 };
 
 Image.prototype.generateMesh = function () {
-  if (this.texture === undefined) {
+  if (this.texture[0] === undefined) {
     throw new Error('Texture not loaded, cannot generate image mesh');
   }
 
   if (this.width === undefined || this.height === undefined) {
-    this.width = this.texture.image.width;
-    this.height = this.texture.image.height;
     if (this.fbo) {
       this.width = settings.demo.screen.width;
       this.height = settings.demo.screen.height;
+    } else {
+      this.width = this.texture[0].image.width;
+      this.height = this.texture[0].image.height;
     }
   }
 
-  settings.toThreeJsProperties(settings.demo.image.texture, this.texture);
-  // loggerTrace(`Generating mesh ${this.filename} (${this.width}x${this.height}), properties: ${JSON.stringify(this.texture)}`);
+  settings.toThreeJsProperties(settings.demo.image.texture, this.texture[0]);
 
   this.material = this.createMaterial();
-  // this.material = new THREE.MeshBasicMaterial({ map: this.texture, blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
+  // this.material = new THREE.MeshBasicMaterial({ map: this.texture[0], blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
   let w =
     (this.width / settings.demo.screen.width) *
     settings.demo.screen.aspectRatio;
@@ -104,11 +101,25 @@ Image.prototype.generateMesh = function () {
   }
 
   if (settings.engine.preload) {
-    new DemoRenderer().renderer.initTexture(this.texture);
+    for (let i = 0; i < this.texture.length; i++) {
+      new DemoRenderer().renderer.initTexture(this.texture[i]);
+    }
   }
 };
 
-Image.prototype.load = function (filename) {
+Image.prototype.load = async function (filenames) {
+  if (typeof filenames === 'string') {
+    filenames = [filenames];
+  }
+
+  for (let i = 0; i < filenames.length; i++) {
+    await this.loadTexture(filenames[i]);
+  }
+
+  this.generateMesh();
+};
+
+Image.prototype.loadTexture = function (filename) {
   this.filename = filename;
   // var legacy = imageLoadImage(filename);
   // this.ptr = legacy.ptr;
@@ -117,6 +128,8 @@ Image.prototype.load = function (filename) {
   // this.height = legacy.height;
 
   const instance = this;
+  instance.texture.push(undefined);
+  const textureI = instance.texture.length - 1;
 
   if (instance.filename.endsWith('.fbo')) {
     const colorTexture = instance.filename.endsWith('.color.fbo');
@@ -128,8 +141,9 @@ Image.prototype.load = function (filename) {
       try {
         const fbo = Fbo.init(fboName);
         instance.fbo = fbo;
-        instance.texture = colorTexture ? fbo.color.texture : fbo.depth.texture;
-        instance.generateMesh();
+        instance.texture[textureI] = colorTexture
+          ? fbo.color.texture[0]
+          : fbo.depth.texture[0];
         resolve(instance);
       } catch (e) {
         loggerWarning('Could not load FBO ' + instance.filename);
@@ -137,19 +151,18 @@ Image.prototype.load = function (filename) {
       }
     });
   } else if (instance.filename.toUpperCase().endsWith('.MP4')) {
-    this.video = new Video();
-    return this.video.load(filename, instance, (instance, video) => {
-      instance.texture = video.texture;
+    const video = new Video();
+    return video.load(filename, instance, (instance, video) => {
+      instance.texture[textureI] = video.texture;
+      instance.texture[textureI].video = video;
       instance.width = video.videoElement.videoWidth;
       instance.height = video.videoElement.videoHeight;
-      instance.generateMesh();
       // loggerDebug('Loaded video ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
   } else if (instance.filename.toUpperCase().endsWith('.PNG')) {
     return new FileManager().load(filename, instance, (instance, texture) => {
-      instance.texture = texture;
-      instance.generateMesh();
+      instance.texture[textureI] = texture;
       // loggerDebug('Loaded texture ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
@@ -159,32 +172,9 @@ Image.prototype.load = function (filename) {
   }
 };
 
-Image.prototype.setBlendFunc = function (src, dst) {
-  loggerWarning('setBlendFunc not implemented');
-};
-
 Image.prototype.setPerspective2d = function (perspective2d) {
   // setTexturePerspective3d(this.ptr, perspective2d === true ? 0 : 1);
   this.perspective2d = perspective2d === true;
-};
-
-Image.prototype.setCanvasDimensions = function (width, height) {
-  loggerWarning('setCanvasDimensions not implemented');
-  // setTextureCanvasDimensions(this.ptr, width, height);
-};
-
-Image.prototype.setUvDimensions = function (width, height) {
-  loggerWarning('setTextureUvDimensions not implemented');
-  // setTextureUvDimensions(this.ptr, uMin, vMin, uMax, vMax);
-};
-
-Image.prototype.setUnitTexture = function (index, ptr) {
-  // setTextureUnitTexture(this.ptr, index, ptr);
-};
-
-Image.prototype.setPivot = function (x, y, z) {
-  loggerWarning('setTexturePivot not implemented');
-  // setTexturePivot(this.ptr, x, y, z);
 };
 
 Image.prototype.setRotation = function (degreesX, degreesY, degreesZ, x, y, z) {
@@ -262,7 +252,9 @@ Image.prototype.setDefaults = function () {
 Image.prototype.draw = function () {
   // drawTexture(this.ptr);
   // this.mesh.visible = true;
-  this.material.uniforms.texture0.value = this.texture;
+  for (let i = 0; i < this.texture.length; i++) {
+    this.material.uniforms['texture' + i].value = this.texture[i];
+  }
 };
 
 export { Image };

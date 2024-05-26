@@ -95,6 +95,15 @@ Shader.prototype.createMaterial = function (vertexData, fragmentData) {
       if (name === 'texture0' && type === 'sampler2D') {
         this.shaderDefinition.variable = this.shaderDefinition.variable || [];
         this.shaderDefinition.variable.push({ name, value: undefined });
+      } else if (name === 'texture1' && type === 'sampler2D') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
+      } else if (name === 'texture2' && type === 'sampler2D') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
+      } else if (name === 'texture3' && type === 'sampler2D') {
+        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+        this.shaderDefinition.variable.push({ name, value: undefined });
       } else if (name === 'time' && type === 'float') {
         this.shaderDefinition.variable = this.shaderDefinition.variable || [];
         this.shaderDefinition.variable.push({ name, value: undefined });
@@ -317,7 +326,25 @@ Shader.enableShader = function (animation) {
         } else {
           if (variable.name === 'texture0' && animation.ref.texture) {
             animation.shader.ref.material.uniforms[variable.name].value =
-              animation.ref.texture;
+              animation.ref.texture[0];
+          } else if (
+            variable.name === 'texture1' &&
+            animation.ref.texture.length >= 2
+          ) {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              animation.ref.texture[1];
+          } else if (
+            variable.name === 'texture2' &&
+            animation.ref.texture.length >= 3
+          ) {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              animation.ref.texture[2];
+          } else if (
+            variable.name === 'texture3' &&
+            animation.ref.texture.length >= 4
+          ) {
+            animation.shader.ref.material.uniforms[variable.name].value =
+              animation.ref.texture[3];
           } else if (variable.name === 'time') {
             animation.shader.ref.material.uniforms[variable.name].value =
               new Timer().getTimeInSeconds();

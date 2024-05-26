@@ -85,11 +85,11 @@ Fbo.init = function (name, sceneName) {
     fbo.target.depthTexture.format === THREE.DepthStencilFormat;
 
   fbo.color = new Image();
-  fbo.color.texture = fbo.target.texture;
+  fbo.color.texture = [fbo.target.texture];
   fbo.color.generateMesh();
 
   fbo.depth = new Image();
-  fbo.depth.texture = fbo.target.depthTexture;
+  fbo.depth.texture = [fbo.target.depthTexture];
   fbo.depth.generateMesh();
 
   fbo.ptr = fbo.target;
