@@ -14,10 +14,16 @@ function log(type, txt) {
     return;
   }
 
+  const originalType = type;
+
   if (type === 'trace') {
     type = 'debug';
+    if (settings.engine.enabledLogLevels.includes(type) === false) {
+      return;
+    }
   }
-  const msg = `${new Timer().getTimeInSeconds().toFixed(2)} [${type.toUpperCase()}]: ${txt}`;
+
+  const msg = `${new Timer().getTimeInSeconds().toFixed(2)} [${originalType.toUpperCase()}]: ${txt}`;
   console[type](msg);
 }
 
