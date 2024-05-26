@@ -274,4 +274,6 @@ Constants.Align = {
   RIGHT: 5
 };
 
+window.Utils = Utils;
+
 export { Utils, Constants };
