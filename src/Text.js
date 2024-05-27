@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Font } from 'three/addons/loaders/FontLoader';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry';
-import { loggerTrace, loggerWarning } from './Bindings';
+import { loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 
@@ -126,8 +126,6 @@ Text.prototype.setValue = function (text) {
     this.ptr = this.mesh;
 
     this.setPosition(0, 0, 0);
-
-    loggerTrace('Created text mesh "' + text + "'");
   }
   // setDrawTextString(text);
 };
