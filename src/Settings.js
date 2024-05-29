@@ -128,7 +128,8 @@ Settings.prototype.init = function () {
       antialias: true,
       alpha: true,
       autoClear: false,
-      sortObjects: false
+      sortObjects: false,
+      preserveDrawingBuffer: true
     }
   };
   this.demo.screen.aspectRatio =

@@ -19,6 +19,7 @@ See [documentation.md](documentation.md)
 | End               | Rewind demo to near end   |
 | F                 | Toggle fullscreen |
 | R                 | Deep reload demo and dispose used memory |
+| S                 | Take a screenshot of the current rendered frame |
 | Mouse controls    | To zoom / rotate around camera look-at |
 
 Tool is watching for file changes automatically and attempting to do shallow reloads on changes.

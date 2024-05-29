@@ -296,6 +296,12 @@ function windowResize() {
   demoRenderer.setRenderNeedsUpdate(true);
 }
 
+function screenshot() {
+  const canvas = document.getElementById('canvas');
+  const dataUrl = canvas.toDataURL('image/png');
+  window.open(dataUrl, '_blank');
+}
+
 window.addEventListener('resize', windowResize, false);
 
 document.addEventListener('keydown', (event) => {
@@ -322,6 +328,8 @@ document.addEventListener('keydown', (event) => {
       deepReloadDemo();
     } else if (event.key === 'f') {
       fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
+    } else if (event.key === 's') {
+      screenshot();
     } else if (event.key === 'End') {
       timer.setTimePercent(0.99);
     } else if (event.key === 'Home') {
