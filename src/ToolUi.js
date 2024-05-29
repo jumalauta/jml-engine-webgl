@@ -41,6 +41,7 @@ ToolUi.prototype.getInstance = function () {
 };
 
 ToolUi.prototype.init = function () {
+  this.panel = document.getElementById('panel');
   this.stats = new Stats();
   this.stats.showPanel(0);
   document.body.appendChild(this.stats.dom);
@@ -100,6 +101,8 @@ ToolUi.prototype.show = function () {
     return;
   }
 
+  this.panel.style.display = 'block';
+
   this.stats.dom.style.display = 'block';
   this.timelineSlider.style.display = 'block';
 
@@ -111,7 +114,11 @@ ToolUi.prototype.hide = function () {
   this.timelineSlider.style.display = 'none';
   new Spectogram().show(false);
 
-  this.clearScenes();
+  this.panel.style.display = 'none';
+};
+
+ToolUi.prototype.isVisible = function () {
+  return this.panel.style.display !== 'none';
 };
 
 ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {

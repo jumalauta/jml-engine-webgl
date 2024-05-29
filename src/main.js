@@ -330,6 +330,14 @@ document.addEventListener('keydown', (event) => {
       fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
     } else if (event.key === 's') {
       screenshot();
+    } else if (event.key === 't') {
+      if (toolUi.isVisible()) {
+        toolUi.hide();
+      } else {
+        toolUi.show();
+      }
+
+      windowResize();
     } else if (event.key === 'End') {
       timer.setTimePercent(0.99);
     } else if (event.key === 'Home') {

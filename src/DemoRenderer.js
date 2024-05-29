@@ -6,6 +6,7 @@ import { Effect } from './Effect';
 import { Settings } from './Settings';
 import { Sync } from './Sync';
 import { Spectogram } from './Spectogram';
+import { ToolUi } from './ToolUi';
 
 const settings = new Settings();
 
@@ -140,7 +141,7 @@ DemoRenderer.prototype.resize = function () {
 
   this.fullCanvasWidth = window.innerWidth * 1.0;
   this.fullCanvasHeight =
-    window.innerHeight * (settings.engine.tool ? 0.9 : 1.0);
+    window.innerHeight * (new ToolUi().isVisible() ? 0.9 : 1.0);
   this.canvasWidth = this.fullCanvasWidth;
   this.canvasHeight = this.fullCanvasWidth / aspectRatio;
   if (this.canvasHeight > this.fullCanvasHeight) {

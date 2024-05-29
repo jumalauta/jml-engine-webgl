@@ -141,6 +141,7 @@ Effect.init = function (effectName) {
           action = 'Resuming';
         }
 
+        demoRenderer.resize();
         demoRenderer.setRenderNeedsUpdate(true);
       } else {
         action = 'Not starting';
