@@ -367,7 +367,7 @@ this.loader.addAnimation({
 Look at origo (0,0,0) from z:10:
 ```JavaScript
 this.loader.addAnimation({
-     "start": 0, "duration": 30, "camera": "cam1",
+     "start": 0, "duration": 30, "camera": "cam1"
      //where camera is located
      ,"position":[
         {"x":0,"y":0,"z":10}
