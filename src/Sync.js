@@ -43,6 +43,11 @@ Sync.prototype.init = async function () {
 };
 
 Sync.prototype.initDevice = function (webSocket) {
+  if (this.ready && webSocket) {
+    loggerTrace('GNU Rocket already loaded, not reinitializing');
+    return;
+  }
+
   this.syncDevice = new JSRocket.SyncDevice();
   this.previousIntRow = undefined;
   this.timer = new Timer();
