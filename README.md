@@ -1,8 +1,8 @@
 # JML demo engine, WebGL edition
 
-## Tool and scripting language documentation
+Demo engine for creating [demoscene](https://en.wikipedia.org/wiki/Demoscene) demos or other realtime graphics animations. This engine's development was initially started in August of 2015 to replace earlier demo engine from circa 2002.
 
-See [documentation.md](documentation.md)
+Want to see some examples? Check out: https://github.com/jumalauta/jml-engine-demos
 
 ## Tool controls
 
@@ -36,12 +36,14 @@ Tool is watching for file changes automatically and attempting to do shallow rel
 ## Installing tool
 
 - Install [Node.js](https://nodejs.org/en)
-- Install dependncies: `npm ci`
+- Install dependencies: `npm ci`
 
 ## Using tool
 
 - Start tool: `npx vite`
 - To start making demos, create `data` directory inside `public` directory
+  - Check out [documentation](documentation.md)
+  - Some example projects can be found here: https://github.com/jumalauta/jml-engine-demos/tree/main/p2v3
 
 ## Demo releases
 
@@ -50,6 +52,6 @@ Tool is watching for file changes automatically and attempting to do shallow rel
 npx vite build
 # serve the web package and check that it works
 npx vite preview
-# to wrap it to a Windows release run
+# instead of a website release, you can also wrap it to a Windows .exe release by running
 ./release-windows.sh
 ```

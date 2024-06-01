@@ -6,15 +6,16 @@ import { FileManager } from './FileManager';
 
 /** @constructor */
 const Shader = function (animationDefinition) {
-  this.vertexShaderUrl = '_embedded/default.vs';
-  this.fragmentShaderUrl = '_embedded/default.fs';
-  if (animationDefinition.perspective === '2d') {
-    this.vertexShaderUrl = '_embedded/default2d.vs';
-    this.fragmentShaderUrl = '_embedded/default2d.fs';
-  }
   this.shaderDefinition = animationDefinition.shader;
 
   if (this.shaderDefinition.name) {
+    this.vertexShaderUrl = '_embedded/default.vs';
+    this.fragmentShaderUrl = '_embedded/default.fs';
+    if (animationDefinition.perspective === '2d') {
+      this.vertexShaderUrl = '_embedded/default2d.vs';
+      this.fragmentShaderUrl = '_embedded/default2d.fs';
+    }
+
     const name =
       this.shaderDefinition.name instanceof Array
         ? this.shaderDefinition.name
@@ -63,9 +64,7 @@ Shader.convertToThreeJsUniformValues = function (value) {
   return v;
 };
 
-Shader.prototype.createThreeJsUniforms = function () {
-  const uniforms = {};
-
+Shader.prototype.createThreeJsUniforms = function (uniforms) {
   if (this.shaderDefinition.variable) {
     this.shaderDefinition.variable.forEach((variable) => {
       if (variable.value !== undefined) {
@@ -81,9 +80,9 @@ Shader.prototype.createThreeJsUniforms = function () {
   return THREE.UniformsUtils.clone(uniforms);
 };
 
-Shader.prototype.createMaterial = function (vertexData, fragmentData) {
+Shader.prototype.extendVariables = function (data) {
   // Parse uniforms from the fragment shader, note that this does not support excluding commented out uniforms
-  const uniforms = fragmentData.match(
+  const uniforms = data.match(
     /uniform\s+([a-zA-Z0-9]+)\s+([a-zA-Z0-9_]+)\s*;/g
   );
   if (uniforms) {
@@ -116,11 +115,17 @@ Shader.prototype.createMaterial = function (vertexData, fragmentData) {
       }
     });
   }
+};
 
+Shader.prototype.createMaterial = function (vertexData, fragmentData) {
+  this.extendVariables(vertexData);
+  this.extendVariables(fragmentData);
+
+  const uniforms = {};
   this.material = new THREE.ShaderMaterial({
     name: this.fragmentShaderUrl,
     glslVersion: THREE.GLSL3,
-    uniforms: this.createThreeJsUniforms(),
+    uniforms: this.createThreeJsUniforms(uniforms),
     vertexShader: vertexData,
     fragmentShader: fragmentData
   });
@@ -316,44 +321,48 @@ Shader.enableShader = function (animation) {
   if (animation.shader !== undefined) {
     // shaderProgramUse(animation.shader.ref.ptr);
 
-    if (animation.shader.ref && animation.shader.variable !== undefined) {
+    if (
+      animation.shader.ref &&
+      animation.shader.ref.material &&
+      animation.shader.variable !== undefined
+    ) {
+      const uniforms =
+        animation.shader.ref.material.uniforms ||
+        animation.shader.ref.material.userData.shader.uniforms;
       animation.shader.variable.forEach((variable) => {
         if (variable.value !== undefined) {
-          // if (variable.name.startsWith('speed')) {
-          // }
-          animation.shader.ref.material.uniforms[variable.name].value =
-            Shader.convertToThreeJsUniformValues([...variable.value]);
+          uniforms[variable.name].value = Shader.convertToThreeJsUniformValues([
+            ...variable.value
+          ]);
         } else {
           if (variable.name === 'texture0' && animation.ref.texture) {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              animation.ref.texture[0];
+            uniforms[variable.name].value = animation.ref.texture[0];
           } else if (
             variable.name === 'texture1' &&
             animation.ref.texture.length >= 2
           ) {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              animation.ref.texture[1];
+            uniforms[variable.name].value = animation.ref.texture[1];
           } else if (
             variable.name === 'texture2' &&
             animation.ref.texture.length >= 3
           ) {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              animation.ref.texture[2];
+            uniforms[variable.name].value = animation.ref.texture[2];
           } else if (
             variable.name === 'texture3' &&
             animation.ref.texture.length >= 4
           ) {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              animation.ref.texture[3];
+            uniforms[variable.name].value = animation.ref.texture[3];
           } else if (variable.name === 'time') {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              new Timer().getTimeInSeconds();
+            uniforms[variable.name].value = new Timer().getTimeInSeconds();
           } else if (variable.name === 'timePercent') {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              new Timer().getTimePercent();
+            uniforms[variable.name].value = new Timer().getTimePercent();
           } else if (variable.name === 'color') {
-            animation.shader.ref.material.uniforms[variable.name].value =
-              new THREE.Vector4(1.0, 1.0, 1.0, 1.0);
+            uniforms[variable.name].value = new THREE.Vector4(
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            );
           }
         }
       });

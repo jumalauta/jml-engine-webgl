@@ -567,7 +567,9 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
     if (animationDefinition.shader !== undefined) {
       animationDefinition.shader.ref = new Shader(animationDefinition);
       const promises = [];
-      promises.push(animationDefinition.shader.ref.load());
+      if (animationDefinition.shader.name) {
+        promises.push(animationDefinition.shader.ref.load());
+      }
 
       if (this.loader.addNotifyResource(animationDefinition.shader, promises)) {
         // imageLoadImageAsync(animationDefinition.image);
@@ -811,6 +813,8 @@ Scene.prototype.processAnimation = function () {
           animationDefinition
         );
 
+        Utils.setMaterialProperties(animationDefinition);
+
         if (animationDefinition.shader !== undefined) {
           // animationDefinition.shader.ref = Shader.load(animationDefinition.shader);
           if (
@@ -841,13 +845,13 @@ Scene.prototype.processAnimation = function () {
               Shader.enableShader(animationDefinition);
               Shader.disableShader(animationDefinition);
             }
+            this.validateResourceLoaded(
+              animationDefinition,
+              animationDefinition.shader.ref,
+              'Could not load shader program ' +
+                animationDefinition.shader.programName
+            );
           }
-          this.validateResourceLoaded(
-            animationDefinition,
-            animationDefinition.shader.ref,
-            'Could not load shader program ' +
-              animationDefinition.shader.programName
-          );
         }
 
         if (

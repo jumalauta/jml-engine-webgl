@@ -225,6 +225,25 @@ this.loader.addAnimation({
     ]
 });
 ```
+#### Custom shaders
+
+Custom shaders can be defined for any meshes (image / 3d object / text).
+
+```JavaScript
+this.loader.addAnimation({
+  "start": start, "duration": end
+  ,"layer": layer
+  // _embedded/defaultTransparent.png is a fullscreen 2D transparent image
+  ,"image": ["_embedded/defaultTransparent.png"]
+  // Use shader file "vignette.fs" with the image
+  ,"shader":{"name":"vignette.fs",
+    // define / animate the shader uniforms
+    "variable":[
+     {"name":"fadeStart","value":[() => Math.sin(getSceneTimeFromStart())*0.05+0.55]}
+    ,{"name":"fadeEnd","value":[0.8]}
+  ]}
+  });
+```
 
 #### Text drawing examples
 Draw 2D text to the screen:
@@ -361,6 +380,139 @@ this.loader.addAnimation({
     }
   }
 });
+```
+
+#### Material overrides
+
+Materials have default settings or settings that come from the 3D Model. Material settings can be overridden during loading of demo if needed.
+
+Material documentation for what properties exist: https://threejs.org/docs/#api/en/materials/Material
+
+```JavaScript
+// Show static 3D object
+this.loader.addAnimation({
+   "start": start, "duration":end
+  ,"object":"duck.obj"
+  ,"position":[{"x":0,"y":0,"z":-10}]
+  // Change 3D Object's materials properties
+  ,"material":{
+    "dithering":true,
+    "transparent:":false,
+  }
+  ,"shader":{
+    // extend generated material shader
+    "fragmentShaderPrefix":`
+      uniform float time;
+    `,
+    "fragmentShaderSuffix":`
+      vec4 color = gl_FragColor;
+      color.gb = vec2((sin(time)+1.0)/2.0, 0.0);
+      gl_FragColor = color;
+    `
+  }
+});
+```
+
+##### Generated material's default shaders
+
+Three.js generates shaders for material dynamically. This chapter documents Three.js version 0.163.0 material shaders to gain better understanding how to extend them.
+
+ShaderChunks, or what is being included can be found here: https://github.com/mrdoob/three.js/tree/f75fb41bb09d0abb9d440e83cde3c256ef292e4e/src/renderers/shaders/ShaderChunk
+
+Material vertex shader example:
+
+```c
+#include <common>
+#include <batching_pars_vertex>
+#include <uv_pars_vertex>
+#include <envmap_pars_vertex>
+#include <color_pars_vertex>
+#include <fog_pars_vertex>
+#include <morphtarget_pars_vertex>
+#include <skinning_pars_vertex>
+#include <logdepthbuf_pars_vertex>
+#include <clipping_planes_pars_vertex>
+// this is shader.vertexShaderPrefix injection point
+void main() {
+#include <uv_vertex>
+#include <color_vertex>
+#include <morphinstance_vertex>
+#include <morphcolor_vertex>
+#include <batching_vertex>
+#if defined ( USE_ENVMAP ) || defined ( USE_SKINNING )
+#include <beginnormal_vertex>
+#include <morphnormal_vertex>
+#include <skinbase_vertex>
+#include <skinnormal_vertex>
+#include <defaultnormal_vertex>
+#endif
+#include <begin_vertex>
+#include <morphtarget_vertex>
+#include <skinning_vertex>
+#include <project_vertex>
+#include <logdepthbuf_vertex>
+#include <clipping_planes_vertex>
+#include <worldpos_vertex>
+#include <envmap_vertex>
+#include <fog_vertex>
+// this is shader.vertexShaderSuffix injection point
+}
+```
+
+Material fragment shader example:
+
+```c
+uniform vec3 diffuse;
+uniform float opacity;
+#ifndef FLAT_SHADED
+varying vec3 vNormal;
+#endif
+#include <common>
+#include <dithering_pars_fragment>
+#include <color_pars_fragment>
+#include <uv_pars_fragment>
+#include <map_pars_fragment>
+#include <alphamap_pars_fragment>
+#include <alphatest_pars_fragment>
+#include <alphahash_pars_fragment>
+#include <aomap_pars_fragment>
+#include <lightmap_pars_fragment>
+#include <envmap_common_pars_fragment>
+#include <envmap_pars_fragment>
+#include <fog_pars_fragment>
+#include <specularmap_pars_fragment>
+#include <logdepthbuf_pars_fragment>
+#include <clipping_planes_pars_fragment>
+// this is shader.fragmentShaderPrefix injection point
+void main() {
+vec4 diffuseColor = vec4( diffuse, opacity );
+#include <clipping_planes_fragment>
+#include <logdepthbuf_fragment>
+#include <map_fragment>
+#include <color_fragment>
+#include <alphamap_fragment>
+#include <alphatest_fragment>
+#include <alphahash_fragment>
+#include <specularmap_fragment>
+ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+#ifdef USE_LIGHTMAP
+vec4 lightMapTexel = texture2D( lightMap, vLightMapUv );
+reflectedLight.indirectDiffuse += lightMapTexel.rgb * lightMapIntensity * RECIPROCAL_PI;
+#else
+reflectedLight.indirectDiffuse += vec3( 1.0 );
+#endif
+#include <aomap_fragment>
+reflectedLight.indirectDiffuse *= diffuseColor.rgb;
+vec3 outgoingLight = reflectedLight.indirectDiffuse;
+#include <envmap_fragment>
+#include <opaque_fragment>
+#include <tonemapping_fragment>
+#include <colorspace_fragment>
+#include <fog_fragment>
+#include <premultiplied_alpha_fragment>
+#include <dithering_fragment>
+// this is shader.fragmentShaderSuffix injection point
+}
 ```
 
 #### Setup camera
