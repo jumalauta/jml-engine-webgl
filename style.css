@@ -22,11 +22,11 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: #272822 /*ace/theme/monokai bg*/;
+    background-color: black;
     color: #e0ffe0 /*ace/theme/monokai text*/;
 }
 .scene {
-    background-color: #151613;
+    background-color: #3a3b37;
     color: #e0ffe0;
     opacity: 0.5;
     font-size: medium;
