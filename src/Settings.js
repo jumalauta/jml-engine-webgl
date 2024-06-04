@@ -139,7 +139,7 @@ Settings.prototype.init = function () {
   if (import.meta.env.MODE === 'production') {
     this.engine.tool = false;
     this.engine.enabledLogLevels = ['info', 'warn', 'error'];
-    this.engine.webDemoExe = true;
+    this.engine.webDemoExe = process.env.NODE_ENV === 'exe';
   }
 };
 

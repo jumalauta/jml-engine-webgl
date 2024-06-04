@@ -163,10 +163,12 @@ function togglePlayerUserInterface(show) {
   } else {
     if (show) {
       canvas.style.cursor = 'none';
-      canvas.onclick = () => {
-        // have a gesture mainly for the touch devices to stop the demo
-        stopDemo();
-      };
+      if (!settings.engine.webDemoExe) {
+        canvas.onclick = () => {
+          // have a gesture mainly for the touch devices to stop the demo
+          stopDemo();
+        };
+      }
     }
   }
 

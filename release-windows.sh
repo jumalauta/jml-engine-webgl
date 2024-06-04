@@ -5,7 +5,7 @@
 set -euo pipefail
 
 rm -fr dist/
-npx vite build
+NODE_ENV=exe npx vite build
 
 #this canbe used to check if build works: npx vite preview
 
