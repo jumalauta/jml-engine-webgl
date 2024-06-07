@@ -475,7 +475,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
     }
 
     if (animationDefinition.object !== undefined) {
-      animationDefinition.ref = new Model();
+      animationDefinition.ref = new Model(animationDefinition);
       if (
         Utils.isString(animationDefinition.object) === true ||
         animationDefinition.object === null
@@ -534,7 +534,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         animationDefinition.perspective = '2d';
       }
 
-      animationDefinition.ref = new Image(animationDefinition.scene);
+      animationDefinition.ref = new Image(animationDefinition);
       animationDefinition.ref.setPerspective2d(
         animationDefinition.perspective === '2d'
       );

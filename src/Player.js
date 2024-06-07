@@ -373,7 +373,7 @@ Player.prototype.drawImageAnimation = function (time, animation) {
     }
   }
 
-  animation.ref.draw();
+  animation.ref.draw(time);
   animation.ref.setDefaults();
 };
 

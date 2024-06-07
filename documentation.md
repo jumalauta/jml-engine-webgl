@@ -225,6 +225,56 @@ this.loader.addAnimation({
     ]
 });
 ```
+
+#### 3D image
+
+```JavaScript
+this.loader.addAnimation({
+	"image": "jml_fist.png",
+  "perspective":"3d", // tells that the image should be in 3D and not in default 2D
+  "position":[{"x":0,"y":0,"z":-5}],
+  "billboard":true // spherical billboarding to adjust image orientation to face the camera
+});
+```
+
+#### 3D image instancing / particles
+
+```JavaScript
+this.loader.addAnimation({
+	"image": "jml_fist.png",
+  "perspective":"3d",
+  "position":[{"x":0,"y":0,"z":-5}],
+  "color":[{"a":0.5}],
+  "billboard":true,
+  // instancer can be used for objects and images
+  "instancer": {
+    "count": 10, // adjust maximum number of instances, i.e. display 10 images of jml_fist.png
+    "runInstanceFunction": (properties) => {
+      const i = properties.index;
+      const count = properties.count;
+      const time = properties.time;
+      let object = properties.object;
+      let color = properties.color;
+
+      // position instance
+      object.position.x = Math.sin(time + i * Math.PI * 2 / count) * 2;
+      object.position.y = Math.cos(time + i * Math.PI * 2 / count) * 2;
+
+      // rotate instance
+      object.rotation.z = time;
+
+      // change color of instance
+      color.r = 1;
+      color.g = 0;
+      color.b = 0;
+      color.a = (i+1)/count;
+
+      properties.count = (Math.sin(time)+1)/2*10;
+    }
+  }
+});
+```
+
 #### Custom shaders
 
 Custom shaders can be defined for any meshes (image / 3d object / text).

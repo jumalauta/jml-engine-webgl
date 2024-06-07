@@ -12,7 +12,7 @@ const settings = new Settings();
 
 const cache = {};
 
-const Model = function () {
+const Model = function (animationDefinition) {
   this.ptr = undefined;
   this.filename = undefined;
   this.camera = 'Camera 01';

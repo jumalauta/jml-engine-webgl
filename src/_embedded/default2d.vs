@@ -1,5 +1,11 @@
 out vec2 texCoord;
 
+#ifdef USE_INSTANCING
+attribute vec4 instanceVertexColor;
+#endif
+
+out vec4 instanceFragmentColor;
+
 // Idea for this shader is to render a 2D image with a 2D orthographic projection in the correct (=how old engine supported mixture of 2d and 3d) render order
 
 #define aspectRatio 16.0/9.0
@@ -20,5 +26,13 @@ void main() {
     mat4 viewMatrix2d = mat4(1.0);
     mat4 projectionMatrix2d = ortho(-0.5 * aspectRatio, 0.5 * aspectRatio, -0.5, 0.5, -1.0, 1.0);
 
+#ifdef USE_INSTANCING
+    instanceFragmentColor = instanceVertexColor;
+	// Note that modelViewMatrix is not set when rendering an instanced model,
+	// but can be calculated from viewMatrix * modelMatrix.
+    gl_Position = projectionMatrix2d * modelMatrix * viewMatrix2d * instanceMatrix * vec4(position, 1.0);
+#else
+    instanceFragmentColor = vec4(1.0, 1.0, 1.0, 1.0);
     gl_Position = projectionMatrix2d * modelMatrix * viewMatrix2d * vec4(position, 1.0);
+#endif
 }

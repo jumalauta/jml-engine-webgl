@@ -5,13 +5,15 @@ import { DemoRenderer } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 import { Video } from './Video';
+import { Instancer } from './Instancer';
 import vertexShader3dData from './_embedded/default.vs?raw';
+import vertexShader3dBillboardData from './_embedded/billboard.vs?raw';
 import vertexShader2dData from './_embedded/default2d.vs?raw';
 import fragmentShaderData from './_embedded/default2d.fs?raw';
 
 const settings = new Settings();
 
-const Image = function () {
+const Image = function (animationDefinition) {
   this.ptr = undefined;
   this.id = undefined;
   this.filename = undefined;
@@ -22,6 +24,13 @@ const Image = function () {
   this.mesh = undefined;
   this.perspective2d = true;
   this.video = undefined;
+
+  if (!animationDefinition) {
+    animationDefinition = {};
+  }
+
+  this.billboard = animationDefinition.billboard === true;
+  this.instancer = new Instancer(this, animationDefinition.instancer);
 };
 
 Image.prototype.createMaterial = function () {
@@ -33,10 +42,16 @@ Image.prototype.createMaterial = function () {
     uniforms['texture' + i] = { value: this.texture[i] };
   }
 
+  let vertexShader = vertexShader2dData;
+  if (!this.perspective2d) {
+    vertexShader = this.billboard
+      ? vertexShader3dBillboardData
+      : vertexShader3dData;
+  }
+
   const shader = {
     uniforms,
-    // Manually added vertex shader to get the fragment shader running
-    vertexShader: this.perspective2d ? vertexShader2dData : vertexShader3dData,
+    vertexShader,
     fragmentShader: fragmentShaderData
   };
 
@@ -90,7 +105,12 @@ Image.prototype.generateMesh = function () {
     w *= 3;
     h *= 3;
   }
-  this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), this.material);
+
+  this.mesh = this.instancer.createMesh(
+    new THREE.PlaneGeometry(w, h),
+    this.material
+  );
+
   // instance.mesh.renderOrder = 100;
   this.ptr = this.mesh;
   if (this.perspective2d) {
@@ -249,9 +269,11 @@ Image.prototype.setDefaults = function () {
   // setTextureDefaults(this.ptr);
 };
 
-Image.prototype.draw = function () {
+Image.prototype.draw = function (time) {
   // drawTexture(this.ptr);
   // this.mesh.visible = true;
+  this.instancer.draw(time);
+
   for (let i = 0; i < this.texture.length; i++) {
     this.material.uniforms['texture' + i].value = this.texture[i];
   }
