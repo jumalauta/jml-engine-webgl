@@ -269,7 +269,8 @@ this.loader.addAnimation({
       color.b = 0;
       color.a = (i+1)/count;
 
-      properties.count = (Math.sin(time)+1)/2*10;
+      // Change the count between 0 and 10, how many instances are drawn
+      properties.count = Math.floor((Math.sin(time)+1)/2*10);
     }
   }
 });
