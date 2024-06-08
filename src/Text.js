@@ -4,17 +4,26 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry';
 import { loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
+import { Instancer } from './Instancer';
 
 import vertexShader3dData from './_embedded/default.vs?raw';
+import vertexShader3dBillboardData from './_embedded/billboard.vs?raw';
 import vertexShader2dData from './_embedded/defaultFixedView.vs?raw';
 import fragmentShaderData from './_embedded/defaultPlain.fs?raw';
 const settings = new Settings();
 
 const fonts = {};
 
-const Text = function () {
+const Text = function (animationDefinition) {
   this.font = undefined;
   this.text = undefined;
+
+  if (!animationDefinition) {
+    animationDefinition = {};
+  }
+
+  this.billboard = animationDefinition.billboard === true;
+  this.instancer = new Instancer(this, animationDefinition.instancer);
 };
 
 Text.prototype.load = function (name) {
@@ -49,13 +58,19 @@ Text.prototype.setFont = function (name) {
 };
 
 Text.prototype.createMaterial = function () {
+  let vertexShader = vertexShader2dData;
+  if (!this.perspective2d) {
+    vertexShader = this.billboard
+      ? vertexShader3dBillboardData
+      : vertexShader3dData;
+  }
+
   const shader = {
     uniforms: {
       // texture0: { value: this.texture },
       color: { value: new THREE.Vector4(1, 1, 1, 1) }
     },
-    // Manually added vertex shader to get the fragment shader running
-    vertexShader: this.perspective2d ? vertexShader2dData : vertexShader3dData,
+    vertexShader,
     fragmentShader: fragmentShaderData
   };
 
@@ -118,7 +133,7 @@ Text.prototype.setValue = function (text) {
     // this.material = new THREE.MeshBasicMaterial( { color: 0xffffff, blending:THREE.CustomBlending, depthTest: false, depthWrite: false } );
     this.material = this.createMaterial();
 
-    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh = this.instancer.createMesh(this.geometry, this.material);
     this.mesh.geometry.center();
     if (this.perspective2d) {
       this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
@@ -206,10 +221,12 @@ Text.prototype.setPerspective2d = function (perspective2d) {
   this.perspective2d = perspective2d === true;
 };
 
-Text.prototype.draw = function () {
+Text.prototype.draw = function (time) {
   // drawText();
   // const camera = getCamera();
   // camera.projectionMatrix
+
+  this.instancer.draw(time);
 };
 
 export { Text };

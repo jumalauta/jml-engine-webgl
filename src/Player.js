@@ -417,7 +417,7 @@ Player.prototype.drawTextAnimation = function (time, animation) {
   const color = this.calculateColorAnimation(time, animation, animation.color);
   animation.ref.setColor(color.r, color.g, color.b, color.a);
 
-  animation.ref.draw();
+  animation.ref.draw(time);
 
   animation.ref.setDefaults();
 };
@@ -542,7 +542,7 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
     }
     animation.ref.setFps(fps);
 
-    animation.ref.draw();
+    animation.ref.draw(time);
   }
 
   if (animation.objectFunction !== undefined) {

@@ -246,7 +246,7 @@ this.loader.addAnimation({
   "position":[{"x":0,"y":0,"z":-5}],
   "color":[{"a":0.5}],
   "billboard":true,
-  // instancer can be used for objects and images
+  // instancer can be used for static objects, texts and images
   "instancer": {
     "count": 10, // adjust maximum number of instances, i.e. display 10 images of jml_fist.png
     "runInstanceFunction": (properties) => {
@@ -263,14 +263,14 @@ this.loader.addAnimation({
       // rotate instance
       object.rotation.z = time;
 
-      // change color of instance
+      // change color of instance (color changes supported only with 'image' and 'text', not 'object')
       color.r = 1;
       color.g = 0;
       color.b = 0;
       color.a = (i+1)/count;
 
       // Change the count between 0 and 10, how many instances are drawn
-      properties.count = Math.floor((Math.sin(time)+1)/2*10);
+      properties.count = (Math.sin(time)+1)/2*10;
     }
   }
 });

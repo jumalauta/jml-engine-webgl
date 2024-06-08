@@ -499,7 +499,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
       if (animationDefinition.perspective === undefined) {
         animationDefinition.perspective = '2d';
       }
-      animationDefinition.ref = new Text();
+      animationDefinition.ref = new Text(animationDefinition);
       animationDefinition.ref.setPerspective2d(
         animationDefinition.perspective === '2d'
       );

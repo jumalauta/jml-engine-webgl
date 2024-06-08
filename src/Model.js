@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
 import { loggerDebug, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
+import { Instancer } from './Instancer';
 import { Settings } from './Settings';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
 
@@ -17,6 +18,12 @@ const Model = function (animationDefinition) {
   this.filename = undefined;
   this.camera = 'Camera 01';
   this.fps = 0;
+
+  if (!animationDefinition) {
+    animationDefinition = {};
+  }
+
+  this.instancer = new Instancer(this, animationDefinition.instancer);
 };
 
 Model.prototype.getMeshNames = function () {
@@ -90,7 +97,7 @@ Model.prototype.load = function (filename) {
           material.transparent = true;
           material.castShadow = true;
           material.receiveShadow = true;
-          object = new THREE.Mesh(
+          object = instance.instancer.createMesh(
             new THREE.BoxGeometry(0.4, 0.4, 0.4),
             material
           );
@@ -141,7 +148,7 @@ Model.prototype.load = function (filename) {
           objLoader.load(
             path,
             (object) => {
-              instance.mesh = object;
+              instance.mesh = instance.instancer.createMesh(object);
               instance.ptr = instance.mesh;
               instance.setDefaults();
               instance.saveToCache(path);
@@ -182,7 +189,7 @@ Model.prototype.load = function (filename) {
       loader.load(
         path,
         (gltf) => {
-          instance.mesh = gltf.scene;
+          instance.mesh = instance.instancer.createMesh(gltf.scene);
           instance.ptr = instance.mesh;
           instance.animations = gltf.animations;
 
@@ -216,6 +223,7 @@ Model.prototype.load = function (filename) {
 
 Model.prototype.setAnimationTime = function (time) {
   if (this.mixer) {
+    // TODO: technically this time could be different for each instance of the model but currently such behavior is not supported
     this.mixer.setTime(time);
   }
 };
@@ -353,7 +361,7 @@ Model.prototype.setColor = function (r, g, b, a) {
   });
 };
 
-Model.prototype.draw = function () {
+Model.prototype.draw = function (time) {
   if (this.parent) {
     // this is a hack to get the correct world position, rotation and scale in cases where the parent is a child object of some Mesh, i.e., "parent":"modelId.meshName"
 
@@ -381,6 +389,8 @@ Model.prototype.draw = function () {
     this.mesh.updateMatrixWorld(true);
     this.mesh.updateMatrix(true);
   }
+
+  this.instancer.draw(time);
 };
 
 Model.prototype.getClip = function (clipName) {

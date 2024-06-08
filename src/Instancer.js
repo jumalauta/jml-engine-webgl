@@ -14,6 +14,10 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
   this.runFunction =
     this.instancer.runFunction ||
     ((time) => {
+      if (!this.instancer.object) {
+        this.instancer.object = new THREE.Object3D();
+      }
+
       if (this.instancer.runInstanceFunction) {
         const startCount = this.instancer.count;
         for (let i = 0; i < startCount; i++) {
@@ -43,28 +47,69 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
             i,
             this.instancer.object.matrix
           );
+          if (this.animationObjectInstance.mixer) {
+            this.animationObjectInstance.mesh.setMorphAt(
+              i,
+              this.instancer.object
+            );
+          }
         }
 
         this.animationObjectInstance.mesh.count = this.instancer.count;
-        this.animationObjectInstance.mesh.geometry.attributes.instanceVertexColor.needsUpdate = true;
+        if (
+          this.animationObjectInstance.mesh.geometry.attributes
+            .instanceVertexColor
+        ) {
+          this.animationObjectInstance.mesh.geometry.attributes.instanceVertexColor.needsUpdate = true;
+        }
         this.animationObjectInstance.mesh.instanceMatrix.needsUpdate = true;
+        if (
+          this.animationObjectInstance.mesh.morphTexture &&
+          this.animationObjectInstance.mixer
+        ) {
+          this.animationObjectInstance.mesh.morphTexture.needsUpdate = true;
+        }
         this.animationObjectInstance.mesh.computeBoundingSphere();
       }
     });
 };
 
+Instancer.prototype.createInstancedMesh = function (geometry, material) {
+  const mesh = new THREE.InstancedMesh(
+    geometry,
+    material,
+    this.instancer.count
+  );
+  mesh.geometry.setAttribute(
+    'instanceVertexColor',
+    new THREE.InstancedBufferAttribute(this.color, 4)
+  );
+  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+  return mesh;
+};
+
 Instancer.prototype.createMesh = function (geometry, material) {
   let mesh;
-  if (this.instancer) {
-    geometry.setAttribute(
-      'instanceVertexColor',
-      new THREE.InstancedBufferAttribute(this.color, 4)
-    );
-    mesh = new THREE.InstancedMesh(geometry, material, this.instancer.count);
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.instancer.object = new THREE.Object3D();
+
+  if (material && geometry && geometry.isBufferGeometry) {
+    if (this.instancer) {
+      mesh = this.createInstancedMesh(geometry, material);
+    } else {
+      mesh = new THREE.Mesh(geometry, material);
+    }
   } else {
-    mesh = new THREE.Mesh(geometry, material);
+    const object = geometry;
+    if (this.instancer) {
+      let child = object;
+      if (object.children && object.children.length > 0) {
+        child = object.children[0];
+      }
+
+      mesh = this.createInstancedMesh(child.geometry, child.material);
+    } else {
+      mesh = object;
+    }
   }
 
   return mesh;
