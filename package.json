@@ -16,12 +16,15 @@
   },
   "author": "",
   "license": "Zlib",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "ace-builds": "^1.33.0",
     "clipboard": "^2.0.11",
     "dat.gui": "^0.7.9",
     "stats.js": "^0.17.0",
-    "three": "^0.163.0"
+    "three": "^0.165.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.0.2",
