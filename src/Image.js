@@ -29,6 +29,7 @@ const Image = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
@@ -73,6 +74,11 @@ Image.prototype.createMaterial = function () {
   if (this.perspective2d) {
     material.depthTest = false;
     material.depthWrite = false;
+  }
+
+  if (this.additive) {
+    material.depthWrite = false;
+    material.blending = THREE.AdditiveBlending;
   }
 
   return material;

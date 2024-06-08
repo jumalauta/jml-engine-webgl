@@ -233,7 +233,8 @@ this.loader.addAnimation({
 	"image": "jml_fist.png",
   "perspective":"3d", // tells that the image should be in 3D and not in default 2D
   "position":[{"x":0,"y":0,"z":-5}],
-  "billboard":true // spherical billboarding to adjust image orientation to face the camera
+  "billboard":true, // spherical billboarding to adjust image orientation to face the camera
+  "additive":true // disable depth write and enable additive blending
 });
 ```
 
