@@ -23,6 +23,7 @@ const Model = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.additive = animationDefinition.additive === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
 
@@ -275,6 +276,11 @@ Model.prototype.setMaterialDefaults = function () {
 
       if (settings.demo.compatibility.oldMaterials) {
         obj.material.side = THREE.DoubleSide;
+      }
+
+      if (this.additive) {
+        obj.material.depthWrite = false;
+        obj.material.blending = THREE.AdditiveBlending;
       }
     }
   });

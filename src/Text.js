@@ -22,6 +22,7 @@ const Text = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
@@ -96,6 +97,11 @@ Text.prototype.createMaterial = function () {
     // material.map = this.texture;
     material.castShadow = false;
     material.receiveShadow = false;
+  }
+
+  if (this.additive) {
+    material.depthWrite = false;
+    material.blending = THREE.AdditiveBlending;
   }
 
   return material;
