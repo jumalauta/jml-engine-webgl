@@ -24,4 +24,10 @@ JavaScriptFile.prototype.load = function (filename) {
   });
 };
 
+function includeFile(filename) {
+  return new JavaScriptFile().load(filename);
+}
+
+window.includeFile = includeFile;
+
 export { JavaScriptFile };

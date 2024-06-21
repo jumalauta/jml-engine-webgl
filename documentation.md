@@ -706,6 +706,29 @@ this.loader.addAnimation({
 });
 ```
 
+#### Splitting demo project's JavaScript files
+
+You can split your JavaScript files using `includeFile` function which loads JavaScript asynchronously.
+
+Demo.js content:
+
+```JavaScript
+includeFile('file.js'); // asynchronously load file outside init function
+
+Demo.prototype.init = function()
+{
+  this.someNewFunction();
+}
+```
+
+file.js content:
+
+```JavaScript
+Demo.prototype.someNewFunction = function() {
+  alert('here we go');
+}
+```
+
 ## Exporting animations
 
 ### Adding new animations
