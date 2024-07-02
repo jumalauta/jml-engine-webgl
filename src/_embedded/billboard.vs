@@ -9,7 +9,12 @@ out vec4 instanceFragmentColor;
 void main() {
   texCoord = uv;
 
+#ifdef USE_INSTANCING
+  mat4 billboardModelView = viewMatrix * modelMatrix * instanceMatrix;
+#else
   mat4 billboardModelView = viewMatrix * modelMatrix;
+#endif
+
   billboardModelView[0][0] = 1.0;
   billboardModelView[0][1] = 0.0;
   billboardModelView[0][2] = 0.0;
@@ -27,7 +32,7 @@ void main() {
   instanceFragmentColor = instanceVertexColor;
   // Note that modelViewMatrix is not set when rendering an instanced model,
   // but can be calculated from viewMatrix * modelMatrix.
-  gl_Position = projectionMatrix * billboardModelView * instanceMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * billboardModelView * vec4(position, 1.0);
 #else
   instanceFragmentColor = vec4(1.0, 1.0, 1.0, 1.0);
   gl_Position = projectionMatrix * billboardModelView * vec4(position, 1.0);
