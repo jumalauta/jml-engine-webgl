@@ -11,6 +11,8 @@ Timer.prototype.getInstance = function () {
   if (!Timer.prototype._singletonInstance) {
     this.music = new Music();
     this.time = 0;
+    this.prevTime = 0;
+    this.deltaTime = 0;
     Timer.prototype._singletonInstance = this;
   }
 
@@ -55,6 +57,8 @@ Timer.prototype.pause = function () {
     this.pauseTime = undefined;
     Video.playAll();
   }
+  this.prevTime = this.time;
+  this.deltaTime = 0.0;
   this.music.pause();
   this.update(true);
 };
@@ -71,6 +75,8 @@ Timer.prototype.setTime = function (time) {
   if (time < 0) {
     time = 0;
   } else if (this.endTime && time > this.endTime) {
+    this.prevTime = this.time;
+    this.deltaTime = 0.0;
     time = this.endTime;
   }
 
@@ -92,9 +98,14 @@ Timer.prototype.update = function (force) {
 
   if (!this.pauseTime || force) {
     const time = this.now() - this.startTime;
-
     this.time = Math.min(time, this.endTime || time);
+    this.deltaTime = this.time - this.prevTime;
+    this.prevTime = this.time;
   }
+};
+
+Timer.prototype.getDeltaTime = function () {
+  return this.deltaTime / 1000;
 };
 
 Timer.prototype.getTime = function () {

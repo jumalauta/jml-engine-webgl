@@ -755,6 +755,7 @@ Player.prototype.drawSceneAnimation = function (
   animationDefinition
 ) {
   sceneTimeFromStart = time;
+
   const demoRenderer = new DemoRenderer();
   let fbo = null;
   if (
@@ -796,6 +797,7 @@ Player.prototype.drawSceneAnimation = function (
               ? animation.start +
                 Utils.evaluateVariable(animation, animation.time)
               : time;
+
           sceneTimeFromStart = currentTime;
 
           if (animation.shader !== undefined) {
@@ -862,10 +864,13 @@ function getSceneTimeFromStart() {
   return sceneTimeFromStart;
 }
 
+function getDeltaTime() {
+  return new Timer().getDeltaTime();
+}
 function getSceneVariable() {
   return sceneVariable;
 }
 window.getSceneTimeFromStart = getSceneTimeFromStart;
 window.getSceneVariable = getSceneVariable;
-
+window.getDeltaTime = getDeltaTime;
 export { Player, getSceneTimeFromStart };
