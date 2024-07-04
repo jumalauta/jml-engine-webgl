@@ -1,4 +1,5 @@
 # Custom on top of GitHub defaults
+.vs
 *.BAK
 ace-builds
 dist
