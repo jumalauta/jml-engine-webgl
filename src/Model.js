@@ -4,6 +4,7 @@ import { MTLLoader } from 'three/addons/loaders/MTLLoader';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
 import { loggerDebug, loggerWarning } from './Bindings';
+import { Image } from './Image';
 import { FileManager } from './FileManager';
 import { Instancer } from './Instancer';
 import { Settings } from './Settings';
@@ -92,12 +93,21 @@ Model.prototype.load = function (filename) {
   ) {
     return new Promise((resolve, reject) => {
       let object = filename;
+
       if (instance.shape) {
-        if (instance.shape.type === 'CUBE') {
+        if (instance.shape.type === 'SKYSPHERE') {
           const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-          material.transparent = true;
-          material.castShadow = true;
-          material.receiveShadow = true;
+
+          object = instance.instancer.createMesh(
+            new THREE.SphereGeometry(
+              instance.shape.radius || settings.demo.camera.far * 0.9,
+              instance.shape.widthSegments || 64,
+              instance.shape.heightSegments || 64
+            ),
+            material
+          );
+        } else if (instance.shape.type === 'CUBE') {
+          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
           object = instance.instancer.createMesh(
             new THREE.BoxGeometry(0.4, 0.4, 0.4),
             material
@@ -114,7 +124,40 @@ Model.prototype.load = function (filename) {
       instance.ptr = instance.mesh;
       instance.setDefaults();
 
-      resolve(instance);
+      const material = instance.mesh.material;
+      if (instance.shape) {
+        if (instance.shape.type === 'SKYSPHERE') {
+          material.transparent = false;
+          material.castShadow = false;
+          material.receiveShadow = false;
+          material.side = THREE.BackSide;
+        } else if (instance.shape.type === 'CUBE') {
+          material.transparent = true;
+          material.castShadow = true;
+          material.receiveShadow = true;
+        }
+      }
+
+      const image = new Image();
+      if (image.isFileSupported(filename)) {
+        image
+          .loadTexture(filename)
+          .then(() => {
+            const texture = image.texture[0];
+            if (instance.shape && instance.shape.type.startsWith('SKY')) {
+              // flip texture as skybox is rendered from inside/backside
+              texture.wrapS = THREE.RepeatWrapping;
+              texture.repeat.x = -1;
+            }
+            material.map = texture;
+            resolve(instance);
+          })
+          .catch(() => {
+            reject(instance);
+          });
+      } else {
+        resolve(instance);
+      }
     });
   }
 

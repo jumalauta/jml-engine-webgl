@@ -145,7 +145,20 @@ Image.prototype.load = async function (filenames) {
   this.generateMesh();
 };
 
+Image.prototype.isFileSupported = function (filename) {
+  return (
+    filename.toUpperCase().endsWith('.PNG') ||
+    filename.toUpperCase().endsWith('.MP4') ||
+    filename.endsWith('.fbo')
+  );
+};
+
 Image.prototype.loadTexture = function (filename) {
+  if (!this.isFileSupported(filename)) {
+    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
+    throw new Error('Unsupported image format ' + filename);
+  }
+
   this.filename = filename;
   // var legacy = imageLoadImage(filename);
   // this.ptr = legacy.ptr;
@@ -192,9 +205,6 @@ Image.prototype.loadTexture = function (filename) {
       // loggerDebug('Loaded texture ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
-  } else {
-    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
-    throw new Error('Unsupported image format ' + instance.filename);
   }
 };
 

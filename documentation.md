@@ -385,6 +385,8 @@ this.loader.addAnimation({
 });
 ```
 
+##### Object pivoting
+
 ```JavaScript
 // Display +50% scaled 3D object that rotates by Y axis
 this.loader.addAnimation({
@@ -419,6 +421,8 @@ this.loader.addAnimation({
 });
 ```
 
+##### Object animation player
+
 ```JavaScript
 // Dynamically change 3D animation timer
 this.loader.addAnimation({
@@ -432,6 +436,15 @@ this.loader.addAnimation({
     }
   }
 });
+```
+
+##### Skysphere / skydome
+
+```JavaScript
+  this.loader.addAnimation({
+    object: '_embedded/testUvMap.png',
+    shape: { type: 'SKYSPHERE' },
+  });
 ```
 
 #### Material overrides
