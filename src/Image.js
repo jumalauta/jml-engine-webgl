@@ -147,9 +147,10 @@ Image.prototype.load = async function (filenames) {
 
 Image.prototype.isFileSupported = function (filename) {
   return (
-    filename.toUpperCase().endsWith('.PNG') ||
-    filename.toUpperCase().endsWith('.MP4') ||
-    filename.endsWith('.fbo')
+    filename instanceof String &&
+    (filename.toUpperCase().endsWith('.PNG') ||
+      filename.toUpperCase().endsWith('.MP4') ||
+      filename.endsWith('.fbo'))
   );
 };
 
