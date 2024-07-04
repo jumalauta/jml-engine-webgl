@@ -16,6 +16,7 @@ import embeddedDefaultFixedViewVsUrl from './_embedded/defaultFixedView.vs?url';
 import embeddedDefaultPlainFsUrl from './_embedded/defaultPlain.fs?url';
 import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png?url';
 import embeddedDefaultWhitePngUrl from './_embedded/defaultWhite.png?url';
+import embeddedTestUvMapPngUrl from './_embedded/testUvMap.png?url';
 
 THREE.Cache.enabled = true;
 
@@ -55,7 +56,8 @@ FileManager.prototype.init = function () {
     '_embedded/defaultFixedView.vs': embeddedDefaultFixedViewVsUrl,
     '_embedded/defaultPlain.fs': embeddedDefaultPlainFsUrl,
     '_embedded/defaultTransparent.png': embeddedDefaultTransparentPngUrl,
-    '_embedded/defaultWhite.png': embeddedDefaultWhitePngUrl
+    '_embedded/defaultWhite.png': embeddedDefaultWhitePngUrl,
+    '_embedded/testUvMap.png': embeddedTestUvMapPngUrl
   };
 };
 
