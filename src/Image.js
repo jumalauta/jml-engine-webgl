@@ -147,7 +147,7 @@ Image.prototype.load = async function (filenames) {
 
 Image.prototype.isFileSupported = function (filename) {
   return (
-    filename instanceof String &&
+    filename &&
     (filename.toUpperCase().endsWith('.PNG') ||
       filename.toUpperCase().endsWith('.MP4') ||
       filename.endsWith('.fbo'))
