@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { loggerError, loggerWarning, loggerTrace } from './Bindings';
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
+import { Random } from './Random';
 
 window.Sync = Sync;
 
@@ -12,6 +13,13 @@ String.prototype.endsWith = function (suffix) {
 
 /** @constructor */
 const Utils = function () {};
+
+Utils.random = new Random().value;
+Utils.setSeed = function (seed) {
+  const random = new Random();
+  random.setSeed(seed);
+  Utils.random = random.value;
+};
 
 Utils.updateProperties = function (animation) {
   const object = animation.light;
