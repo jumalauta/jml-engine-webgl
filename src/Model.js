@@ -248,7 +248,7 @@ Model.prototype.load = function (filename) {
           instance.saveToCache(path);
 
           loggerDebug(
-            `Loaded GLTF: ${this.filename}. Animations: ${Object.keys(instance.clips).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`
+            `Loaded GLTF: ${this.filename}. Animations: ${Object.keys(instance.clips || {}).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`
           );
           resolve(instance);
         },
