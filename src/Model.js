@@ -144,8 +144,8 @@ Model.prototype.load = function (filename) {
           .loadTexture(filename)
           .then(() => {
             const texture = image.texture[0];
-            if (instance.shape && instance.shape.type.startsWith('SKY')) {
-              // flip texture as skybox is rendered from inside/backside
+            if (material.side === THREE.BackSide) {
+              // flip texture for objects that are rendered from inside/backside (e.g., skysphere)
               texture.wrapS = THREE.RepeatWrapping;
               texture.repeat.x = -1;
             }
