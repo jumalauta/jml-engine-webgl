@@ -204,7 +204,7 @@ Model.prototype.load = function (filename) {
             },
             undefined,
             (error) => {
-              console.error(`Could not load model ${this.filename}: ${error}`);
+              loggerWarning(`Could not load model ${this.filename}: ${error}`);
               instance.error = true;
               reject(instance);
             }
@@ -212,7 +212,7 @@ Model.prototype.load = function (filename) {
         },
         undefined,
         (error) => {
-          console.error(`Could not load MTL ${materialFilename}: ${error}`);
+          loggerWarning(`Could not load MTL ${materialFilename}: ${error}`);
           instance.error = true;
           reject(instance);
         }
@@ -254,7 +254,7 @@ Model.prototype.load = function (filename) {
         },
         undefined,
         (error) => {
-          console.error(`Could not load model ${this.filename}: ${error}`);
+          loggerWarning(`Could not load model ${this.filename}: ${error}`);
           instance.error = true;
           reject(instance);
         }
