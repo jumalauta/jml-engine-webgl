@@ -111,6 +111,7 @@ DemoRenderer.prototype.setupScene = function () {
 DemoRenderer.prototype.setScene = function (name) {
   if (this.scenes[name] === undefined) {
     this.scenes[name] = settings.createScene();
+    settings.createLightsToScene(this.scenes[name]);
   }
   scene = this.scenes[name];
   // popView();

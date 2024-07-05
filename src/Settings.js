@@ -72,16 +72,16 @@ Settings.prototype.init = function () {
       quality: 1.0,
       color: {
         texture: {
-          minFilter: 'NearestFilter',
-          magFilter: 'NearestFilter',
+          minFilter: 'LinearFilter',
+          magFilter: 'LinearFilter',
           wrapS: 'ClampToEdgeWrapping',
           wrapT: 'ClampToEdgeWrapping'
         }
       },
       depth: {
         texture: {
-          minFilter: 'NearestFilter',
-          magFilter: 'NearestFilter',
+          minFilter: 'LinearFilter',
+          magFilter: 'LinearFilter',
           wrapS: 'ClampToEdgeWrapping',
           wrapT: 'ClampToEdgeWrapping'
         }
