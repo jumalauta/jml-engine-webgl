@@ -102,7 +102,7 @@ Sync.prototype.getRow = function () {
 };
 
 Sync.prototype.update = function () {
-  if (this.ready && !this.timer.isPaused()) {
+  if (this.ready) {
     const row = this.getRow();
     this.syncDevice.update(row);
   }

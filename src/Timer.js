@@ -2,6 +2,7 @@ import { loggerInfo } from './Bindings';
 import { Music } from './Music';
 import { FileManager } from './FileManager';
 import { Video } from './Video';
+import { Sync } from './Sync';
 
 const Timer = function () {
   return this.getInstance();
@@ -101,6 +102,8 @@ Timer.prototype.update = function (force) {
     this.time = Math.min(time, this.endTime || time);
     this.deltaTime = this.time - this.prevTime;
     this.prevTime = this.time;
+
+    new Sync().update();
   }
 };
 

@@ -4,7 +4,6 @@ import { LoadingBar } from './LoadingBar';
 import { Fbo } from './Fbo';
 import { Effect } from './Effect';
 import { Settings } from './Settings';
-import { Sync } from './Sync';
 import { Spectogram } from './Spectogram';
 import { ToolUi } from './ToolUi';
 
@@ -191,6 +190,7 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
   this.controls.enablePan = false;
   this.controls.enableDamping = true;
 };
+
 DemoRenderer.prototype.renderScene = function () {
   this.renderer.render(scene, camera);
 };
@@ -205,8 +205,6 @@ DemoRenderer.prototype.render = function () {
   new Spectogram().update();
 
   this.renderer.clear();
-
-  new Sync().update();
 
   Effect.run('Demo');
 

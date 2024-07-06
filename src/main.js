@@ -109,7 +109,6 @@ let animationFrameId;
 let oldTime;
 
 function animate() {
-  timer.update();
   toolUi.update();
   toolUi.stats.begin();
 
@@ -125,6 +124,7 @@ function animate() {
     reloadDemo();
   }
 
+  timer.update();
   const time = timer.getTime();
   if (oldTime !== time) {
     oldTime = time;
