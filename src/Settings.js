@@ -128,7 +128,7 @@ Settings.prototype.init = function () {
     renderer: {
       antialias: true,
       alpha: true,
-      autoClear: false,
+      autoClear: true,
       sortObjects: false,
       preserveDrawingBuffer: true
     }

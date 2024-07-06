@@ -822,6 +822,10 @@ Player.prototype.drawSceneAnimation = function (
           // loggerDebug((animationI+1) + "/" + animationLayersLength + ": layer: " + key + ", animation.type: " + animation.type);
           Utils.updateProperties(animation);
 
+          if (animation.runPreFunction !== undefined) {
+            Utils.evaluateVariable(animation, animation.runPreFunction);
+          }
+
           if (animation.type === 'image') {
             this.drawImageAnimation(currentTime, animation);
           } else if (animation.type === 'text') {
