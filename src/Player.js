@@ -99,7 +99,8 @@ Player.prototype.calculatePerspectiveAnimation = function (time, animation) {
     fov: settings.demo.camera.fov,
     aspect: settings.demo.camera.aspectRatio,
     near: settings.demo.camera.near,
-    far: settings.demo.camera.far
+    far: settings.demo.camera.far,
+    zoom: settings.demo.camera.zoom
   };
 
   if (animation.perspective !== undefined) {
@@ -118,6 +119,10 @@ Player.prototype.calculatePerspectiveAnimation = function (time, animation) {
     obj.far = Utils.evaluateVariable(
       animation[0],
       animation.perspective[0].far
+    );
+    obj.zoom = Utils.evaluateVariable(
+      animation[0],
+      animation.perspective[0].zoom
     );
 
     let timeAdjusted = time;
@@ -155,6 +160,11 @@ Player.prototype.calculatePerspectiveAnimation = function (time, animation) {
           p,
           obj.far,
           Utils.evaluateVariable(perspective, perspective.far)
+        );
+        obj.zoom = _interpolate(
+          p,
+          obj.zoom,
+          Utils.evaluateVariable(perspective, perspective.zoom)
         );
       }
     }
@@ -631,7 +641,8 @@ Player.prototype.drawCameraAnimation = function (time, animation) {
       perspective.fov,
       perspective.aspect,
       perspective.near,
-      perspective.far
+      perspective.far,
+      perspective.zoom
     );
   }
   if (animation.position !== undefined) {
@@ -641,6 +652,10 @@ Player.prototype.drawCameraAnimation = function (time, animation) {
       { x: 0, y: 0, z: 2 }
     );
     animation.ref.setPosition(position.x, position.y, position.z);
+  }
+  if (animation.angle !== undefined) {
+    const angle = this.calculateAngleAnimation(time, animation);
+    animation.ref.setRotation(angle.degreesX, angle.degreesY, angle.degreesZ);
   }
   if (animation.lookAt !== undefined) {
     const lookAt = this.calculate3dCoordinateAnimation(time, animation.lookAt, {

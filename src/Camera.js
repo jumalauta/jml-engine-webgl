@@ -14,7 +14,7 @@ Camera.prototype.getInstance = function () {
   return Camera.prototype._singletonInstance;
 };
 
-Camera.prototype.setPerspective = function (fov, aspect, near, far) {
+Camera.prototype.setPerspective = function (fov, aspect, near, far, zoom) {
   // setCameraPerspective(fov, aspect, near, far);
 
   const camera = getCamera();
@@ -22,6 +22,7 @@ Camera.prototype.setPerspective = function (fov, aspect, near, far) {
   camera.aspect = aspect || settings.demo.camera.aspectRatio;
   camera.near = near || settings.demo.camera.near;
   camera.far = far || settings.demo.camera.far;
+  camera.zoom = zoom || settings.demo.camera.zoom;
 };
 
 Camera.prototype.setPosition = function (x, y, z) {
@@ -34,6 +35,18 @@ Camera.prototype.setLookAt = function (x, y, z) {
   // setCameraLookAt(x, y, z);
   const camera = getCamera();
   camera.lookAt(x, y, z);
+};
+
+Camera.prototype.setRotation = function (
+  pitchDegrees,
+  yawDegrees,
+  rollDegrees
+) {
+  const camera = getCamera();
+  camera.rotation.order = 'YXZ';
+  camera.rotation.x = (pitchDegrees * Math.PI) / 180;
+  camera.rotation.y = (yawDegrees * Math.PI) / 180;
+  camera.rotation.z = (rollDegrees * Math.PI) / 180;
 };
 
 Camera.prototype.setUpVector = function (x, y, z) {
@@ -54,6 +67,7 @@ Camera.prototype.setTargetObject = function (modelPtr) {
 
 Camera.prototype.update = function () {
   // updateCamera();
+
   const camera = getCamera();
   camera.updateProjectionMatrix();
 };

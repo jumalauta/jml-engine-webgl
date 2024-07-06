@@ -232,6 +232,7 @@ Scene.prototype.preprocessPerspectiveAnimation = function (
   let aspect = settings.demo.camera.aspectRatio;
   let near = settings.demo.camera.near;
   let far = settings.demo.camera.far;
+  let zoom = settings.demo.camera.zoom;
 
   for (let i = 0; i < animationDefinition.perspective.length; i++) {
     const perspective = animationDefinition.perspective[i];
@@ -248,11 +249,15 @@ Scene.prototype.preprocessPerspectiveAnimation = function (
     if (perspective.far === undefined) {
       perspective.far = far;
     }
+    if (perspective.zoom === undefined) {
+      perspective.zoom = zoom;
+    }
 
     fov = perspective.fov;
     aspect = perspective.aspect;
     near = perspective.near;
     far = perspective.far;
+    zoom = perspective.zoom;
   }
 };
 
@@ -1113,6 +1118,16 @@ Scene.prototype.processAnimation = function () {
           animStart = startTime;
           animEnd = startTime;
           animDuration = animEnd - animStart;
+          this.preprocessAngleAnimation(
+            animStart,
+            animDuration,
+            animEnd,
+            animationDefinition
+          );
+
+          animStart = startTime;
+          animEnd = startTime;
+          animDuration = animEnd - animStart;
           this.preprocessPositionAnimation(
             animStart,
             animDuration,
@@ -1121,59 +1136,63 @@ Scene.prototype.processAnimation = function () {
             { x: 0.0, y: 0.0, z: 2.0 }
           );
 
-          animStart = startTime;
-          animEnd = startTime;
-          animDuration = animEnd - animStart;
-          if (
-            animationDefinition.sync !== undefined &&
-            animationDefinition.sync.lookAt === undefined
-          ) {
-            if (animationDefinition.sync.all === true) {
-              animationDefinition.sync.lookAt = true;
-            } else {
-              animationDefinition.sync.lookAt = false;
+          if (animationDefinition.lookAt !== undefined) {
+            animStart = startTime;
+            animEnd = startTime;
+            animDuration = animEnd - animStart;
+            if (
+              animationDefinition.sync !== undefined &&
+              animationDefinition.sync.lookAt === undefined
+            ) {
+              if (animationDefinition.sync.all === true) {
+                animationDefinition.sync.lookAt = true;
+              } else {
+                animationDefinition.sync.lookAt = false;
+              }
             }
+            Utils.preprocessTimeAnimation(
+              animStart,
+              animDuration,
+              animEnd,
+              animationDefinition.lookAt
+            );
+            this.preprocess3dCoordinateAnimation(
+              animStart,
+              animDuration,
+              animEnd,
+              animationDefinition.lookAt,
+              { x: 0.0, y: 0.0, z: 0.0 }
+            );
           }
-          Utils.preprocessTimeAnimation(
-            animStart,
-            animDuration,
-            animEnd,
-            animationDefinition.lookAt
-          );
-          this.preprocess3dCoordinateAnimation(
-            animStart,
-            animDuration,
-            animEnd,
-            animationDefinition.lookAt,
-            { x: 0.0, y: 0.0, z: 0.0 }
-          );
 
-          animStart = startTime;
-          animEnd = startTime;
-          animDuration = animEnd - animStart;
-          if (
-            animationDefinition.sync !== undefined &&
-            animationDefinition.sync.up === undefined
-          ) {
-            if (animationDefinition.sync.all === true) {
-              animationDefinition.sync.up = true;
-            } else {
-              animationDefinition.sync.up = false;
+          if (animationDefinition.up !== undefined) {
+            animStart = startTime;
+            animEnd = startTime;
+            animDuration = animEnd - animStart;
+            if (
+              animationDefinition.sync !== undefined &&
+              animationDefinition.sync.up === undefined
+            ) {
+              if (animationDefinition.sync.all === true) {
+                animationDefinition.sync.up = true;
+              } else {
+                animationDefinition.sync.up = false;
+              }
             }
+            Utils.preprocessTimeAnimation(
+              animStart,
+              animDuration,
+              animEnd,
+              animationDefinition.up
+            );
+            this.preprocess3dCoordinateAnimation(
+              animStart,
+              animDuration,
+              animEnd,
+              animationDefinition.up,
+              { x: 0.0, y: 1.0, z: 0.0 }
+            );
           }
-          Utils.preprocessTimeAnimation(
-            animStart,
-            animDuration,
-            animEnd,
-            animationDefinition.up
-          );
-          this.preprocess3dCoordinateAnimation(
-            animStart,
-            animDuration,
-            animEnd,
-            animationDefinition.up,
-            { x: 0.0, y: 1.0, z: 0.0 }
-          );
         } else if (animationDefinition.scene !== undefined) {
           animationDefinition.type = 'scene';
           new ToolUi().addSceneToTimeline(
