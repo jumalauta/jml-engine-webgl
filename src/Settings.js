@@ -106,6 +106,7 @@ Settings.prototype.init = function () {
       // aspectRatio calculated below
       near: 0.1,
       far: 1000,
+      zoom: 1.0,
       position: { x: 0.0, y: 0.0, z: 2.0 },
       lookAt: { x: 0.0, y: 0.0, z: 0.0 },
       up: { x: 0.0, y: 1.0, z: 0.0 }
