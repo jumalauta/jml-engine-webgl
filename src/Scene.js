@@ -818,47 +818,6 @@ Scene.prototype.processAnimation = function () {
           animationDefinition
         );
 
-        Utils.setMaterialProperties(animationDefinition);
-
-        if (animationDefinition.shader !== undefined) {
-          // animationDefinition.shader.ref = Shader.load(animationDefinition.shader);
-          if (
-            animationDefinition.shader.ref &&
-            animationDefinition.shader.ref.material
-          ) {
-            if (
-              animationDefinition.image &&
-              animationDefinition.perspective === '2d'
-            ) {
-              animationDefinition.shader.ref.material.blending =
-                THREE.CustomBlending;
-              animationDefinition.shader.ref.material.depthTest = false;
-              animationDefinition.shader.ref.material.depthWrite = false;
-            }
-            if (animationDefinition.object) {
-              animationDefinition.ref.setMaterial(
-                animationDefinition.shader.ref.material
-              );
-            }
-            if (animationDefinition.ref.mesh) {
-              animationDefinition.ref.mesh.material =
-                animationDefinition.shader.ref.material;
-            }
-
-            if (settings.engine.preload) {
-              // Shader uniforms need to be processed for prebaking of scenes
-              Shader.enableShader(animationDefinition);
-              Shader.disableShader(animationDefinition);
-            }
-            this.validateResourceLoaded(
-              animationDefinition,
-              animationDefinition.shader.ref,
-              'Could not load shader program ' +
-                animationDefinition.shader.programName
-            );
-          }
-        }
-
         if (
           animationDefinition.object !== undefined ||
           animationDefinition.objectFunction !== undefined
@@ -1209,6 +1168,45 @@ Scene.prototype.processAnimation = function () {
           );
         }
 
+        if (animationDefinition.shader !== undefined) {
+          // animationDefinition.shader.ref = Shader.load(animationDefinition.shader);
+          if (
+            animationDefinition.shader.ref &&
+            animationDefinition.shader.ref.material
+          ) {
+            if (
+              animationDefinition.image &&
+              animationDefinition.perspective === '2d'
+            ) {
+              animationDefinition.shader.ref.material.blending =
+                THREE.CustomBlending;
+              animationDefinition.shader.ref.material.depthTest = false;
+              animationDefinition.shader.ref.material.depthWrite = false;
+            }
+            if (animationDefinition.object) {
+              animationDefinition.ref.setMaterial(
+                animationDefinition.shader.ref.material
+              );
+            }
+            if (animationDefinition.ref.mesh) {
+              animationDefinition.ref.mesh.material =
+                animationDefinition.shader.ref.material;
+            }
+
+            if (settings.engine.preload) {
+              // Shader uniforms need to be processed for prebaking of scenes
+              Shader.enableShader(animationDefinition);
+              Shader.disableShader(animationDefinition);
+            }
+            this.validateResourceLoaded(
+              animationDefinition,
+              animationDefinition.shader.ref,
+              'Could not load shader program ' +
+                animationDefinition.shader.programName
+            );
+          }
+        }
+
         if (endTime !== undefined) {
           startTime = endTime;
         }
@@ -1216,6 +1214,8 @@ Scene.prototype.processAnimation = function () {
         if (durationTime !== undefined) {
           endTime = startTime + durationTime;
         }
+
+        Utils.setMaterialProperties(animationDefinition);
       }
     }
   }

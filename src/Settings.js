@@ -49,6 +49,7 @@ Settings.prototype.init = function () {
     }, */
     compatibility: {
       old2dCoordinates: false,
+      oldRotation: false,
       oldColors: false,
       oldMaterials: false
     },
@@ -126,7 +127,7 @@ Settings.prototype.init = function () {
       }, */
     ],
     renderer: {
-      antialias: true,
+      antialias: false,
       alpha: true,
       autoClear: true,
       sortObjects: false,

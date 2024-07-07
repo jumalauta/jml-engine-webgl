@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Utils } from './Utils';
-import { loggerDebug, loggerWarning } from './Bindings';
+import { loggerDebug, loggerWarning, loggerError } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
 
@@ -11,9 +11,20 @@ const Shader = function (animationDefinition) {
   if (this.shaderDefinition.name) {
     this.vertexShaderUrl = '_embedded/default.vs';
     this.fragmentShaderUrl = '_embedded/default.fs';
+    if (animationDefinition.billboard === true) {
+      this.vertexShaderUrl = '_embedded/billboard.vs';
+    }
+
     if (animationDefinition.perspective === '2d') {
       this.vertexShaderUrl = '_embedded/default2d.vs';
       this.fragmentShaderUrl = '_embedded/default2d.fs';
+    }
+
+    if (animationDefinition.text) {
+      if (animationDefinition.perspective === '2d') {
+        this.vertexShaderUrl = '_embedded/defaultFixedView.vs';
+      }
+      this.fragmentShaderUrl = '_embedded/defaultPlain.fs';
     }
 
     const name =
@@ -317,6 +328,77 @@ Shader.compileAndLinkShaders = function () {
     return shaderProgram;
 }; */
 
+function insertBeforeLastOccurrence(str, insert, find) {
+  const index = str.lastIndexOf(find);
+  if (index === -1) {
+    loggerError(
+      `Internal error! Could not find place to inject shader code: ${find}`
+    );
+    return;
+  }
+  return str.substring(0, index) + insert + '\n' + str.substring(index);
+}
+
+Shader.assignToMaterial = function (obj, animation) {
+  if (obj && animation && animation.shader && animation.shader.ref) {
+    const vsPrefix = animation.shader.vertexShaderPrefix;
+    const fsPrefix = animation.shader.fragmentShaderPrefix;
+    const vsSuffix = animation.shader.vertexShaderSuffix;
+    const fsSuffix = animation.shader.fragmentShaderSuffix;
+
+    if (vsPrefix || vsSuffix || fsPrefix || fsSuffix) {
+      // Ensure recompiling of shader on custom changes
+      obj.material.customProgramCacheKey = function () {
+        return btoa(`${vsPrefix}${vsSuffix}${fsPrefix}${fsSuffix}`);
+      };
+
+      obj.material.onBeforeCompile = function (shader) {
+        if (vsPrefix) {
+          animation.shader.ref.extendVariables(vsPrefix);
+          shader.vertexShader = insertBeforeLastOccurrence(
+            shader.vertexShader,
+            vsPrefix,
+            'void main()'
+          );
+        }
+
+        if (vsSuffix) {
+          shader.vertexShader = insertBeforeLastOccurrence(
+            shader.vertexShader,
+            vsSuffix,
+            '}'
+          );
+        }
+
+        if (fsPrefix) {
+          animation.shader.ref.extendVariables(fsPrefix);
+          shader.fragmentShader = insertBeforeLastOccurrence(
+            shader.fragmentShader,
+            fsPrefix,
+            'void main()'
+          );
+        }
+
+        if (fsSuffix) {
+          shader.fragmentShader = insertBeforeLastOccurrence(
+            shader.fragmentShader,
+            fsSuffix,
+            '}'
+          );
+        }
+
+        shader.uniforms = THREE.UniformsUtils.merge([
+          shader.uniforms,
+          animation.shader.ref.createThreeJsUniforms({})
+        ]);
+
+        animation.shader.ref.material = obj.material;
+        obj.material.userData.shader = shader;
+      };
+    }
+  }
+};
+
 Shader.enableShader = function (animation) {
   if (animation.shader !== undefined) {
     // shaderProgramUse(animation.shader.ref.ptr);
@@ -339,16 +421,19 @@ Shader.enableShader = function (animation) {
             uniforms[variable.name].value = animation.ref.texture[0];
           } else if (
             variable.name === 'texture1' &&
+            animation.ref.texture &&
             animation.ref.texture.length >= 2
           ) {
             uniforms[variable.name].value = animation.ref.texture[1];
           } else if (
             variable.name === 'texture2' &&
+            animation.ref.texture &&
             animation.ref.texture.length >= 3
           ) {
             uniforms[variable.name].value = animation.ref.texture[2];
           } else if (
             variable.name === 'texture3' &&
+            animation.ref.texture &&
             animation.ref.texture.length >= 4
           ) {
             uniforms[variable.name].value = animation.ref.texture[3];

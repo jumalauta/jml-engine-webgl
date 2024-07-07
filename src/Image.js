@@ -99,7 +99,9 @@ Image.prototype.generateMesh = function () {
     }
   }
 
-  settings.toThreeJsProperties(settings.demo.image.texture, this.texture[0]);
+  this.texture.forEach((texture) => {
+    settings.toThreeJsProperties(settings.demo.image.texture, texture);
+  });
 
   this.material = this.createMaterial();
   // this.material = new THREE.MeshBasicMaterial({ map: this.texture[0], blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
@@ -219,6 +221,11 @@ Image.prototype.setRotation = function (degreesX, degreesY, degreesZ, x, y, z) {
   this.mesh.rotation.x = (degreesX * Math.PI) / 180;
   this.mesh.rotation.y = (degreesY * Math.PI) / 180;
   this.mesh.rotation.z = (degreesZ * Math.PI) / 180;
+  if (settings.demo.compatibility.oldRotation) {
+    this.mesh.rotation.x *= -1;
+    this.mesh.rotation.y *= -1;
+    this.mesh.rotation.z *= -1;
+  }
 
   // this.mesh.rotation = new THREE.Euler( radiansX, radiansY, radiansZ, 'XYZ' );
 };

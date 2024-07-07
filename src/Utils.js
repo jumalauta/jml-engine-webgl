@@ -1,8 +1,8 @@
-import * as THREE from 'three';
-import { loggerError, loggerWarning, loggerTrace } from './Bindings';
+import { loggerWarning, loggerTrace } from './Bindings';
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 import { Random } from './Random';
+import { Shader } from './Shader';
 
 window.Sync = Sync;
 
@@ -42,17 +42,6 @@ Utils.updateProperties = function (animation) {
   }
 };
 
-function insertBeforeLastOccurrence(str, insert, find) {
-  const index = str.lastIndexOf(find);
-  if (index === -1) {
-    loggerError(
-      `Internal error! Could not find place to inject shader code: ${find}`
-    );
-    return;
-  }
-  return str.substring(0, index) + insert + '\n' + str.substring(index);
-}
-
 Utils.setMaterialProperties = function (animation) {
   if (
     !animation.material &&
@@ -88,63 +77,7 @@ Utils.setMaterialProperties = function (animation) {
         }
       }
 
-      if (animation.shader && animation.shader.ref) {
-        const vsPrefix = animation.shader.vertexShaderPrefix;
-        const fsPrefix = animation.shader.fragmentShaderPrefix;
-        const vsSuffix = animation.shader.vertexShaderSuffix;
-        const fsSuffix = animation.shader.fragmentShaderSuffix;
-
-        if (vsPrefix || vsSuffix || fsPrefix || fsSuffix) {
-          // Ensure recompiling of shader on custom changes
-          obj.material.customProgramCacheKey = function () {
-            return btoa(`${vsPrefix}${vsSuffix}${fsPrefix}${fsSuffix}`);
-          };
-
-          obj.material.onBeforeCompile = function (shader) {
-            if (vsPrefix) {
-              animation.shader.ref.extendVariables(vsPrefix);
-              shader.vertexShader = insertBeforeLastOccurrence(
-                shader.vertexShader,
-                vsPrefix,
-                'void main()'
-              );
-            }
-
-            if (vsSuffix) {
-              shader.vertexShader = insertBeforeLastOccurrence(
-                shader.vertexShader,
-                vsSuffix,
-                '}'
-              );
-            }
-
-            if (fsPrefix) {
-              animation.shader.ref.extendVariables(fsPrefix);
-              shader.fragmentShader = insertBeforeLastOccurrence(
-                shader.fragmentShader,
-                fsPrefix,
-                'void main()'
-              );
-            }
-
-            if (fsSuffix) {
-              shader.fragmentShader = insertBeforeLastOccurrence(
-                shader.fragmentShader,
-                fsSuffix,
-                '}'
-              );
-            }
-
-            shader.uniforms = THREE.UniformsUtils.merge([
-              shader.uniforms,
-              animation.shader.ref.createThreeJsUniforms({})
-            ]);
-
-            animation.shader.ref.material = obj.material;
-            obj.material.userData.shader = shader;
-          };
-        }
-      }
+      Shader.assignToMaterial(obj, animation);
 
       obj.material.needsUpdate = true;
     }

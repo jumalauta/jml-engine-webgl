@@ -290,6 +290,11 @@ Model.prototype.setRotation = function (degreesX, degreesY, degreesZ, x, y, z) {
   this.mesh.rotation.x = (degreesX * Math.PI) / 180;
   this.mesh.rotation.y = (degreesY * Math.PI) / 180;
   this.mesh.rotation.z = (degreesZ * Math.PI) / 180;
+  if (settings.demo.compatibility.oldRotation) {
+    this.mesh.rotation.x *= -1;
+    this.mesh.rotation.y *= -1;
+    this.mesh.rotation.z *= -1;
+  }
 };
 
 Model.prototype.setScale = function (x, y, z) {

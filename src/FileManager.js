@@ -12,6 +12,7 @@ import embeddedDefaultFsUrl from './_embedded/default.fs?url';
 import embeddedDefaultVsUrl from './_embedded/default.vs?url';
 import embeddedDefault2dFsUrl from './_embedded/default2d.fs?url';
 import embeddedDefault2dVsUrl from './_embedded/default2d.vs?url';
+import embeddedBillboardVsUrl from './_embedded/billboard.vs?url';
 import embeddedDefaultFixedViewVsUrl from './_embedded/defaultFixedView.vs?url';
 import embeddedDefaultPlainFsUrl from './_embedded/defaultPlain.fs?url';
 import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png?url';
@@ -53,6 +54,7 @@ FileManager.prototype.init = function () {
     '_embedded/default.vs': embeddedDefaultVsUrl,
     '_embedded/default2d.fs': embeddedDefault2dFsUrl,
     '_embedded/default2d.vs': embeddedDefault2dVsUrl,
+    '_embedded/billboard.vs': embeddedBillboardVsUrl,
     '_embedded/defaultFixedView.vs': embeddedDefaultFixedViewVsUrl,
     '_embedded/defaultPlain.fs': embeddedDefaultPlainFsUrl,
     '_embedded/defaultTransparent.png': embeddedDefaultTransparentPngUrl,
