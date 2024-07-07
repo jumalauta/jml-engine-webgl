@@ -3,7 +3,8 @@ import {
   loggerDebug,
   loggerInfo,
   loggerTrace,
-  loggerWarning
+  loggerWarning,
+  windowSetTitle
 } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
@@ -217,6 +218,8 @@ function startDemo() {
     loggerInfo('Effect is loading, not starting');
     return;
   }
+
+  windowSetTitle('JML Engine');
 
   if (started) {
     stopDemo();

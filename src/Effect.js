@@ -29,62 +29,62 @@ Effect.effects = [];
 Effect.init = function (effectName) {
   (async () => {
     loggerDebug('Starting loading');
-    if (Effect.loading === true) {
-      loggerWarning(`Already loading ${effectName}! Ignoring init.`);
-      return;
-    }
-    const now = new Date().getTime() / 1000;
-
-    Effect.loading = true;
-
-    const timer = new Timer();
-
-    let forceResume = false;
-    if (timer.isStarted()) {
-      if (!timer.isPaused()) {
-        timer.pause();
-        forceResume = true;
-      }
-    }
-
-    const fileManager = new FileManager();
-    await fileManager.loadUpdatedFiles();
-
-    /* eslint-disable no-eval */
-    const effect = eval('new ' + effectName);
-
-    effect.loader = new Loader();
-    effect.loader.clear();
-    effect.player = new Player();
-
-    Effect.effects[effectName] = effect;
-
-    if (effect.init !== undefined) {
-      effect.init();
-    }
-
-    if (effect.postInit !== undefined) {
-      effect.postInit();
-    }
-
-    effect.loader.promises.push(new Spectogram().init());
-
-    const music = new Music();
-    effect.loader.promises.push(
-      music.load(fileManager.getPath(settings.demo.music.musicFile))
-    );
-
-    const promiseCount = effect.loader.promises.length;
-
-    const demoRenderer = new DemoRenderer();
-    demoRenderer.clear();
-
-    const loadingBar = new LoadingBar();
-    loadingBar.setPercent(0.0);
-    new ToolUi().clearScenes();
-
-    let processedPromises = 0;
     try {
+      if (Effect.loading === true) {
+        loggerWarning(`Already loading ${effectName}! Ignoring init.`);
+        return;
+      }
+      const now = new Date().getTime() / 1000;
+
+      Effect.loading = true;
+
+      const timer = new Timer();
+
+      let forceResume = false;
+      if (timer.isStarted()) {
+        if (!timer.isPaused()) {
+          timer.pause();
+          forceResume = true;
+        }
+      }
+
+      const fileManager = new FileManager();
+      await fileManager.loadUpdatedFiles();
+
+      /* eslint-disable no-eval */
+      const effect = eval('new ' + effectName);
+
+      effect.loader = new Loader();
+      effect.loader.clear();
+      effect.player = new Player();
+
+      Effect.effects[effectName] = effect;
+
+      if (effect.init !== undefined) {
+        effect.init();
+      }
+
+      if (effect.postInit !== undefined) {
+        effect.postInit();
+      }
+
+      effect.loader.promises.push(new Spectogram().init());
+
+      const music = new Music();
+      effect.loader.promises.push(
+        music.load(fileManager.getPath(settings.demo.music.musicFile))
+      );
+
+      const promiseCount = effect.loader.promises.length;
+
+      const demoRenderer = new DemoRenderer();
+      demoRenderer.clear();
+
+      const loadingBar = new LoadingBar();
+      loadingBar.setPercent(0.0);
+      new ToolUi().clearScenes();
+
+      let processedPromises = 0;
       Video.clear();
 
       for (let i = 0; i < effect.loader.promises.length; i++) {

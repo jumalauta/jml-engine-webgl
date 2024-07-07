@@ -40,6 +40,7 @@ export function loggerWarning(txt) {
   log('warn', txt);
 }
 export function loggerError(txt) {
+  windowSetTitle('Error');
   log('error', txt);
 }
 
