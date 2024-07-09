@@ -21,9 +21,12 @@ Want to see some examples? Check out: https://github.com/jumalauta/jml-engine-de
 | R                 | Deep reload demo and dispose used memory |
 | S                 | Take a screenshot of the current rendered frame |
 | T                 | Hide/show tool |
-| Mouse controls    | To zoom / rotate around camera look-at |
 
-Tool is watching for file changes automatically and attempting to do shallow reloads on changes.
+### Other controls
+
+* Mouse controls: To zoom / rotate around camera look-at (if default camera in use)
+* Query parameter `time=<millis>`: Set start time of the demo, e.g., to start at 30.5 sec mark: `http://localhost:5173/?time=30500`
+* Tool is watching for file changes automatically and attempting to do shallow reloads on changes.
 
 ## Player controls
 

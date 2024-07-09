@@ -26,6 +26,13 @@ const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
 
+function setStartTime() {
+  const startTime = new URLSearchParams(window.location.search).get('time');
+  if (startTime) {
+    settings.engine.startTime = parseInt(startTime);
+  }
+}
+
 const Demo = function () {};
 window.Demo = Demo;
 
@@ -205,15 +212,17 @@ function startAnimate() {
 }
 
 function startDemoAnimation() {
-  setTimeout(() => {
-    console.log('Demo is starting, please wait a moment');
-    windowResize();
-    reloadDemo();
-    startAnimate();
-  }, settings.engine.startDelay);
+  windowResize();
+  reloadDemo();
+  startAnimate();
 }
 
 function startDemo() {
+  setStartTime();
+  restartDemo();
+}
+
+function restartDemo() {
   if (Effect.loading) {
     loggerInfo('Effect is loading, not starting');
     return;
@@ -289,8 +298,8 @@ function deepReloadDemo() {
   const isPause = timer.isPaused();
   const time = timer.getTime();
   stopDemo();
-  startDemo();
-  timer.setTime(time);
+  restartDemo();
+  settings.engine.startTime = time;
   if (isPause) {
     timer.pause();
   }

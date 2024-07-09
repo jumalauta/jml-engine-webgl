@@ -19,10 +19,10 @@ Settings.prototype.init = function () {
     demoPathPrefix: 'data/',
     tool: true,
     fileWatchInterval: 250,
-    startDelay: 0, // bump this for demo capturing
     preload: true,
     enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
-    webDemoExe: false
+    webDemoExe: false,
+    startTime: 0
   };
 
   this.menu = {

@@ -141,6 +141,11 @@ Effect.init = function (effectName) {
           action = 'Resuming';
         }
 
+        if (settings.engine.startTime > 0) {
+          timer.setTime(settings.engine.startTime);
+          settings.engine.startTime = 0;
+        }
+
         demoRenderer.resize();
         demoRenderer.setRenderNeedsUpdate(true);
       } else {
