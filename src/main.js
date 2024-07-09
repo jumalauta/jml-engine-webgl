@@ -215,6 +215,7 @@ function stopAnimate() {
 export function startAnimate() {
   stopAnimate();
   animate();
+  demoRenderer.resize();
   demoRenderer.setRenderNeedsUpdate(true);
 }
 window.startAnimate = startAnimate;
