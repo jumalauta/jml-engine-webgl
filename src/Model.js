@@ -95,6 +95,7 @@ Model.prototype.load = function (filename) {
       let object = filename;
 
       if (instance.shape) {
+        const defaultSize = 0.4;
         if (instance.shape.type === 'SKYSPHERE') {
           const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
@@ -106,10 +107,25 @@ Model.prototype.load = function (filename) {
             ),
             material
           );
+        } else if (instance.shape.type === 'SPHERE') {
+          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+          object = instance.instancer.createMesh(
+            new THREE.SphereGeometry(
+              instance.shape.radius || defaultSize,
+              instance.shape.widthSegments || 64,
+              instance.shape.heightSegments || 64
+            ),
+            material
+          );
         } else if (instance.shape.type === 'CUBE') {
           const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
           object = instance.instancer.createMesh(
-            new THREE.BoxGeometry(0.4, 0.4, 0.4),
+            new THREE.BoxGeometry(
+              instance.shape.width || defaultSize,
+              instance.shape.height || defaultSize,
+              instance.shape.depth || defaultSize
+            ),
             material
           );
         } else {
@@ -126,15 +142,14 @@ Model.prototype.load = function (filename) {
 
       const material = instance.mesh.material;
       if (instance.shape) {
+        material.transparent = true;
+        material.castShadow = true;
+        material.receiveShadow = true;
         if (instance.shape.type === 'SKYSPHERE') {
           material.transparent = false;
           material.castShadow = false;
           material.receiveShadow = false;
           material.side = THREE.BackSide;
-        } else if (instance.shape.type === 'CUBE') {
-          material.transparent = true;
-          material.castShadow = true;
-          material.receiveShadow = true;
         }
       }
 
