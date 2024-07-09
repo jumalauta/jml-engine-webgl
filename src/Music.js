@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerDebug } from './Bindings';
+import { loggerDebug, loggerError } from './Bindings';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 const settings = new Settings();
@@ -61,7 +61,7 @@ Music.prototype.load = function (url) {
       },
       undefined,
       function (err) {
-        console.error('Could not load ' + url);
+        loggerError('Could not load ' + url);
         instance.error = true;
         reject(err);
       }

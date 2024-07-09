@@ -164,7 +164,7 @@ Shader.prototype.load = function () {
         );
         resolve(instance);
       } catch (e) {
-        console.error(
+        loggerError(
           'Could not load shader ' +
             instance.vertexShaderUrl +
             ' and ' +
@@ -182,7 +182,7 @@ Shader.prototype.load = function () {
       // onLoad callback
       (vertexData) => {
         if (vertexData[0] === '<') {
-          console.error(
+          loggerError(
             'Could not load vertex shader ' + instance.vertexShaderUrl
           );
           instance.error = true;
@@ -195,7 +195,7 @@ Shader.prototype.load = function () {
           // onLoad callback
           (fragmentData) => {
             if (fragmentData[0] === '<') {
-              console.error(
+              loggerError(
                 'Could not load fragment shader ' + instance.fragmentShaderUrl
               );
               instance.error = true;
@@ -218,7 +218,7 @@ Shader.prototype.load = function () {
           undefined,
           // onError callback
           (err) => {
-            console.error(
+            loggerError(
               `Could not load fragment shader ${instance.fragmentShaderUrl}: ${err}`
             );
             instance.error = true;
@@ -230,7 +230,7 @@ Shader.prototype.load = function () {
       undefined,
       // onError callback
       (err) => {
-        console.error(
+        loggerError(
           `Could not load vertex shader ${instance.vertexShaderUrl}: ${err}`
         );
         instance.error = true;

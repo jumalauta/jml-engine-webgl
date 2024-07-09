@@ -1,5 +1,10 @@
 import { JSRocket } from './rocket/jsRocket';
-import { loggerDebug, loggerTrace, loggerWarning } from './Bindings';
+import {
+  loggerDebug,
+  loggerTrace,
+  loggerWarning,
+  loggerError
+} from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
 import { Spectogram } from './Spectogram';
@@ -77,7 +82,7 @@ Sync.prototype.initDevice = function (webSocket) {
       instance.timer.pause();
     });
     instance.syncDevice.on('error', function () {
-      console.log('Error loading GNU Rocket');
+      loggerError('Error loading GNU Rocket');
       reject(new Error('Error loading GNU Rocket'));
     });
 

@@ -253,7 +253,7 @@ function startDemo() {
 window.startDemo = startDemo;
 
 export function stopDemo() {
-  console.log('Stopping demo...');
+  loggerInfo('Stopping demo...');
 
   timer.stop();
 
