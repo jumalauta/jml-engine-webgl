@@ -73,6 +73,7 @@ if (select) {
       select.style.display = 'block';
       select.addEventListener('change', () => {
         clearCache();
+        fileManager.clearCache();
         settings.engine.demoPathPrefix = select.value;
         startButton.classList.add('disabled');
         select.classList.add('disabled');
@@ -128,8 +129,13 @@ function animate() {
   }
 
   if (fileManager.isNeedsUpdate() && isStarted()) {
-    loggerInfo('File manager refresh');
-    reloadDemo();
+    if (fileManager.isNeedsDeepUpdate()) {
+      deepReloadDemo();
+    } else {
+      loggerInfo('Shallow refresh');
+      demoRenderer.setRenderNeedsUpdate(true);
+      fileManager.markAsUpdated();
+    }
   }
 
   timer.update();
@@ -206,10 +212,12 @@ function stopAnimate() {
   }
 }
 
-function startAnimate() {
+export function startAnimate() {
   stopAnimate();
   animate();
+  demoRenderer.setRenderNeedsUpdate(true);
 }
+window.startAnimate = startAnimate;
 
 function startDemoAnimation() {
   windowResize();

@@ -194,8 +194,8 @@ Model.prototype.load = function (filename) {
             (object) => {
               instance.mesh = instance.instancer.createMesh(object);
               instance.ptr = instance.mesh;
-              instance.setDefaults();
               instance.saveToCache(path);
+              instance.setDefaults();
 
               loggerDebug(
                 `Loaded OBJ: ${this.filename}, Mesh names: ${instance.getMeshNames().join(', ')}`
@@ -244,8 +244,8 @@ Model.prototype.load = function (filename) {
           // gltf.cameras; // Array<THREE.Camera>
           // gltf.asset; // Object
 
-          instance.setDefaults();
           instance.saveToCache(path);
+          instance.setDefaults();
 
           loggerDebug(
             `Loaded GLTF: ${this.filename}. Animations: ${Object.keys(instance.clips || {}).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`

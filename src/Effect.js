@@ -4,7 +4,8 @@ import {
   loggerDebug,
   loggerInfo,
   loggerError,
-  loggerWarning
+  loggerWarning,
+  windowSetTitle
 } from './Bindings';
 import { Music } from './Music';
 import { Sync } from './Sync';
@@ -16,7 +17,7 @@ import { Fbo } from './Fbo';
 import { Video } from './Video';
 import { Spectogram } from './Spectogram';
 import { Settings } from './Settings';
-import { isStarted, stopDemo } from './main';
+import { isStarted, stopDemo, startAnimate } from './main';
 import { ToolUi } from './ToolUi';
 
 const settings = new Settings();
@@ -145,9 +146,6 @@ Effect.init = function (effectName) {
           timer.setTime(settings.engine.startTime);
           settings.engine.startTime = 0;
         }
-
-        demoRenderer.resize();
-        demoRenderer.setRenderNeedsUpdate(true);
       } else {
         action = 'Not starting';
         stopDemo();
@@ -156,6 +154,8 @@ Effect.init = function (effectName) {
         `${action} demo. Loading took ${(new Date().getTime() / 1000 - now).toFixed(2)} seconds`
       );
     } catch (error) {
+      windowSetTitle('LOADING ERROR');
+
       if (error instanceof Error) {
         loggerError(
           'Error in loading demo: ' +
@@ -170,6 +170,7 @@ Effect.init = function (effectName) {
       stopDemo();
     } finally {
       Effect.loading = false;
+      startAnimate();
     }
   })();
 };

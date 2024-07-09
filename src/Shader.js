@@ -32,15 +32,9 @@ const Shader = function (animationDefinition) {
         ? this.shaderDefinition.name
         : [this.shaderDefinition.name];
     name.forEach((shaderUrl) => {
-      if (
-        shaderUrl.toUpperCase().endsWith('.VS') ||
-        shaderUrl.toUpperCase().endsWith('.VERT')
-      ) {
+      if (shaderUrl.toUpperCase().endsWith('.VS')) {
         this.vertexShaderUrl = shaderUrl;
-      } else if (
-        shaderUrl.toUpperCase().endsWith('.FS') ||
-        shaderUrl.toUpperCase().endsWith('.FRAG')
-      ) {
+      } else if (shaderUrl.toUpperCase().endsWith('.FS')) {
         this.fragmentShaderUrl = shaderUrl;
       } else {
         // To ensure best possible cross-browser and engine support, supported file formats are being restricted
@@ -128,19 +122,29 @@ Shader.prototype.extendVariables = function (data) {
   }
 };
 
-Shader.prototype.createMaterial = function (vertexData, fragmentData) {
+Shader.prototype.createMaterial = function (
+  vertexShaderUrl,
+  fragmentShaderUrl
+) {
+  const fileManager = new FileManager();
+  const vertexData = fileManager.getFileData(vertexShaderUrl);
+  const fragmentData = fileManager.getFileData(fragmentShaderUrl);
+
   this.extendVariables(vertexData);
   this.extendVariables(fragmentData);
 
   const uniforms = {};
   this.material = new THREE.ShaderMaterial({
-    name: this.fragmentShaderUrl,
+    name: fragmentShaderUrl,
     glslVersion: THREE.GLSL3,
     uniforms: this.createThreeJsUniforms(uniforms),
     vertexShader: vertexData,
     fragmentShader: fragmentData
   });
   this.ptr = this.material;
+
+  fileManager.setReference(vertexShaderUrl, this.material);
+  fileManager.setReference(fragmentShaderUrl, this.material);
 
   loggerDebug(
     'Created shader ' + this.vertexShaderUrl + ' and ' + this.fragmentShaderUrl
@@ -159,8 +163,8 @@ Shader.prototype.load = function () {
     return new Promise((resolve, reject) => {
       try {
         instance.createMaterial(
-          fileManager.getFileData(instance.vertexShaderUrl),
-          fileManager.getFileData(instance.fragmentShaderUrl)
+          instance.vertexShaderUrl,
+          instance.fragmentShaderUrl
         );
         resolve(instance);
       } catch (e) {
@@ -210,7 +214,10 @@ Shader.prototype.load = function () {
             fileManager.setRefreshFileTimestamp(instance.fragmentShaderUrl);
             fileManager.setFileData(instance.fragmentShaderUrl, fragmentData);
 
-            instance.createMaterial(vertexData, fragmentData);
+            instance.createMaterial(
+              instance.vertexShaderUrl,
+              instance.fragmentShaderUrl
+            );
 
             resolve(instance);
           },

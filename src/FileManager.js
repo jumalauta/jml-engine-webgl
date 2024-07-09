@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { TTFLoader } from 'three/addons/loaders/TTFLoader';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
-import { loggerWarning, loggerDebug } from './Bindings';
+import { loggerWarning, loggerDebug, loggerInfo } from './Bindings';
 import { Image } from './Image';
 import { Text } from './Text';
 import { Model } from './Model';
@@ -37,6 +37,7 @@ const FileManager = function () {
 
 FileManager.prototype.getInstance = function () {
   if (!FileManager.prototype._singletonInstance) {
+    this.clearCache();
     this.init();
     FileManager.prototype._singletonInstance = this;
   }
@@ -44,9 +45,14 @@ FileManager.prototype.getInstance = function () {
   return FileManager.prototype._singletonInstance;
 };
 
-FileManager.prototype.init = function () {
+FileManager.prototype.clearCache = function () {
   this.files = {};
+  this.fileReferences = {};
   this.refreshFiles = {};
+};
+
+FileManager.prototype.init = function () {
+  this.fileReferences = {};
   this.needsUpdateFiles = [];
 
   this.staticUrls = {
@@ -82,13 +88,11 @@ FileManager.prototype.startWatchFileChanges = async function () {
 
 FileManager.prototype.loadUpdatedFiles = async function () {
   for (const filePath of this.needsUpdateFiles) {
-    loggerDebug('File updated: ' + filePath);
-    const path = this.getDiskPath(filePath);
-    const file = await fs.readFile(path);
     if (this.files[filePath]) {
-      this.setFileData(filePath, file);
+      loggerDebug('File updated: ' + filePath);
+      const file = this.files[filePath];
 
-      if (path.toUpperCase().endsWith('.JS')) {
+      if (filePath.toUpperCase().endsWith('.JS')) {
         try {
           loggerDebug('Executing JavaScript file: ' + filePath);
           /* eslint-disable no-eval */
@@ -100,7 +104,7 @@ FileManager.prototype.loadUpdatedFiles = async function () {
     }
   }
 
-  this.needsUpdateFiles = [];
+  this.markAsUpdated();
 };
 
 FileManager.prototype.checkFiles = async function () {
@@ -124,6 +128,16 @@ FileManager.prototype.checkFiles = async function () {
         loggerDebug('File changed: ' + filePath);
 
         this.refreshFiles[filePath] = stats.mtime;
+        this.needsDeepUpdate = true;
+
+        if (this.files[filePath]) {
+          const file = await fs.readFile(path);
+          this.setFileData(filePath, file);
+          if (this.updateReferences(filePath)) {
+            this.needsDeepUpdate = false;
+          }
+        }
+
         this.needsUpdateFiles.push(filePath);
       }
     }
@@ -132,8 +146,66 @@ FileManager.prototype.checkFiles = async function () {
   }
 };
 
+FileManager.prototype.setReference = function (filePath, reference) {
+  if (!reference || !reference.isMaterial) {
+    throw new Error(
+      'Internal error: invalid reference provided: ' +
+        filePath +
+        ' - ' +
+        JSON.stringify(reference)
+    );
+  }
+
+  if (this.fileReferences[filePath]) {
+    let newReference = true;
+    this.fileReferences[filePath].forEach((ref) => {
+      if (ref === reference) {
+        newReference = false;
+      }
+    });
+
+    if (newReference) {
+      this.fileReferences[filePath].push(reference);
+    }
+  } else {
+    this.fileReferences[filePath] = [reference];
+  }
+};
+
+FileManager.prototype.updateReferences = function (filePath) {
+  let updated = false;
+
+  if (this.fileReferences[filePath]) {
+    this.fileReferences[filePath].forEach((ref) => {
+      if (ref.isMaterial) {
+        if (ref.vertexShader && filePath.toUpperCase().endsWith('.VS')) {
+          loggerInfo('Updating material with vertex shader: ' + filePath);
+          ref.vertexShader = this.files[filePath];
+        }
+        if (ref.fragmentShader && filePath.toUpperCase().endsWith('.FS')) {
+          loggerInfo('Updating material with fragment shader: ' + filePath);
+          ref.fragmentShader = this.files[filePath];
+        }
+        ref.needsUpdate = true;
+        updated = true;
+      }
+    });
+  }
+
+  return updated;
+};
+
 FileManager.prototype.isNeedsUpdate = function () {
   return this.needsUpdateFiles.length > 0;
+};
+
+FileManager.prototype.isNeedsDeepUpdate = function () {
+  return this.needsDeepUpdate || false;
+};
+
+FileManager.prototype.markAsUpdated = function () {
+  this.needsDeepUpdate = undefined;
+  this.needsUpdateFiles = [];
 };
 
 FileManager.prototype.setFileData = function (filePath, data) {

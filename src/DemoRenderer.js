@@ -1,5 +1,5 @@
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
-import { loggerDebug } from './Bindings';
+import { loggerTrace } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { Fbo } from './Fbo';
 import { Effect } from './Effect';
@@ -155,7 +155,7 @@ DemoRenderer.prototype.resize = function () {
   canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px auto`;
   canvas.style.transform = `scale(${scaleUp})`;
 
-  loggerDebug(
+  loggerTrace(
     `Canvas size: ${Math.floor(this.canvasWidth)}x${Math.floor(this.canvasHeight)}`
   );
   this.renderer.setSize(this.canvasWidth, this.canvasHeight, true);
