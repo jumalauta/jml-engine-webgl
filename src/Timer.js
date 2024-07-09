@@ -47,12 +47,20 @@ Timer.prototype.stop = function () {
   this.time = 0;
 };
 
-Timer.prototype.pause = function () {
+Timer.prototype.pause = function (pauseState) {
   if (!this.pauseTime) {
+    if (pauseState === false) {
+      return;
+    }
+
     loggerInfo('Pausing demo timer');
     this.pauseTime = this.now();
     Video.pauseAll();
   } else {
+    if (pauseState === true) {
+      return;
+    }
+
     loggerInfo('Resuming demo timer');
     this.startTime += this.now() - this.pauseTime;
     this.pauseTime = undefined;

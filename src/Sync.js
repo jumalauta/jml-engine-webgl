@@ -1,10 +1,5 @@
 import { JSRocket } from './rocket/jsRocket';
-import {
-  loggerDebug,
-  loggerTrace,
-  loggerWarning,
-  loggerError
-} from './Bindings';
+import { loggerDebug, loggerTrace, loggerError } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
 import { Spectogram } from './Spectogram';
@@ -42,7 +37,7 @@ Sync.prototype.init = async function () {
       await this.initDevice(false);
     }
   } catch (e) {
-    loggerWarning('Error initializing GNU Rocket from XML file');
+    loggerError('Error initializing GNU Rocket from XML file');
     throw e;
   }
 };
@@ -70,19 +65,19 @@ Sync.prototype.initDevice = function (webSocket) {
     });
     instance.syncDevice.on('update', function (row) {
       if (!instance.timer.isPaused()) {
-        instance.timer.pause();
+        instance.timer.pause(false);
       }
       const time = (row / instance.rowRate) * 1000;
       instance.timer.setTime(time);
     });
     instance.syncDevice.on('play', function () {
-      instance.timer.pause();
+      instance.timer.pause(false);
     });
     instance.syncDevice.on('pause', function () {
-      instance.timer.pause();
+      instance.timer.pause(true);
     });
     instance.syncDevice.on('error', function () {
-      loggerError('Error loading GNU Rocket');
+      loggerDebug('Error loading GNU Rocket');
       reject(new Error('Error loading GNU Rocket'));
     });
 
