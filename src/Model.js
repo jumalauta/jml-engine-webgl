@@ -158,11 +158,15 @@ Model.prototype.load = function (filename) {
             image.texture.forEach((texture) => {
               if (material.side === THREE.BackSide) {
                 // flip texture for objects that are rendered from inside/backside (e.g., skysphere)
+                texture.wrapT = THREE.RepeatWrapping;
                 texture.wrapS = THREE.RepeatWrapping;
                 texture.repeat.x = -1;
+                texture.needsUpdate = true;
               }
             });
+
             material.map = image.texture[0];
+            material.needsUpdate = true;
 
             resolve(instance);
           })
