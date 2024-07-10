@@ -87,10 +87,7 @@ Model.prototype.load = function (filename) {
   this.filename = filename;
   const instance = this;
 
-  if (
-    instance.shape ||
-    (!(filename instanceof String) && typeof filename !== 'string')
-  ) {
+  if (instance.shape || filename === null) {
     return new Promise((resolve, reject) => {
       let object = filename;
 
@@ -156,15 +153,17 @@ Model.prototype.load = function (filename) {
       const image = new Image();
       if (image.isFileSupported(filename)) {
         image
-          .loadTexture(filename)
+          .load(filename, false)
           .then(() => {
-            const texture = image.texture[0];
-            if (material.side === THREE.BackSide) {
-              // flip texture for objects that are rendered from inside/backside (e.g., skysphere)
-              texture.wrapS = THREE.RepeatWrapping;
-              texture.repeat.x = -1;
-            }
-            material.map = texture;
+            image.texture.forEach((texture) => {
+              if (material.side === THREE.BackSide) {
+                // flip texture for objects that are rendered from inside/backside (e.g., skysphere)
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.repeat.x = -1;
+              }
+            });
+            material.map = image.texture[0];
+
             resolve(instance);
           })
           .catch(() => {
@@ -177,7 +176,7 @@ Model.prototype.load = function (filename) {
   }
 
   const fileManager = new FileManager();
-  fileManager.setRefreshFileTimestamp(filename);
+  fileManager.setRefreshFileTimestamp(this.filename);
   const path = fileManager.getPath(this.filename);
 
   if (this.loadFromCache(path)) {

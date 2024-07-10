@@ -135,7 +135,7 @@ Image.prototype.generateMesh = function () {
   }
 };
 
-Image.prototype.load = async function (filenames) {
+Image.prototype.load = async function (filenames, noGenerate) {
   if (typeof filenames === 'string') {
     filenames = [filenames];
   }
@@ -144,16 +144,27 @@ Image.prototype.load = async function (filenames) {
     await this.loadTexture(filenames[i]);
   }
 
-  this.generateMesh();
+  if (noGenerate !== true) {
+    this.generateMesh();
+  }
 };
 
-Image.prototype.isFileSupported = function (filename) {
-  return (
-    filename &&
-    (filename.toUpperCase().endsWith('.PNG') ||
-      filename.toUpperCase().endsWith('.MP4') ||
-      filename.endsWith('.fbo'))
-  );
+Image.prototype.isFileSupported = function (filenames) {
+  const files = filenames instanceof Array ? filenames : [filenames];
+
+  for (let i = 0; i < files.length; i++) {
+    const filename = files[i];
+    if (
+      !filename ||
+      (!filename.toUpperCase().endsWith('.PNG') &&
+        !filename.toUpperCase().endsWith('.MP4') &&
+        !filename.endsWith('.fbo'))
+    ) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 Image.prototype.loadTexture = function (filename) {
