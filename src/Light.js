@@ -59,10 +59,18 @@ const Light = function (animationDefinition) {
 
   const lightDefinition = animationDefinition.light;
 
+  if (!lightDefinition) {
+    throw new Error(
+      'Light definition is missing! ' + JSON.stringify(animationDefinition)
+    );
+  }
+
   const LightType = THREE[lightDefinition.type + 'Light'];
   if (!LightType || (!LightType.prototype) instanceof THREE.Light) {
     loggerWarning('Unsupported light type: ' + lightDefinition.type);
-    return;
+    throw new Error(
+      'Incorrect light definition: ' + JSON.stringify(lightDefinition)
+    );
   }
 
   const light = new LightType(0xffffff, 1.0);
