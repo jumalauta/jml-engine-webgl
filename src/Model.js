@@ -125,6 +125,17 @@ Model.prototype.load = function (filename) {
             ),
             material
           );
+        } else if (instance.shape.type === 'PLANE') {
+          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+          object = instance.instancer.createMesh(
+            new THREE.PlaneGeometry(
+              instance.shape.width || defaultSize,
+              instance.shape.height || defaultSize,
+              instance.shape.widthSegments || 1,
+              instance.shape.heightSegments || 1
+            ),
+            material
+          );
         } else {
           loggerWarning('Unsupported shape: ' + instance.shape.type);
           reject(instance);
