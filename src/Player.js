@@ -5,6 +5,9 @@ import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { DemoRenderer } from './DemoRenderer';
 import { Loader } from './Loader';
+import { DmxLightManager } from './DmxLightManager';
+
+window.DmxLightManager = DmxLightManager;
 
 const settings = new Settings();
 
