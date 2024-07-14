@@ -14,6 +14,7 @@ import { Spectogram } from './Spectogram';
 import { loggerWarning } from './Bindings';
 // import { FileManager } from './FileManager'
 // import { Settings } from './Settings'
+import { Utils } from './Utils';
 
 const settings = new Settings();
 
@@ -123,6 +124,10 @@ ToolUi.prototype.isVisible = function () {
 
 ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
   if (!settings.engine.tool) {
+    return;
+  }
+
+  if (Utils.isNumeric(start) === false || Utils.isNumeric(end) === false) {
     return;
   }
 
