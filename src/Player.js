@@ -437,14 +437,6 @@ Player.prototype.drawTextAnimation = function (time, animation) {
 
 Player.prototype.drawObjectAnimation = function (time, animation) {
   if (animation.ref !== undefined) {
-    if (animation.object.time !== undefined) {
-      animation.ref.setAnimationTime(
-        Utils.evaluateVariable(animation, animation.object.time)
-      );
-    } else {
-      animation.ref.setAnimationTime(time);
-    }
-
     if (animation.object.animations !== undefined) {
       for (const animationName in animation.object.animations) {
         const animationData = animation.object.animations[animationName];
