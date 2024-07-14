@@ -547,6 +547,14 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
     }
     animation.ref.setFps(fps);
 
+    if (animation.object.time !== undefined) {
+      animation.ref.setAnimationTime(
+        Utils.evaluateVariable(animation, animation.object.time)
+      );
+    } else {
+      animation.ref.setAnimationTime(time);
+    }
+
     animation.ref.draw(time);
   }
 
