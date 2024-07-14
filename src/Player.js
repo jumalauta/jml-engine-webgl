@@ -803,7 +803,9 @@ Player.prototype.drawSceneAnimation = function (
       ) {
         const animation = animationLayers[key][animationI];
 
-        if (time >= animation.start && time < animation.end) {
+        const startTime = animation.start;
+
+        if (time >= startTime && time < animation.end) {
           if (animation.error !== undefined) {
             continue;
           }
@@ -812,9 +814,13 @@ Player.prototype.drawSceneAnimation = function (
 
           const currentTime =
             animation.time !== undefined
-              ? animation.start +
-                Utils.evaluateVariable(animation, animation.time)
+              ? startTime + Utils.evaluateVariable(animation, animation.time)
               : time;
+
+          if (currentTime < startTime || currentTime >= animation.end) {
+            this.setAnimationVisibility(animation, false);
+            continue;
+          }
 
           sceneTimeFromStart = currentTime;
 
@@ -852,7 +858,7 @@ Player.prototype.drawSceneAnimation = function (
 
             this.drawSceneAnimation(
               new Loader().scenes[animation.scene.name],
-              currentTime - animation.start,
+              currentTime - startTime,
               animation
             );
             sceneVariable = pushSceneVariable;
