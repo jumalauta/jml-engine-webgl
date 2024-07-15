@@ -121,8 +121,34 @@ DemoRenderer.prototype.getScene = function (name) {
   return this.scenes[name];
 };
 
+DemoRenderer.prototype.deinit = function () {
+  if (this.renderer) {
+    loggerTrace('Deinitializing renderer');
+
+    this.clear();
+    this.cleanScene(true);
+
+    if (
+      this.renderer.domElement &&
+      document.body.contains(this.renderer.domElement)
+    ) {
+      document.body.removeChild(this.renderer.domElement);
+    }
+
+    this.renderer.dispose();
+  }
+};
+
 DemoRenderer.prototype.init = function () {
-  const canvas = document.getElementById('canvas');
+  this.deinit();
+
+  let canvas = document.getElementById('canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'canvas';
+    document.body.appendChild(canvas);
+  }
+
   this.renderer = settings.createRenderer(canvas);
 
   const loadingBar = new LoadingBar();
@@ -192,11 +218,15 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
 };
 
 DemoRenderer.prototype.renderScene = function () {
-  this.renderer.render(scene, camera);
+  if (this.renderer) {
+    this.renderer.render(scene, camera);
+  }
 };
 
 DemoRenderer.prototype.clear = function () {
-  this.renderer.clear();
+  if (this.renderer) {
+    this.renderer.clear();
+  }
 };
 
 DemoRenderer.prototype.render = function () {

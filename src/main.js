@@ -4,6 +4,7 @@ import {
   loggerInfo,
   loggerTrace,
   loggerWarning,
+  loggerError,
   windowSetTitle
 } from './Bindings';
 import { LoadingBar } from './LoadingBar';
@@ -77,10 +78,6 @@ if (select) {
         settings.engine.demoPathPrefix = select.value;
         startButton.classList.add('disabled');
         select.classList.add('disabled');
-        javaScriptFile.load('Demo.js').finally(() => {
-          startButton.classList.remove('disabled');
-          select.classList.remove('disabled');
-        });
       });
 
       if (select.value) {
@@ -94,11 +91,9 @@ if (select) {
       loggerDebug('No playlist.js found, loading default demo...: ' + e);
       select.style.display = 'none';
       // load Demo from default path if playlist.js is not defined
-      javaScriptFile.load('Demo.js').then(() => {
-        if (settings.engine.webDemoExe) {
-          startDemo();
-        }
-      });
+      if (settings.engine.webDemoExe) {
+        startDemo();
+      }
     });
 }
 
@@ -112,7 +107,6 @@ const toolUi = new ToolUi();
 toolUi.init();
 
 const demoRenderer = new DemoRenderer();
-demoRenderer.init();
 
 let animationFrameId;
 let oldTime;
@@ -227,8 +221,25 @@ function startDemoAnimation() {
 }
 
 function startDemo() {
-  setStartTime();
-  restartDemo();
+  javaScriptFile
+    .load('Demo.js')
+    .then(() => {
+      loggerTrace('Demo.js loaded');
+      setStartTime();
+      restartDemo();
+    })
+    .catch(() => {
+      windowSetTitle('LOADING ERROR');
+      loggerError('Could not load demo');
+    })
+    .finally(() => {
+      if (startButton) {
+        startButton.classList.remove('disabled');
+      }
+      if (select) {
+        select.classList.remove('disabled');
+      }
+    });
 }
 
 function restartDemo() {
@@ -243,6 +254,8 @@ function restartDemo() {
     stopDemo();
   }
   started = true;
+
+  demoRenderer.init();
 
   togglePlayerUserInterface(true);
 
@@ -284,6 +297,7 @@ export function stopDemo() {
   started = false;
 
   demoRenderer.cleanScene(true);
+  demoRenderer.deinit();
   clearCache();
 
   if (settings.engine.webDemoExe) {
