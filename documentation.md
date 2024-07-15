@@ -7,7 +7,8 @@
 * [Music spectogram](#music-spectogram)
 * [Demo scripting](#demo-scripting)
 * [Exporting animations from Blender](#exporting-animations)
-  
+* [Gamma correction](#gamma-correction)
+
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
@@ -762,3 +763,6 @@ Demo.prototype.someNewFunction = function() {
 
 ### Additional notes
 - It's good idea to have LocRotScale keyframe for all bones, even if they don't have movement. Not having keyframe data can lead to weird behavior, if file has multiple animations.
+
+## Gamma correction
+- Use the nice tool from [Mercury](http://mercury.sexy/calibration02.png)
