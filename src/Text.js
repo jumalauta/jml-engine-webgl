@@ -12,8 +12,6 @@ import vertexShader2dData from './_embedded/defaultFixedView.vs?raw';
 import fragmentShaderData from './_embedded/defaultPlain.fs?raw';
 const settings = new Settings();
 
-const fonts = {};
-
 const Text = function (animationDefinition) {
   this.font = undefined;
   this.text = undefined;
@@ -27,6 +25,19 @@ const Text = function (animationDefinition) {
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
 
+Text.fonts = {};
+Text.clearCache = function () {
+  Text.fonts = {};
+};
+
+Text.getFontFromCache = function (filePath) {
+  return Text.fonts[new FileManager().getPath(filePath)];
+};
+
+Text.setFontFromCache = function (filePath, data) {
+  Text.fonts[new FileManager().getPath(filePath)] = data;
+};
+
 Text.prototype.load = function (name) {
   const instance = this;
 
@@ -35,9 +46,9 @@ Text.prototype.load = function (name) {
     throw new Error('Unsupported font format ' + name);
   }
 
-  if (fonts[name]) {
+  if (Text.getFontFromCache(name)) {
     return new Promise((resolve, reject) => {
-      instance.font = fonts[name];
+      instance.font = Text.getFontFromCache(name);
       resolve(true);
     });
   }
@@ -45,7 +56,7 @@ Text.prototype.load = function (name) {
   const fileManager = new FileManager();
   return fileManager.load(name, this, (instance, json) => {
     try {
-      fonts[name] = new Font(json);
+      Text.setFontFromCache(name, new Font(json));
     } catch (e) {
       loggerWarning('Error loading Font file: ' + name + ' ' + e);
       return false;
@@ -55,7 +66,7 @@ Text.prototype.load = function (name) {
 };
 
 Text.prototype.setFont = function (name) {
-  this.font = fonts[name];
+  this.font = Text.getFontFromCache(name);
 };
 
 Text.prototype.createMaterial = function () {

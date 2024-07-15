@@ -49,6 +49,7 @@ FileManager.prototype.clearCache = function () {
   this.files = {};
   this.fileReferences = {};
   this.refreshFiles = {};
+  Text.clearCache();
 };
 
 FileManager.prototype.init = function () {
@@ -88,9 +89,9 @@ FileManager.prototype.startWatchFileChanges = async function () {
 
 FileManager.prototype.loadUpdatedFiles = async function () {
   for (const filePath of this.needsUpdateFiles) {
-    if (this.files[filePath]) {
+    if (this.getFileFromCache(filePath)) {
       loggerDebug('File updated: ' + filePath);
-      const file = this.files[filePath];
+      const file = this.getFileFromCache(filePath);
 
       if (filePath.toUpperCase().endsWith('.JS')) {
         try {
@@ -119,18 +120,18 @@ FileManager.prototype.checkFiles = async function () {
       // loggerDebug('Checking file: ' + path);
       const stats = await fs.stat(path);
 
-      if (this.refreshFiles[filePath] === null) {
-        this.refreshFiles[filePath] = stats.mtime;
+      if (this.getRefreshFileFromCache(filePath) === null) {
+        this.setRefreshFileFromCache(filePath, stats.mtime);
         continue;
       }
 
-      if (stats.mtime > this.refreshFiles[filePath]) {
+      if (stats.mtime > this.getRefreshFileFromCache(filePath)) {
         loggerDebug('File changed: ' + filePath);
 
-        this.refreshFiles[filePath] = stats.mtime;
+        this.setRefreshFileFromCache(filePath, stats.mtime);
         this.needsDeepUpdate = true;
 
-        if (this.files[filePath]) {
+        if (this.getFileFromCache(filePath)) {
           const file = await fs.readFile(path);
           this.setFileData(filePath, file);
           if (this.updateReferences(filePath)) {
@@ -156,35 +157,39 @@ FileManager.prototype.setReference = function (filePath, reference) {
     );
   }
 
-  if (this.fileReferences[filePath]) {
+  const path = this.getDiskPath(filePath);
+
+  if (this.fileReferences[path]) {
     let newReference = true;
-    this.fileReferences[filePath].forEach((ref) => {
+    this.fileReferences[path].forEach((ref) => {
       if (ref === reference) {
         newReference = false;
       }
     });
 
     if (newReference) {
-      this.fileReferences[filePath].push(reference);
+      this.fileReferences[path].push(reference);
     }
   } else {
-    this.fileReferences[filePath] = [reference];
+    this.fileReferences[path] = [reference];
   }
 };
 
 FileManager.prototype.updateReferences = function (filePath) {
   let updated = false;
 
-  if (this.fileReferences[filePath]) {
-    this.fileReferences[filePath].forEach((ref) => {
+  const path = this.getDiskPath(filePath);
+
+  if (this.fileReferences[path]) {
+    this.fileReferences[path].forEach((ref) => {
       if (ref.isMaterial) {
-        if (ref.vertexShader && filePath.toUpperCase().endsWith('.VS')) {
-          loggerInfo('Updating material with vertex shader: ' + filePath);
-          ref.vertexShader = this.files[filePath];
+        if (ref.vertexShader && path.toUpperCase().endsWith('.VS')) {
+          loggerInfo('Updating material with vertex shader: ' + path);
+          ref.vertexShader = this.getFileFromCache(path);
         }
-        if (ref.fragmentShader && filePath.toUpperCase().endsWith('.FS')) {
-          loggerInfo('Updating material with fragment shader: ' + filePath);
-          ref.fragmentShader = this.files[filePath];
+        if (ref.fragmentShader && path.toUpperCase().endsWith('.FS')) {
+          loggerInfo('Updating material with fragment shader: ' + path);
+          ref.fragmentShader = this.getFileFromCache(path);
         }
         ref.needsUpdate = true;
         updated = true;
@@ -211,15 +216,15 @@ FileManager.prototype.markAsUpdated = function () {
 FileManager.prototype.setFileData = function (filePath, data) {
   if (filePath instanceof Array) {
     for (let i = 0; i < filePath.length; i++) {
-      this.files[filePath[i]] = data[i];
+      this.setFileFromCache(filePath[i], data[i]);
     }
   } else {
-    this.files[filePath] = data;
+    this.setFileFromCache(filePath, data);
   }
 };
 
 FileManager.prototype.getFileData = function (filePath) {
-  return this.files[filePath];
+  return this.getFileFromCache(filePath);
 };
 
 FileManager.prototype.getInstanceName = function (instance) {
@@ -284,6 +289,10 @@ FileManager.prototype.processPromise = function (
 };
 
 FileManager.prototype.getPath = function (filePath) {
+  if (filePath.startsWith('src/') || filePath.startsWith('public/')) {
+    return filePath.replace(/^(src|public)\//, '');
+  }
+
   if (!filePath.startsWith('_embedded/') && !filePath.startsWith('./')) {
     return settings.engine.demoPathPrefix + filePath;
   }
@@ -291,6 +300,10 @@ FileManager.prototype.getPath = function (filePath) {
 };
 
 FileManager.prototype.getDiskPath = function (filePath) {
+  if (filePath.startsWith('src/') || filePath.startsWith('public/')) {
+    return filePath;
+  }
+
   if (filePath.startsWith('_embedded/')) {
     return 'src/' + filePath;
   }
@@ -335,14 +348,14 @@ FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
 
 FileManager.prototype.removeRefreshFileTimestamp = function (filePath) {
   const path = filePath;
-  if (this.refreshFiles[path]) {
+  if (this.getRefreshFileFromCache(path)) {
     loggerDebug('Removing file from refresh checking: ' + path);
-    delete this.refreshFiles[filePath];
+    this.setRefreshFileFromCache(filePath, null);
   }
 };
 
 FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
-  if (this.refreshFiles[filePath]) {
+  if (this.getRefreshFileFromCache(filePath)) {
     return;
   }
 
@@ -350,20 +363,20 @@ FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
     const path = this.getDiskPath(filePath);
     fs.stat(path)
       .then((stats) => {
-        this.refreshFiles[filePath] = stats.mtime;
+        this.setRefreshFileFromCache(filePath, stats.mtime);
       })
       .catch((e) => {
         loggerDebug(
           `Error setting file refresh timestamp for ${filePath}: ${e}`
         );
-        delete this.refreshFiles[filePath];
+        this.setRefreshFileFromCache(filePath, null);
       });
   } else {
     if (settings.engine.tool) {
       loggerWarning(`File watch not available, not checking: ${filePath}`);
     }
 
-    delete this.refreshFiles[filePath];
+    this.setRefreshFileFromCache(filePath, null);
   }
 };
 
@@ -375,18 +388,38 @@ FileManager.prototype.getUrl = function (filePath) {
   return this.getPath(filePath);
 };
 
+FileManager.prototype.getFileFromCache = function (filePath) {
+  return this.files[this.getPath(filePath)];
+};
+
+FileManager.prototype.setFileFromCache = function (filePath, data) {
+  this.files[this.getPath(filePath)] = data;
+};
+
+FileManager.prototype.getRefreshFileFromCache = function (filePath) {
+  return this.refreshFiles[this.getDiskPath(filePath)];
+};
+
+FileManager.prototype.setRefreshFileFromCache = function (filePath, data) {
+  if (data === null) {
+    delete this.refreshFiles[this.getDiskPath(filePath)];
+  } else {
+    this.refreshFiles[this.getDiskPath(filePath)] = data;
+  }
+};
+
 FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
     const path = fileManager.getPath(filePath);
 
-    if (this.files[filePath]) {
+    if (this.getFileFromCache(filePath)) {
       fileManager.processPromise(
         resolve,
         reject,
         filePath,
         instance,
-        this.files[filePath],
+        this.getFileFromCache(filePath),
         callback
       );
       return;
