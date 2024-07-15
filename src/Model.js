@@ -155,6 +155,8 @@ Model.prototype.load = function (filename) {
         material.receiveShadow = true;
         if (instance.shape.type === 'SKYSPHERE') {
           material.transparent = false;
+          material.depthWrite = false;
+          material.depthTest = true;
           material.castShadow = false;
           material.receiveShadow = false;
           material.side = THREE.BackSide;

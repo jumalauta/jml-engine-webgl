@@ -72,7 +72,7 @@ Image.prototype.createMaterial = function () {
 
   material.blending = THREE.CustomBlending;
   if (this.perspective2d) {
-    material.depthTest = false;
+    material.depthTest = true;
     material.depthWrite = false;
   }
 
