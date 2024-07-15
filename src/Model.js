@@ -161,6 +161,10 @@ Model.prototype.load = function (filename) {
           material.receiveShadow = false;
           material.side = THREE.BackSide;
         }
+
+        if (instance.shape.material) {
+          settings.toThreeJsProperties(instance.shape.material, material);
+        }
       }
 
       const image = new Image();
