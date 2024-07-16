@@ -1174,15 +1174,8 @@ Scene.prototype.processAnimation = function () {
             animationDefinition.shader.ref &&
             animationDefinition.shader.ref.material
           ) {
-            if (
-              animationDefinition.image &&
-              animationDefinition.perspective === '2d'
-            ) {
-              animationDefinition.shader.ref.material.blending =
-                THREE.CustomBlending;
-              animationDefinition.shader.ref.material.depthTest = false;
-              animationDefinition.shader.ref.material.depthWrite = false;
-            }
+            Shader.setSourceMaterialPropertiesToShader(animationDefinition);
+
             if (animationDefinition.object) {
               animationDefinition.ref.setMaterial(
                 animationDefinition.shader.ref.material

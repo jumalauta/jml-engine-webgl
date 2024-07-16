@@ -346,6 +346,29 @@ function insertBeforeLastOccurrence(str, insert, find) {
   return str.substring(0, index) + insert + '\n' + str.substring(index);
 }
 
+Shader.setSourceMaterialPropertiesToShader = function (animationDefinition) {
+  const sourceMaterial = animationDefinition.ref.mesh
+    ? animationDefinition.ref.mesh.material
+    : undefined;
+  const shaderMaterial = animationDefinition.shader.ref.material;
+
+  const propertiesToCopy = [
+    'blending',
+    'depthTest',
+    'depthWrite',
+    'transparent',
+    'side'
+  ];
+
+  if (sourceMaterial && shaderMaterial) {
+    propertiesToCopy.forEach((property) => {
+      if (sourceMaterial[property] !== undefined) {
+        shaderMaterial[property] = sourceMaterial[property];
+      }
+    });
+  }
+};
+
 Shader.assignToMaterial = function (obj, animation) {
   if (obj && animation && animation.shader && animation.shader.ref) {
     const vsPrefix = animation.shader.vertexShaderPrefix;
