@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { loggerWarning, loggerTrace } from './Bindings';
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
@@ -64,10 +65,17 @@ Utils.setMaterialProperties = function (animation) {
       for (const key in animation.material) {
         if (obj.material[key] !== undefined) {
           const oldValue = obj.material[key];
-          const newValue = Utils.evaluateVariable(
+          let newValue = Utils.evaluateVariable(
             animation,
             animation.material[key]
           );
+
+          if (typeof newValue === 'string') {
+            if (THREE[newValue] !== undefined) {
+              newValue = THREE[newValue];
+            }
+          }
+
           if (oldValue !== newValue) {
             obj.material[key] = newValue;
             loggerTrace(

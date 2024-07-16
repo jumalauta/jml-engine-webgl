@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { loggerWarning } from './Bindings';
+import { Utils } from './Utils';
 
 const Settings = function () {
   return this.getInstance();
@@ -176,7 +177,7 @@ Settings.prototype.toThreeJsProperties = function (src, dst) {
       throw new Error(`Property ${key} not found in destination object`);
     }
 
-    let value = src[key];
+    let value = Utils.evaluateVariable(undefined, src[key]);
     if (typeof value === 'string') {
       if (THREE[value] !== undefined) {
         value = THREE[value];
