@@ -49,6 +49,15 @@ export function loggerError(txt) {
   log('error', txt);
 }
 
+let windowTitle = '';
 export function windowSetTitle(title) {
-  document.title = title;
+  windowTitle = title;
+  document.title = windowTitle;
+}
+
+export function windowSetTitleTime() {
+  const newTitle = `${windowTitle} - ${new Timer().getTimeInSeconds().toFixed(0)}/${(new Timer().endTime / 1000.0).toFixed(0)}`;
+  if (newTitle !== document.title) {
+    document.title = newTitle;
+  }
 }

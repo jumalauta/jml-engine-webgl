@@ -169,6 +169,17 @@ ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
     new Timer().setTimePercent(startPercent);
   });
 
+  let titleTimer;
+  sceneElement.addEventListener('mouseover', () => {
+    titleTimer = setInterval(() => {
+      sceneElement.innerHTML = `${sceneName} ${(new Timer().getTimeInSeconds() - start).toFixed(1)}/${end.toFixed(1)}`;
+    }, 100);
+  });
+  sceneElement.addEventListener('mouseout', () => {
+    clearTimeout(titleTimer);
+    sceneElement.innerHTML = sceneName;
+  });
+
   const panel = document.getElementById('panel');
   panel.appendChild(sceneElement);
 };

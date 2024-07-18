@@ -5,7 +5,8 @@ import {
   loggerTrace,
   loggerWarning,
   loggerError,
-  windowSetTitle
+  windowSetTitle,
+  windowSetTitleTime
 } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
@@ -135,6 +136,9 @@ function animate() {
   timer.update();
   const time = timer.getTime();
   if (oldTime !== time) {
+    if (settings.engine.tool) {
+      windowSetTitleTime();
+    }
     oldTime = time;
     demoRenderer.setRenderNeedsUpdate(true);
   }
