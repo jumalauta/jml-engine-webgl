@@ -21,8 +21,7 @@ Timer.prototype.getInstance = function () {
 };
 
 Timer.prototype.now = function () {
-  // TODO: https://developer.mozilla.org/en-US/docs/Web/API/Performance/now
-  return Date.now();
+  return performance.now();
 };
 
 Timer.prototype.setEndTime = function (endTime) {
