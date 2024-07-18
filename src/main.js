@@ -160,16 +160,18 @@ function animate() {
 
 function togglePlayerUserInterface(show) {
   const canvas = document.getElementById('canvas');
-  canvas.style.margin = '0px';
-  canvas.style.cursor = 'auto';
-  canvas.onclick = null;
+  if (canvas) {
+    canvas.style.margin = '0px';
+    canvas.style.cursor = 'auto';
+    canvas.onclick = null;
+  }
 
   if (settings.engine.tool) {
     if (!show) {
       toolUi.hide();
     }
   } else {
-    if (show) {
+    if (canvas && show) {
       canvas.style.cursor = 'none';
       if (!settings.engine.webDemoExe) {
         canvas.onclick = () => {
@@ -195,7 +197,10 @@ function togglePlayerUserInterface(show) {
     quality.style.display = elementStyle;
     settings.menu.quality = parseFloat(quality.value || 1.0);
   }
-  canvas.style.display = canvasStyle;
+
+  if (canvas) {
+    canvas.style.display = canvasStyle;
+  }
 }
 
 function stopAnimate() {
