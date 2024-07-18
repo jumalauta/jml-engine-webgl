@@ -43,6 +43,24 @@ Utils.updateProperties = function (animation) {
   }
 };
 
+Utils.setProperties = function (animation) {
+  Utils.setObjectProperties(animation);
+  Utils.setMaterialProperties(animation);
+};
+
+Utils.renderOrder = 1;
+
+Utils.setObjectProperties = function (animation) {
+  if (animation.ref && animation.ref.mesh) {
+    const renderOrder = animation.renderOrder || Utils.renderOrder++;
+    animation.ref.mesh.traverse((obj) => {
+      if (obj.isObject3D) {
+        obj.renderOrder = renderOrder;
+      }
+    });
+  }
+};
+
 Utils.setMaterialProperties = function (animation) {
   if (
     !animation.material &&

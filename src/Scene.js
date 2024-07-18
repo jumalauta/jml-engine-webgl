@@ -768,6 +768,8 @@ Scene.prototype.getParentObject = function (
 };
 
 Scene.prototype.processAnimation = function () {
+  Utils.renderOrder = 1;
+
   this.animationLayers = this.loader.sortArray(this.animationLayers);
   const animationLayers = this.animationLayers;
 
@@ -1208,7 +1210,7 @@ Scene.prototype.processAnimation = function () {
           endTime = startTime + durationTime;
         }
 
-        Utils.setMaterialProperties(animationDefinition);
+        Utils.setProperties(animationDefinition);
       }
     }
   }
