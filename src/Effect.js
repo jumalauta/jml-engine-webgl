@@ -141,11 +141,6 @@ Effect.init = function (effectName) {
           timer.pause();
           action = 'Resuming';
         }
-
-        if (settings.engine.startTime > 0) {
-          timer.setTime(settings.engine.startTime);
-          settings.engine.startTime = 0;
-        }
       } else {
         action = 'Not starting';
         stopDemo();
@@ -171,6 +166,9 @@ Effect.init = function (effectName) {
     } finally {
       Effect.loading = false;
       startAnimate();
+
+      new Timer().setTime(settings.engine.startTime || 0);
+      settings.engine.startTime = 0;
     }
   })();
 };
