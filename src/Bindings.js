@@ -2,6 +2,8 @@ import { Timer } from './Timer';
 import { Settings } from './Settings';
 const settings = new Settings();
 
+const initialTime = performance.now();
+
 function log(type, txt) {
   // This console printing thing causes heavy delays in the browser
   // let elem = document.getElementById('panel-console');
@@ -23,7 +25,11 @@ function log(type, txt) {
     }
   }
 
-  const msg = `${new Timer().getTimeInSeconds().toFixed(2)} [${originalType.toUpperCase()}]: ${txt}`;
+  let time = new Timer().getTimeInSeconds().toFixed(2);
+  if (time === '0.00') {
+    time += ` (${(performance.now() - initialTime).toFixed(0)} ms)`;
+  }
+  const msg = `${time} [${originalType.toUpperCase()}]: ${txt}`;
   console[type](msg);
 }
 
