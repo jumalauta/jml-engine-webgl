@@ -215,8 +215,11 @@ function stopAnimate() {
   }
 }
 
-export function startAnimate() {
+export function startAnimate(time) {
   stopAnimate();
+  if (time !== undefined) {
+    new Timer().setTime(time);
+  }
   animate();
   demoRenderer.resize();
   demoRenderer.setRenderNeedsUpdate(true);

@@ -165,9 +165,7 @@ Effect.init = function (effectName) {
       stopDemo();
     } finally {
       Effect.loading = false;
-      startAnimate();
-
-      new Timer().setTime(settings.engine.startTime || 0);
+      startAnimate(settings.engine.startTime || 0);
       settings.engine.startTime = 0;
     }
   })();
