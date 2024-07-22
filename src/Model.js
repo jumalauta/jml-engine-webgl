@@ -104,6 +104,58 @@ Model.prototype.load = function (filename) {
             ),
             material
           );
+        } else if (instance.shape.type === 'SPLINE') {
+          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+          const splinePoints = [];
+          instance.shape.points.forEach((point) => {
+            let p = point;
+            if (point instanceof Array) {
+              p = { x: point[0], y: point[1], z: point[2] };
+            }
+            splinePoints.push(new THREE.Vector3(p.x, p.y, p.z));
+          });
+
+          const splinePath = new THREE.CatmullRomCurve3(
+            splinePoints,
+            instance.shape.closed || false,
+            instance.shape.curveType || 'centripetal',
+            instance.shape.tension || 0.5
+          );
+
+          const shapeSize = instance.shape.size || defaultSize;
+          const shapePrecision = instance.shape.precision || 2;
+          const shapePoints = [];
+
+          for (let i = 0; i < shapePrecision; i++) {
+            const angleRad = (i / shapePrecision) * 2 * Math.PI;
+            shapePoints.push(
+              new THREE.Vector2(
+                Math.sin(angleRad) * shapeSize,
+                Math.cos(angleRad) * shapeSize
+              )
+            );
+          }
+
+          const geometry = new THREE.ExtrudeGeometry(
+            new THREE.Shape(shapePoints),
+            {
+              curveSegments: instance.shape.extrudeSettings.curveSegments || 12,
+              steps: instance.shape.extrudeSettings.steps || 1,
+              depth: instance.shape.extrudeSettings.depth || 1,
+              bevelEnabled:
+                instance.shape.extrudeSettings.bevelEnabled || false,
+              bevelThickness:
+                instance.shape.extrudeSettings.bevelThickness || 0.0,
+              bevelSize: instance.shape.extrudeSettings.bevelSize || 0.0,
+              bevelOffset: instance.shape.extrudeSettings.bevelOffset || 0,
+              bevelSegments: instance.shape.extrudeSettings.bevelSegments || 0,
+              extrudePath: splinePath
+              // UVGenerator -  object that provides UV generator functions
+            }
+          );
+
+          object = instance.instancer.createMesh(geometry, material);
         } else if (instance.shape.type === 'SPHERE') {
           const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
