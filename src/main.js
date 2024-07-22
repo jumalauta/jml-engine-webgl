@@ -135,6 +135,11 @@ function animate() {
 
   timer.update();
   const time = timer.getTime();
+  if (oldTime === undefined) {
+    timer.music.setStartTime();
+    timer.update();
+  }
+
   if (oldTime !== time) {
     if (settings.engine.tool) {
       windowSetTitleTime();

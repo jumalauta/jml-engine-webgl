@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerDebug, loggerError } from './Bindings';
+import { loggerDebug, loggerWarning, loggerError } from './Bindings';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 const settings = new Settings();
@@ -23,6 +23,8 @@ Music.prototype.init = function () {
   this.audio = undefined;
   this.duration = undefined;
   this.error = undefined;
+  this.pauseTime = undefined;
+  this.startTime = undefined;
 };
 
 Music.prototype.load = function (url) {
@@ -77,6 +79,12 @@ Music.prototype.play = function () {
   this.audio.play();
 };
 
+Music.prototype.setStartTime = function () {
+  if (this.audio && this.audio.context) {
+    this.startTime = this.audio.context.currentTime;
+  }
+};
+
 Music.prototype.stop = function () {
   if (!this.audio) {
     return;
@@ -84,32 +92,44 @@ Music.prototype.stop = function () {
   this.audio.stop();
 };
 
-Music.prototype.pause = function () {
+Music.prototype.pause = function (pauseState) {
   if (!this.audio) {
     return;
   }
 
-  if (new Timer().isPaused()) {
+  if (pauseState) {
     this.audio.pause();
+    this.pauseTime = this.getTime();
   } else {
-    this.audio.play();
+    this.startTime += this.getTime() - this.pauseTime;
+    this.setTime(this.pauseTime);
+    this.pauseTime = undefined;
   }
 };
 
 Music.prototype.setTime = function (time) {
   if (!this.audio) {
+    loggerWarning('No audio, cannot set time');
     return;
   }
   this.stop();
   this.audio.offset = time;
   this.play();
+
+  if (this.pauseTime) {
+    this.pauseTime = this.getTime();
+  }
   if (new Timer().isPaused()) {
-    this.pause();
+    this.pause(true);
   }
 };
 
 Music.prototype.getTime = function () {
-  return this.context.currentTime;
+  if (this.audio && this.audio.context) {
+    return this.audio.context.currentTime - this.startTime || 0;
+  }
+
+  return 0;
 };
 
 export { Music };
