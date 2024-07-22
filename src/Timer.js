@@ -14,7 +14,6 @@ Timer.prototype.getInstance = function () {
     this.time = 0;
     this.prevTime = 0;
     this.deltaTime = 0;
-    this.syncToMusic = true;
     Timer.prototype._singletonInstance = this;
   }
 
@@ -22,10 +21,6 @@ Timer.prototype.getInstance = function () {
 };
 
 Timer.prototype.now = function () {
-  if (this.syncToMusic) {
-    return this.music.getTime() * 1000;
-  }
-
   return performance.now();
 };
 
@@ -36,7 +31,7 @@ Timer.prototype.setEndTime = function (endTime) {
 Timer.prototype.start = function () {
   loggerInfo('Starting demo timer');
   new FileManager().startWatchFileChanges();
-  // this.setTime(0);
+  this.setTime(0);
   // this.music.play();
   // this.update();
 };
@@ -58,7 +53,6 @@ Timer.prototype.pause = function (pauseState) {
     }
 
     loggerInfo('Pausing demo timer');
-    this.music.pause(true);
     this.pauseTime = this.now();
     Video.pauseAll();
   } else {
@@ -67,15 +61,13 @@ Timer.prototype.pause = function (pauseState) {
     }
 
     loggerInfo('Resuming demo timer');
-    if (!this.syncToMusic) {
-      this.startTime += this.now() - this.pauseTime;
-    }
+    this.startTime += this.now() - this.pauseTime;
     this.pauseTime = undefined;
-    this.music.pause(false);
     Video.playAll();
   }
   this.prevTime = this.time;
   this.deltaTime = 0.0;
+  this.music.pause();
   this.update(true);
 };
 
@@ -96,13 +88,12 @@ Timer.prototype.setTime = function (time) {
     time = this.endTime;
   }
 
-  this.music.setTime(time / 1000);
-
   const now = this.now();
   this.startTime = now - time;
   if (this.pauseTime) {
     this.pauseTime = now;
   }
+  this.music.setTime(time / 1000);
   this.update(true);
   Video.rewindAll();
 };

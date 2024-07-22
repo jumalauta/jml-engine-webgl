@@ -30,7 +30,6 @@ Effect.effects = [];
 Effect.init = function (effectName) {
   (async () => {
     loggerDebug('Starting loading');
-    const loadingBar = new LoadingBar();
     try {
       if (Effect.loading === true) {
         loggerWarning(`Already loading ${effectName}! Ignoring init.`);
@@ -82,6 +81,7 @@ Effect.init = function (effectName) {
       const demoRenderer = new DemoRenderer();
       demoRenderer.clear();
 
+      const loadingBar = new LoadingBar();
       loadingBar.setPercent(0.0);
       new ToolUi().clearScenes();
 
@@ -127,6 +127,8 @@ Effect.init = function (effectName) {
         }
       }
 
+      loadingBar.setPercent(1.0);
+
       let action;
       if (isStarted()) {
         new ToolUi().show();
@@ -163,9 +165,7 @@ Effect.init = function (effectName) {
       stopDemo();
     } finally {
       Effect.loading = false;
-      const time = settings.engine.startTime || 0;
-      startAnimate(time);
-      loadingBar.setPercent(1.0);
+      startAnimate(settings.engine.startTime || 0);
       settings.engine.startTime = 0;
     }
   })();
