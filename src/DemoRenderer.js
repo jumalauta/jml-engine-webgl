@@ -178,14 +178,19 @@ DemoRenderer.prototype.resize = function () {
   this.canvasHeight *= scaleDown;
 
   const canvas = document.getElementById('canvas');
-  canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px auto`;
-  canvas.style.transform = `scale(${scaleUp})`;
+  if (canvas) {
+    canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px auto`;
+    canvas.style.transform = `scale(${scaleUp})`;
+  }
+
+  if (this.renderer) {
+    this.renderer.setSize(this.canvasWidth, this.canvasHeight, true);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+  }
 
   loggerTrace(
     `Canvas size: ${Math.floor(this.canvasWidth)}x${Math.floor(this.canvasHeight)}`
   );
-  this.renderer.setSize(this.canvasWidth, this.canvasHeight, true);
-  this.renderer.setPixelRatio(window.devicePixelRatio);
 };
 
 DemoRenderer.prototype.setRenderNeedsUpdate = function (needsUpdate) {
