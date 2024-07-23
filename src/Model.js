@@ -92,10 +92,13 @@ Model.prototype.load = function (filename) {
       let object = filename;
 
       if (instance.shape) {
+        const shapeSettings =
+          settings.demo.model.shape[instance.shape.type.toLowerCase()] || {};
+        const material = settings.createMaterial(
+          shapeSettings.material || settings.demo.model.shape.material
+        );
         const defaultSize = 0.4;
         if (instance.shape.type === 'SKYSPHERE') {
-          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
           object = instance.instancer.createMesh(
             new THREE.SphereGeometry(
               instance.shape.radius || settings.demo.camera.far * 0.9,
@@ -105,8 +108,6 @@ Model.prototype.load = function (filename) {
             material
           );
         } else if (instance.shape.type === 'SPLINE') {
-          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
           const splinePoints = [];
           instance.shape.points.forEach((point) => {
             let p = point;
@@ -157,8 +158,6 @@ Model.prototype.load = function (filename) {
 
           object = instance.instancer.createMesh(geometry, material);
         } else if (instance.shape.type === 'SPHERE') {
-          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
           object = instance.instancer.createMesh(
             new THREE.SphereGeometry(
               instance.shape.radius || defaultSize,
@@ -168,7 +167,6 @@ Model.prototype.load = function (filename) {
             material
           );
         } else if (instance.shape.type === 'CUBE') {
-          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
           object = instance.instancer.createMesh(
             new THREE.BoxGeometry(
               instance.shape.width || defaultSize,
@@ -178,7 +176,6 @@ Model.prototype.load = function (filename) {
             material
           );
         } else if (instance.shape.type === 'PLANE') {
-          const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
           object = instance.instancer.createMesh(
             new THREE.PlaneGeometry(
               instance.shape.width || defaultSize,

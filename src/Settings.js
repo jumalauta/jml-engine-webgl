@@ -62,6 +62,20 @@ Settings.prototype.init = function () {
         }
       }
     },
+    model: {
+      shape: {
+        material: {
+          type: 'Phong',
+          transparent: true
+        },
+        skysphere: {
+          material: {
+            type: 'Basic',
+            transparent: true
+          }
+        }
+      }
+    },
     image: {
       /* material: {
         type: 'Basic',
