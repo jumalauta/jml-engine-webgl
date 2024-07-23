@@ -54,11 +54,14 @@ Settings.prototype.init = function () {
       oldColors: false,
       oldMaterials: false
     },
-    /* text: {
-      material: {
-        type: 'Basic',
-      },
-    }, */
+    text: {
+      perspective3d: {
+        material: {
+          type: 'Phong',
+          transparent: true
+        }
+      }
+    },
     image: {
       /* material: {
         type: 'Basic',

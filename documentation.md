@@ -306,6 +306,10 @@ this.loader.addAnimation({
     ,"text":{
       "string":"Here is a 2D text string!"
       ,"name":"font.ttf"
+      ,"parameters": {
+        //For more parameters,ref. https://threejs.org/docs/#examples/en/geometries/TextGeometry
+        "depth":0.5
+      }
     }
     ,"scale": [
           {"uniform2d":0.5}

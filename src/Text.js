@@ -20,6 +20,8 @@ const Text = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.parameters = animationDefinition.text.parameters || {};
+
   this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
@@ -70,44 +72,52 @@ Text.prototype.setFont = function (name) {
 };
 
 Text.prototype.createMaterial = function () {
-  let vertexShader = vertexShader2dData;
-  if (!this.perspective2d) {
-    vertexShader = this.billboard
-      ? vertexShader3dBillboardData
-      : vertexShader3dData;
-  }
+  let material;
 
-  const shader = {
-    uniforms: {
-      // texture0: { value: this.texture },
-      color: { value: new THREE.Vector4(1, 1, 1, 1) }
-    },
-    vertexShader,
-    fragmentShader: fragmentShaderData
-  };
+  if (this.perspective2d || (!this.perspective2d && this.billboard)) {
+    let vertexShader = vertexShader2dData;
+    if (!this.perspective2d) {
+      vertexShader = this.billboard
+        ? vertexShader3dBillboardData
+        : vertexShader3dData;
+    }
 
-  const material = new THREE.ShaderMaterial({
-    glslVersion: THREE.GLSL3,
-    uniforms: THREE.UniformsUtils.clone(shader.uniforms),
-    vertexShader: shader.vertexShader,
-    fragmentShader: shader.fragmentShader
-    // blending:THREE.CustomBlending,
-    // depthTest: false,
-    // depthWrite: false,
-    // transparent: true,
-    // map: texture,
-  });
-  // material = settings.createMaterial(settings.demo.image.material);
-  material.map = this.texture;
-  material.blending = THREE.CustomBlending;
-  if (this.perspective2d) {
-    material.depthTest = true;
-    material.depthWrite = false;
+    const shader = {
+      uniforms: {
+        // texture0: { value: this.texture },
+        color: { value: new THREE.Vector4(1, 1, 1, 1) }
+      },
+      vertexShader,
+      fragmentShader: fragmentShaderData
+    };
 
-    // material = settings.createMaterial(settings.demo.text.material);
-    // material.map = this.texture;
-    material.castShadow = false;
-    material.receiveShadow = false;
+    material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      uniforms: THREE.UniformsUtils.clone(shader.uniforms),
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader
+      // blending:THREE.CustomBlending,
+      // depthTest: false,
+      // depthWrite: false,
+      // transparent: true,
+      // map: texture,
+    });
+    // material = settings.createMaterial(settings.demo.image.material);
+    material.map = this.texture;
+    material.blending = THREE.CustomBlending;
+    if (this.perspective2d) {
+      material.depthTest = true;
+      material.depthWrite = false;
+
+      // material = settings.createMaterial(settings.demo.text.material);
+      // material.map = this.texture;
+      material.castShadow = false;
+      material.receiveShadow = false;
+    }
+  } else {
+    material = settings.createMaterial(
+      settings.demo.text.perspective3d.material
+    );
   }
 
   if (this.additive) {
@@ -125,7 +135,8 @@ Text.prototype.setValue = function (text) {
     this.geometry = new TextGeometry(text, {
       font: this.font,
       size: this.perspective2d ? 1.0 : 4.3,
-      depth: 0.01
+      depth: 0.01,
+      ...this.parameters
       // curveSegments: 12,
       // bevelEnabled: false,
       // bevelThickness: 0.03,
