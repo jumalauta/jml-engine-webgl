@@ -172,7 +172,7 @@ ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
   let titleTimer;
   sceneElement.addEventListener('mouseover', () => {
     titleTimer = setInterval(() => {
-      sceneElement.innerHTML = `${sceneName} ${(new Timer().getTimeInSeconds() - start).toFixed(1)}/${end.toFixed(1)}`;
+      sceneElement.innerHTML = `${sceneName} ${(new Timer().getTimeInSeconds() - start).toFixed(1)}/${(end - start).toFixed(1)}`;
     }, 100);
   });
   sceneElement.addEventListener('mouseout', () => {
