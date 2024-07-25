@@ -8,6 +8,7 @@ import { Image } from './Image';
 import { FileManager } from './FileManager';
 import { Instancer } from './Instancer';
 import { Settings } from './Settings';
+import { Utils } from './Utils';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
 
 const settings = new Settings();
@@ -126,17 +127,30 @@ Model.prototype.load = function (filename) {
 
           const shapeSize = instance.shape.size || defaultSize;
           const shapePrecision = instance.shape.precision || 2;
-          const shapePoints = [];
+          const shapePointArray = Utils.isFunction(instance.shape.function)
+            ? instance.shape.function(instance.shape)
+            : (() => {
+                const pointArray = [];
+                for (let i = 0; i < shapePrecision; i++) {
+                  const angleRad = (i / shapePrecision) * 2 * Math.PI;
+                  pointArray.push([
+                    Math.sin(angleRad) * shapeSize,
+                    Math.cos(angleRad) * shapeSize
+                  ]);
+                }
 
-          for (let i = 0; i < shapePrecision; i++) {
-            const angleRad = (i / shapePrecision) * 2 * Math.PI;
-            shapePoints.push(
-              new THREE.Vector2(
-                Math.sin(angleRad) * shapeSize,
-                Math.cos(angleRad) * shapeSize
-              )
-            );
-          }
+                return pointArray;
+              })();
+
+          const shapePoints = [];
+          shapePointArray.forEach((point) => {
+            let p = point;
+            if (point instanceof Array) {
+              p = { x: point[0], y: point[1], z: point[2] || 0 };
+            }
+
+            shapePoints.push(new THREE.Vector3(p.x, p.y, p.z));
+          });
 
           const geometry = new THREE.ExtrudeGeometry(
             new THREE.Shape(shapePoints),
