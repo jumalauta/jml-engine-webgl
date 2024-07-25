@@ -190,10 +190,6 @@ Settings.prototype.toThreeJsProperties = function (src, dst) {
       return;
     }
 
-    if (dst[key] === undefined) {
-      throw new Error(`Property ${key} not found in destination object`);
-    }
-
     let value = Utils.evaluateVariable(undefined, src[key]);
     if (typeof value === 'string') {
       if (THREE[value] !== undefined) {
@@ -203,7 +199,7 @@ Settings.prototype.toThreeJsProperties = function (src, dst) {
 
     const dstType = typeof dst[key];
     const srcType = typeof value;
-    if (dstType !== srcType) {
+    if (dstType !== 'undefined' && dstType !== srcType) {
       throw new Error(
         `Type mismatch for property ${key}: ${dstType} != ${srcType}`
       );
@@ -298,14 +294,16 @@ Settings.prototype.createRenderer = function (canvas) {
 };
 
 Settings.prototype.createMaterial = function (materialSettings) {
-  const MaterialType = THREE['Mesh' + materialSettings.type + 'Material'];
+  let MaterialType =
+    THREE['Mesh' + (materialSettings.type || 'Basic') + 'Material'];
   if (!MaterialType || (!MaterialType.prototype) instanceof THREE.Material) {
     loggerWarning('Unsupported material type: ' + materialSettings.type);
-    return new THREE.MeshBasicMaterial();
+    MaterialType = THREE.MeshBasicMaterial;
   }
 
   const material = new MaterialType();
   this.toThreeJsProperties(materialSettings, material);
+  material.needsUpdate = true;
 
   return material;
 };
