@@ -29,6 +29,7 @@ const Image = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.textureProperties = animationDefinition.textureProperties || [];
   this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
@@ -99,8 +100,16 @@ Image.prototype.generateMesh = function () {
     }
   }
 
-  this.texture.forEach((texture) => {
-    settings.toThreeJsProperties(settings.demo.image.texture, texture);
+  this.texture.forEach((texture, index) => {
+    const customTextureProperties =
+      (this.textureProperties instanceof Array
+        ? this.textureProperties[index]
+        : this.textureProperties) || {};
+    const textureProperties = {
+      ...settings.demo.image.texture,
+      ...customTextureProperties
+    };
+    settings.toThreeJsProperties(textureProperties, texture);
   });
 
   this.material = this.createMaterial();
