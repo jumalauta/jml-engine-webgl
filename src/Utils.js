@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerWarning, loggerTrace } from './Bindings';
+import { loggerWarning } from './Bindings';
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 import { Random } from './Random';
@@ -96,9 +96,6 @@ Utils.setMaterialProperties = function (animation) {
 
           if (oldValue !== newValue) {
             obj.material[key] = newValue;
-            loggerTrace(
-              `Replaced material property ${key} from ${oldValue} to ${newValue}`
-            );
           }
         }
       }
