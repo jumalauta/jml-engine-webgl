@@ -3,6 +3,7 @@ import { Settings } from './Settings';
 const settings = new Settings();
 
 const initialTime = performance.now();
+let previousText;
 
 function log(type, txt) {
   // This console printing thing causes heavy delays in the browser
@@ -24,6 +25,12 @@ function log(type, txt) {
       return;
     }
   }
+
+  if (previousText === txt) {
+    return;
+  }
+
+  previousText = txt;
 
   let time = new Timer().getTimeInSeconds().toFixed(2);
   if (time === '0.00') {
