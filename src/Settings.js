@@ -303,7 +303,6 @@ Settings.prototype.createMaterial = function (materialSettings) {
 
   const material = new MaterialType();
   this.toThreeJsProperties(materialSettings, material);
-  material.needsUpdate = true;
 
   return material;
 };

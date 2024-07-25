@@ -25,6 +25,7 @@ const Model = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.materialProperties = animationDefinition.material || {};
   this.additive = animationDefinition.additive === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
@@ -91,13 +92,34 @@ Model.prototype.load = function (filename) {
   if (instance.shape || filename === null) {
     return new Promise((resolve, reject) => {
       let object = filename;
+      let shapeMaterialSettings;
 
       if (instance.shape) {
-        const shapeSettings =
+        const shapeTypeDefaultSettings =
           settings.demo.model.shape[instance.shape.type.toLowerCase()] || {};
-        const material = settings.createMaterial(
-          shapeSettings.material || settings.demo.model.shape.material
-        );
+
+        const shapeMaterial = {};
+        shapeMaterial.transparent = true;
+        shapeMaterial.castShadow = true;
+        shapeMaterial.receiveShadow = true;
+        if (instance.shape.type === 'SKYSPHERE') {
+          shapeMaterial.transparent = false;
+          shapeMaterial.depthWrite = false;
+          shapeMaterial.depthTest = true;
+          shapeMaterial.castShadow = false;
+          shapeMaterial.receiveShadow = false;
+          shapeMaterial.side = 'BackSide';
+          shapeMaterial.type = 'Basic';
+        }
+
+        shapeMaterialSettings = Utils.deepCopyJson({
+          ...settings.demo.model.shape.material,
+          ...shapeTypeDefaultSettings.material,
+          ...this.materialProperties,
+          ...shapeMaterial
+        });
+        const material = settings.createMaterial(shapeMaterialSettings);
+
         const defaultSize = 0.4;
         if (instance.shape.type === 'SKYSPHERE') {
           object = instance.instancer.createMesh(
@@ -212,18 +234,9 @@ Model.prototype.load = function (filename) {
       instance.setDefaults();
 
       const material = instance.mesh.material;
-      if (instance.shape) {
-        material.transparent = true;
-        material.castShadow = true;
-        material.receiveShadow = true;
-        if (instance.shape.type === 'SKYSPHERE') {
-          material.transparent = false;
-          material.depthWrite = false;
-          material.depthTest = true;
-          material.castShadow = false;
-          material.receiveShadow = false;
-          material.side = THREE.BackSide;
-        }
+      if (shapeMaterialSettings) {
+        settings.toThreeJsProperties(shapeMaterialSettings, material);
+        material.needsUpdate = true;
       }
 
       const image = new Image();

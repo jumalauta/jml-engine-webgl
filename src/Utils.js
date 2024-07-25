@@ -81,6 +81,9 @@ Utils.setMaterialProperties = function (animation) {
   animation.ref.mesh.traverse((obj) => {
     if (obj.isMesh && obj.material) {
       for (const key in animation.material) {
+        if (key === 'type') {
+          continue;
+        }
         if (obj.material[key] !== undefined) {
           const oldValue = obj.material[key];
           let newValue = Utils.evaluateVariable(
