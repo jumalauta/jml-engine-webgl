@@ -347,7 +347,7 @@ function windowResize() {
 
 function screenshot() {
   const canvas = document.getElementById('canvas');
-  const dataUrl = canvas.toDataURL('image/png');
+  const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
   window.open(dataUrl, '_blank');
 }
 
