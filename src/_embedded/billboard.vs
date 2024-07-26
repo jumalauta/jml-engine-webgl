@@ -2,6 +2,7 @@ out vec2 texCoord;
 
 #ifdef USE_INSTANCING
 attribute vec4 instanceVertexColor;
+attribute vec3 instanceVertexAngle;
 #endif
 
 out vec4 instanceFragmentColor;
@@ -31,6 +32,19 @@ void main() {
   billboardModelView[2][2] = 1.0;
 
 #ifdef USE_INSTANCING
+  float degrees = instanceVertexAngle.z;
+  if (mod(degrees, 360.) > 0.) {
+    float angle = radians(degrees);
+    float sz = sin(angle);
+    float cz = cos(angle);
+    mat4 rotateZ = mat4(
+      vec4(cz, -sz, 0., 0.),
+      vec4(sz,  cz, 0., 0.),
+      vec4(0.,  0., 1., 0.),
+      vec4(0.,  0., 0., 1.)); 
+    billboardModelView *= rotateZ;
+  }
+
   instanceFragmentColor = instanceVertexColor;
   // Note that modelViewMatrix is not set when rendering an instanced model,
   // but can be calculated from viewMatrix * modelMatrix.
