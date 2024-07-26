@@ -368,8 +368,12 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key === '2' || event.key === 'ArrowRight') {
       timer.setTime(timer.getTime() + 1000);
     } else if (event.key === 'ArrowDown') {
-      timer.setTime(timer.getTime() - 10000);
+      timer.setTime(timer.getTime() - 1000 / 60);
     } else if (event.key === 'ArrowUp') {
+      timer.setTime(timer.getTime() + 1000 / 60);
+    } else if (event.key === 'PageDown') {
+      timer.setTime(timer.getTime() - 10000);
+    } else if (event.key === 'PageUp') {
       timer.setTime(timer.getTime() + 10000);
     } else if (event.key === '3' || event.code === 'Space') {
       timer.pause();

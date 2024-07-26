@@ -12,8 +12,10 @@ Want to see some examples? Check out: https://github.com/jumalauta/jml-engine-de
 | Esc               | Stop demo                 |
 | Left arrow        | Rewind demo -1 second     |
 | Right arrow       | Rewind demo +1 second     |
-| Down arrow        | Rewind demo -10 seconds   |
-| Up arrow          | Rewind demo +10 seconds   |
+| Down arrow        | Rewind demo -1 frame      |
+| Up arrow          | Rewind demo +1 frame      |
+| Page Down         | Rewind demo -10 seconds   |
+| Page Up           | Rewind demo +10 seconds   |
 | Space             | Pause/resume demo         |
 | Home              | Rewind demo to start      |
 | End               | Rewind demo to near end   |
