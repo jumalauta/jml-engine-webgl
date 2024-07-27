@@ -259,7 +259,7 @@ DemoRenderer.prototype.preload = function (percent) {
       this.render();
 
       resolve();
-    }, 10);
+    }, 1);
   });
 };
 

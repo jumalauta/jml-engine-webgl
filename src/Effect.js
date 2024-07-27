@@ -127,7 +127,7 @@ Effect.init = function (effectName) {
         if (!timer.isStarted()) {
           if (settings.engine.preload) {
             const now = Date.now();
-            const steps = settings.engine.preloadSteps;
+            const steps = settings.engine.preloadSteps || 100;
             const demoRenderer = new DemoRenderer();
 
             for (let i = 0; i < steps; i++) {
@@ -135,7 +135,7 @@ Effect.init = function (effectName) {
               effect.loader.promises.push(demoRenderer.preload(percent));
             }
 
-            if (!(await processPromises(effect.loader.promises, 0.85, 1.0))) {
+            if (!(await processPromises(effect.loader.promises, 0.85, 0.99))) {
               return;
             }
 
@@ -154,7 +154,9 @@ Effect.init = function (effectName) {
               throw new Error('Shader compilation failed');
             }
 
-            loggerDebug(`Preloading took ${Date.now() - now} ms`);
+            loggerDebug(
+              `Preloading ${steps} frames took ${Date.now() - now} ms`
+            );
           }
 
           timer.start();
@@ -190,6 +192,7 @@ Effect.init = function (effectName) {
       Effect.loading = false;
 
       loadingBar.setPercent(1.0);
+
       const time = settings.engine.startTime || 0;
       startAnimate(time);
       settings.engine.startTime = 0;

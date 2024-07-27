@@ -3,6 +3,8 @@ import { Music } from './Music';
 import { FileManager } from './FileManager';
 import { Video } from './Video';
 import { Sync } from './Sync';
+import { Settings } from './Settings';
+const settings = new Settings();
 
 const Timer = function () {
   return this.getInstance();
@@ -25,13 +27,17 @@ Timer.prototype.now = function () {
 };
 
 Timer.prototype.setEndTime = function (endTime) {
+  if (settings.engine.preloadSteps === undefined) {
+    settings.engine.preloadSteps = Math.floor((endTime / 1000) * 2.5);
+  }
+
   this.endTime = endTime;
 };
 
 Timer.prototype.start = function () {
   loggerInfo('Starting demo timer');
   new FileManager().startWatchFileChanges();
-  this.setTime(0);
+  // this.setTime(0);
   // this.music.play();
   // this.update();
 };
