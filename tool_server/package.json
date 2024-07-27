@@ -1,0 +1,24 @@
+{
+  "name": "tool_server",
+  "version": "1.0.0",
+  "description": "JML Engine tool server",
+  "main": "src/server.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Zlib",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pino": "^9.3.2",
+    "uuid": "^10.0.0",
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8"
+  }
+}

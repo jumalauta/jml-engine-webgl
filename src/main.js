@@ -17,6 +17,10 @@ import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { Music } from './Music';
 import { Fullscreen } from './Fullscreen';
+import { ToolClient } from './ToolClient';
+
+const toolClient = new ToolClient();
+toolClient.init();
 
 const fullscreen = new Fullscreen();
 
@@ -357,10 +361,14 @@ function windowResize() {
   demoRenderer.setRenderNeedsUpdate(true);
 }
 
-function screenshot() {
+function captureFrame() {
   const canvas = document.getElementById('canvas');
   const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
-  window.open(dataUrl, '_blank');
+  return dataUrl;
+}
+
+function screenshot() {
+  window.open(captureFrame(), '_blank');
 }
 
 window.addEventListener('resize', windowResize, false);
@@ -374,6 +382,8 @@ function rewindTime(time) {
 }
 
 document.addEventListener('keydown', (event) => {
+  const fps = 60;
+  const oneFrame = 1000 / fps;
   if (event.repeat) {
     return;
   }
@@ -388,9 +398,9 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key === 'ArrowRight') {
       rewindTime(1000);
     } else if (event.key === 'ArrowDown') {
-      rewindTime(-1000 / 60);
+      rewindTime(-oneFrame);
     } else if (event.key === 'ArrowUp') {
-      rewindTime(1000 / 60);
+      rewindTime(oneFrame);
     } else if (event.key === 'PageDown') {
       rewindTime(-10000);
     } else if (event.key === 'PageUp') {
@@ -421,6 +431,40 @@ document.addEventListener('keydown', (event) => {
       timer.setTimePercent(0.99);
     } else if (event.key === 'Home') {
       timer.setTimePercent(0.0);
+    } else if (event.key === 'p' && isStarted()) {
+      const frameDelay = 20;
+      const estimate = (frameDelay * timer.getEndTime()) / 1000 / 60;
+      if (
+        !confirm(
+          `Want to start video capture? Estimated time: ${estimate.toFixed(2)} m`
+        )
+      ) {
+        return;
+      }
+
+      timer.pause(true);
+      timer.setTime(0);
+      let frame = 0;
+      const startTime = Date.now();
+      toolClient.send({ type: 'CAPTURE_START' });
+
+      setTimeout(() => {
+        const intervalId = setInterval(() => {
+          toolClient.send({
+            type: 'CAPTURE_FRAME',
+            dataUrl: captureFrame(),
+            frame: frame++
+          });
+          timer.setTime(timer.getTime() + oneFrame);
+          if (timer.isEnd() || !isStarted()) {
+            toolClient.send({ type: 'CAPTURE_STOP' });
+            clearInterval(intervalId);
+            loggerInfo(
+              `Capture ending. Captured ${frame} frames in ${Date.now() - startTime} ms`
+            );
+          }
+        }, frameDelay);
+      }, 1000);
     }
   }
 });
