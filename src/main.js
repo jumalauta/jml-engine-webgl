@@ -333,6 +333,7 @@ function deepReloadDemo() {
   const isPause = timer.isPaused();
   const time = timer.getTime();
   stopDemo();
+  settings.engine.preload = false; // deep reload should not do preloading
   restartDemo();
   settings.engine.startTime = time;
   if (isPause) {
