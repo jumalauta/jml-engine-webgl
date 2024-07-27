@@ -26,6 +26,34 @@ const Effect = function () {};
 
 Effect.effects = [];
 
+async function processPromises(promises, startPercent, endPercent) {
+  const loadingBar = new LoadingBar();
+  const promiseCount = promises.length;
+  let processedPromises = 0;
+
+  for (let i = 0; i < promiseCount; i++) {
+    promises[i].finally(() => {
+      processedPromises++;
+      const percent =
+        startPercent +
+        (processedPromises / promiseCount) * (endPercent - startPercent);
+      loadingBar.setPercent(percent);
+    });
+  }
+
+  while (promises.length > 0) {
+    if (isStarted() === false) {
+      loggerInfo('Demo stopped, exiting asset loading');
+      stopDemo();
+      return false;
+    }
+
+    await promises.shift();
+  }
+
+  return true;
+}
+
 Effect.init = function (effectName) {
   (async () => {
     loggerDebug('Starting loading');
@@ -76,33 +104,16 @@ Effect.init = function (effectName) {
         music.load(fileManager.getPath(settings.demo.music.musicFile))
       );
 
-      const promiseCount = effect.loader.promises.length;
-
       const demoRenderer = new DemoRenderer();
       demoRenderer.clear();
 
       loadingBar.setPercent(0.0);
       new ToolUi().clearScenes();
 
-      let processedPromises = 0;
       Video.clear();
 
-      for (let i = 0; i < effect.loader.promises.length; i++) {
-        effect.loader.promises[i].finally(() => {
-          processedPromises++;
-          const percent = (processedPromises / promiseCount) * 0.8;
-          loadingBar.setPercent(percent);
-        });
-      }
-
-      while (effect.loader.promises.length > 0) {
-        if (isStarted() === false) {
-          loggerInfo('Demo stopped, exiting asset loading');
-          stopDemo();
-          return;
-        }
-
-        await effect.loader.promises.shift();
+      if (!(await processPromises(effect.loader.promises, 0.0, 0.8))) {
+        return;
       }
 
       loadingBar.setPercent(0.85);
@@ -114,25 +125,25 @@ Effect.init = function (effectName) {
         new ToolUi().show();
 
         if (!timer.isStarted()) {
-          timer.start();
-          action = 'Starting';
-
           if (settings.engine.preload) {
             const now = Date.now();
             const steps = settings.engine.preloadSteps;
-            const timer = new Timer();
             const demoRenderer = new DemoRenderer();
+
             for (let i = 0; i < steps; i++) {
               const percent = i / steps;
-              timer.setTimePercent(percent);
-              timer.update();
-              demoRenderer.clear();
-              demoRenderer.render();
-              loadingBar.setPercent(0.9 + percent * 0.1);
+              effect.loader.promises.push(demoRenderer.preload(percent));
+            }
+
+            if (!(await processPromises(effect.loader.promises, 0.85, 1.0))) {
+              return;
             }
 
             loggerDebug(`Preloading took ${Date.now() - now} ms`);
           }
+
+          timer.start();
+          action = 'Starting';
         }
         if (forceResume) {
           timer.pause();

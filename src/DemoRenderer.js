@@ -6,6 +6,7 @@ import { Effect } from './Effect';
 import { Settings } from './Settings';
 import { Spectogram } from './Spectogram';
 import { ToolUi } from './ToolUi';
+import { Timer } from './Timer';
 
 const settings = new Settings();
 
@@ -246,6 +247,20 @@ DemoRenderer.prototype.render = function () {
   if (this.controls) {
     this.controls.update();
   }
+};
+
+DemoRenderer.prototype.preload = function (percent) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const timer = new Timer();
+      timer.setTimePercent(percent, true);
+      timer.update();
+      this.clear();
+      this.render();
+
+      resolve();
+    }, 10);
+  });
 };
 
 // arry.slice(-1);

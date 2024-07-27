@@ -79,7 +79,7 @@ Timer.prototype.isStarted = function () {
   return this.startTime !== undefined;
 };
 
-Timer.prototype.setTime = function (time) {
+Timer.prototype.setTime = function (time, skipMusicUpdate) {
   if (time < 0) {
     time = 0;
   } else if (this.endTime && time > this.endTime) {
@@ -93,7 +93,9 @@ Timer.prototype.setTime = function (time) {
   if (this.pauseTime) {
     this.pauseTime = now;
   }
-  this.music.setTime(time / 1000);
+  if (!skipMusicUpdate) {
+    this.music.setTime(time / 1000);
+  }
   this.update(true);
   Video.rewindAll();
 };
@@ -126,8 +128,8 @@ Timer.prototype.getTimePercent = function () {
   return this.getTime() / this.endTime;
 };
 
-Timer.prototype.setTimePercent = function (percent) {
-  this.setTime(percent * this.endTime);
+Timer.prototype.setTimePercent = function (percent, skipMusicUpdate) {
+  this.setTime(percent * this.endTime, skipMusicUpdate);
 };
 
 Timer.prototype.getTimeInSeconds = function () {
