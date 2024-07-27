@@ -22,7 +22,6 @@ DemoRenderer.prototype.getInstance = function () {
   return DemoRenderer.prototype._singletonInstance;
 };
 
-const aspectRatio = settings.demo.screen.aspectRatio;
 let scene, camera;
 let scenes = [];
 let cameras = [];
@@ -162,6 +161,7 @@ DemoRenderer.prototype.init = function () {
 };
 
 DemoRenderer.prototype.resize = function () {
+  const aspectRatio = settings.demo.screen.aspectRatio;
   const scaleDown = settings.demo.screen.quality * settings.menu.quality;
   const scaleUp = 1.0 / scaleDown;
 
