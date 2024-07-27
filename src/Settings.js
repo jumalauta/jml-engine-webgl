@@ -21,6 +21,7 @@ Settings.prototype.init = function () {
     tool: true,
     fileWatchInterval: 250,
     preload: true,
+    preloadSteps: 500,
     enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
     webDemoExe: false,
     startTime: 0

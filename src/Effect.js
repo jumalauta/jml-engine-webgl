@@ -11,9 +11,8 @@ import { Music } from './Music';
 import { Sync } from './Sync';
 import { LoadingBar } from './LoadingBar';
 import { Timer } from './Timer';
-import { DemoRenderer, getCamera, getScene } from './DemoRenderer';
+import { DemoRenderer } from './DemoRenderer';
 import { FileManager } from './FileManager';
-import { Fbo } from './Fbo';
 import { Video } from './Video';
 import { Spectogram } from './Spectogram';
 import { Settings } from './Settings';
@@ -91,7 +90,7 @@ Effect.init = function (effectName) {
       for (let i = 0; i < effect.loader.promises.length; i++) {
         effect.loader.promises[i].finally(() => {
           processedPromises++;
-          const percent = (processedPromises / promiseCount) * 0.9;
+          const percent = (processedPromises / promiseCount) * 0.8;
           loadingBar.setPercent(percent);
         });
       }
@@ -106,26 +105,9 @@ Effect.init = function (effectName) {
         await effect.loader.promises.shift();
       }
 
-      loadingBar.setPercent(0.9);
+      loadingBar.setPercent(0.85);
       await new Sync().init();
       effect.loader.processAnimation();
-
-      if (settings.engine.preload) {
-        const preCompileList = [];
-        const fbos = Fbo.getFbos();
-        for (const key in fbos) {
-          const fbo = fbos[key];
-          preCompileList.push({ scene: fbo.scene, camera: fbo.camera });
-        }
-        preCompileList.push({ scene: getScene(), camera: getCamera() });
-        for (let i = 0; i < preCompileList.length && isStarted(); i++) {
-          loadingBar.setPercent(0.95 + (i / preCompileList.length) * 0.05);
-          const item = preCompileList[i];
-          // TODO: compile throws errors, render is flexible but still builds at least the shaders
-          // demoRenderer.renderer.compile(item.scene, item.camera);
-          demoRenderer.renderer.render(item.scene, item.camera);
-        }
-      }
 
       let action;
       if (isStarted()) {
@@ -134,6 +116,23 @@ Effect.init = function (effectName) {
         if (!timer.isStarted()) {
           timer.start();
           action = 'Starting';
+
+          if (settings.engine.preload) {
+            const now = Date.now();
+            const steps = settings.engine.preloadSteps;
+            const timer = new Timer();
+            const demoRenderer = new DemoRenderer();
+            for (let i = 0; i < steps; i++) {
+              const percent = i / steps;
+              timer.setTimePercent(percent);
+              timer.update();
+              demoRenderer.clear();
+              demoRenderer.render();
+              loadingBar.setPercent(0.9 + percent * 0.1);
+            }
+
+            loggerDebug(`Preloading took ${Date.now() - now} ms`);
+          }
         }
         if (forceResume) {
           timer.pause();
@@ -163,9 +162,10 @@ Effect.init = function (effectName) {
       stopDemo();
     } finally {
       Effect.loading = false;
+
+      loadingBar.setPercent(1.0);
       const time = settings.engine.startTime || 0;
       startAnimate(time);
-      loadingBar.setPercent(1.0);
       settings.engine.startTime = 0;
     }
   })();
