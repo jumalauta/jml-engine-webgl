@@ -139,6 +139,21 @@ Effect.init = function (effectName) {
               return;
             }
 
+            const programs = demoRenderer.renderer.info.programs;
+            let compileFailure = false;
+
+            for (let i = 0; i < programs.length; i++) {
+              const diagnostics = programs[i].diagnostics;
+              if (diagnostics && diagnostics.runnable === false) {
+                compileFailure = true;
+                loggerWarning(`Shader compilation failed: ${programs[i].name}`);
+              }
+            }
+
+            if (compileFailure) {
+              throw new Error('Shader compilation failed');
+            }
+
             loggerDebug(`Preloading took ${Date.now() - now} ms`);
           }
 
