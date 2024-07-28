@@ -227,7 +227,23 @@ this.loader.addAnimation({
 });
 ```
 
-#### 3D image
+#### 3D image - sprite
+
+3D Image that faces the camera
+
+```JavaScript
+this.loader.addAnimation({
+	"image": "jml_fist.png",
+  "perspective":"3d", // tells that the image should be in 3D and not in default 2D
+  "position":[{"x":0,"y":0,"z":-5}],
+  "sprite":true, // implements billboarding using https://threejs.org/docs/#api/en/objects/Sprite - note that this is not compatible with instancing, use billboard:true for instancing
+  "additive":true // disable depth write and enable additive blending
+});
+```
+
+#### 3D image - billboarding
+
+3D Image that faces the camera
 
 ```JavaScript
 this.loader.addAnimation({

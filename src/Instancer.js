@@ -126,6 +126,8 @@ Instancer.prototype.createMesh = function (geometry, material) {
   if (material && geometry && geometry.isBufferGeometry) {
     if (this.instancer) {
       mesh = this.createInstancedMesh(geometry, material);
+    } else if (material.isSpriteMaterial) {
+      mesh = new THREE.Sprite(material);
     } else {
       mesh = new THREE.Mesh(geometry, material);
     }

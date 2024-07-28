@@ -30,48 +30,72 @@ const Image = function (animationDefinition) {
   }
 
   this.textureProperties = animationDefinition.textureProperties || [];
+  this.sprite = animationDefinition.sprite === true;
   this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
+
+  if (this.sprite) {
+    if (this.billboard) {
+      loggerWarning(
+        'Sprite and billboard settings are mutually incompatible and should not be enabled at the same time: ' +
+          JSON.stringify(animationDefinition)
+      );
+    }
+
+    if (animationDefinition.instancer) {
+      loggerWarning(
+        'Sprite and instancer settings are mutually incompatible and should not be enabled at the same time: ' +
+          JSON.stringify(animationDefinition)
+      );
+    }
+  }
 };
 
 Image.prototype.createMaterial = function () {
-  const uniforms = {
-    color: { value: new THREE.Vector4(1, 1, 1, 1) }
-  };
+  let material;
 
-  for (let i = 0; i < this.texture.length; i++) {
-    uniforms['texture' + i] = { value: this.texture[i] };
+  if (this.sprite) {
+    material = new THREE.SpriteMaterial();
+  } else {
+    const uniforms = {
+      color: { value: new THREE.Vector4(1, 1, 1, 1) }
+    };
+
+    for (let i = 0; i < this.texture.length; i++) {
+      uniforms['texture' + i] = { value: this.texture[i] };
+    }
+
+    let vertexShader = vertexShader2dData;
+    if (!this.perspective2d) {
+      vertexShader = this.billboard
+        ? vertexShader3dBillboardData
+        : vertexShader3dData;
+    }
+
+    const shader = {
+      uniforms,
+      vertexShader,
+      fragmentShader: fragmentShaderData
+    };
+
+    material = new THREE.ShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      uniforms: THREE.UniformsUtils.clone(shader.uniforms),
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader
+      // blending:THREE.CustomBlending,
+      // depthTest: false,
+      // depthWrite: false,
+      // transparent: true,
+      // map: texture,
+    });
+    // material = settings.createMaterial(settings.demo.image.material);
+    material.blending = THREE.CustomBlending;
   }
 
-  let vertexShader = vertexShader2dData;
-  if (!this.perspective2d) {
-    vertexShader = this.billboard
-      ? vertexShader3dBillboardData
-      : vertexShader3dData;
-  }
-
-  const shader = {
-    uniforms,
-    vertexShader,
-    fragmentShader: fragmentShaderData
-  };
-
-  const material = new THREE.ShaderMaterial({
-    glslVersion: THREE.GLSL3,
-    uniforms: THREE.UniformsUtils.clone(shader.uniforms),
-    vertexShader: shader.vertexShader,
-    fragmentShader: shader.fragmentShader
-    // blending:THREE.CustomBlending,
-    // depthTest: false,
-    // depthWrite: false,
-    // transparent: true,
-    // map: texture,
-  });
-  // material = settings.createMaterial(settings.demo.image.material);
   material.map = this.texture[0];
 
-  material.blending = THREE.CustomBlending;
   if (this.perspective2d) {
     material.depthTest = true;
     material.depthWrite = false;
@@ -238,13 +262,18 @@ Image.prototype.setPerspective2d = function (perspective2d) {
 
 Image.prototype.setRotation = function (degreesX, degreesY, degreesZ, x, y, z) {
   // setTextureRotation(this.ptr, degreesX, degreesY, degreesZ, x, y, z);
-  this.mesh.rotation.x = (degreesX * Math.PI) / 180;
-  this.mesh.rotation.y = (degreesY * Math.PI) / 180;
-  this.mesh.rotation.z = (degreesZ * Math.PI) / 180;
-  if (settings.demo.compatibility.oldRotation) {
-    this.mesh.rotation.x *= -1;
-    this.mesh.rotation.y *= -1;
-    this.mesh.rotation.z *= -1;
+
+  if (this.sprite) {
+    this.mesh.material.rotation = (degreesZ * Math.PI) / 180;
+  } else {
+    this.mesh.rotation.x = (degreesX * Math.PI) / 180;
+    this.mesh.rotation.y = (degreesY * Math.PI) / 180;
+    this.mesh.rotation.z = (degreesZ * Math.PI) / 180;
+    if (settings.demo.compatibility.oldRotation) {
+      this.mesh.rotation.x *= -1;
+      this.mesh.rotation.y *= -1;
+      this.mesh.rotation.z *= -1;
+    }
   }
 
   // this.mesh.rotation = new THREE.Euler( radiansX, radiansY, radiansZ, 'XYZ' );
@@ -318,8 +347,10 @@ Image.prototype.draw = function (time) {
   // this.mesh.visible = true;
   this.instancer.draw(time);
 
-  for (let i = 0; i < this.texture.length; i++) {
-    this.material.uniforms['texture' + i].value = this.texture[i];
+  if (this.material.uniforms) {
+    for (let i = 0; i < this.texture.length; i++) {
+      this.material.uniforms['texture' + i].value = this.texture[i];
+    }
   }
 };
 
