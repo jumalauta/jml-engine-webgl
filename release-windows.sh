@@ -8,6 +8,9 @@ rm -fr dist/
 NODE_ENV=exe npx vite build
 
 #this canbe used to check if build works: npx vite preview
+rm -rf dist/data_*
+rm -rf dist/testdata*
+rm -f dist/playlist.js
 
 CURRENT_DIR=$(pwd)
 
@@ -40,4 +43,4 @@ mv dist demo
 cd $CURRENT_DIR
 mv $TMPDIR $CURRENT_DIR/dist/release
 
-echo Release is in dist/release
+echo Release is in dist/release - copy your 'data' directory into dist/release/demo/
