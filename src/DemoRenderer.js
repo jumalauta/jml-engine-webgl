@@ -252,11 +252,13 @@ DemoRenderer.prototype.render = function () {
 DemoRenderer.prototype.preload = function (percent) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const timer = new Timer();
-      timer.setTimePercent(percent, true);
-      timer.update();
-      this.clear();
-      this.render();
+      if (settings.engine.preload) {
+        const timer = new Timer();
+        timer.setTimePercent(percent, true);
+        timer.update();
+        this.clear();
+        this.render();
+      }
 
       resolve();
     }, 1);

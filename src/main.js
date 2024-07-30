@@ -354,6 +354,14 @@ function screenshot() {
 
 window.addEventListener('resize', windowResize, false);
 
+function rewindTime(time) {
+  if (Effect.loading) {
+    settings.engine.preload = false; // skip preloading
+  } else {
+    timer.setTime(timer.getTime() + time);
+  }
+}
+
 document.addEventListener('keydown', (event) => {
   if (event.repeat) {
     return;
@@ -364,18 +372,18 @@ document.addEventListener('keydown', (event) => {
   } else if (event.key === 'Enter') {
     startDemo();
   } else if (settings.engine.tool) {
-    if (event.key === '1' || event.key === 'ArrowLeft') {
-      timer.setTime(timer.getTime() - 1000);
-    } else if (event.key === '2' || event.key === 'ArrowRight') {
-      timer.setTime(timer.getTime() + 1000);
+    if (event.key === 'ArrowLeft') {
+      rewindTime(-1000);
+    } else if (event.key === 'ArrowRight') {
+      rewindTime(1000);
     } else if (event.key === 'ArrowDown') {
-      timer.setTime(timer.getTime() - 1000 / 60);
+      rewindTime(-1000 / 60);
     } else if (event.key === 'ArrowUp') {
-      timer.setTime(timer.getTime() + 1000 / 60);
+      rewindTime(1000 / 60);
     } else if (event.key === 'PageDown') {
-      timer.setTime(timer.getTime() - 10000);
+      rewindTime(-10000);
     } else if (event.key === 'PageUp') {
-      timer.setTime(timer.getTime() + 10000);
+      rewindTime(10000);
     } else if (event.key === '3' || event.code === 'Space') {
       timer.pause();
     } else if (event.key === 'r') {
