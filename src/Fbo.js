@@ -70,27 +70,29 @@ Fbo.init = function (name, sceneName) {
       settings.demo.fbo.quality *
       settings.menu.quality
   );
-  settings.toThreeJsProperties(
-    settings.demo.fbo.color.texture,
-    fbo.target.texture
-  );
   fbo.target.depthTexture = new THREE.DepthTexture();
   fbo.target.depthTexture.format = THREE.DepthFormat;
   fbo.target.depthTexture.type = THREE.UnsignedShortType;
-  settings.toThreeJsProperties(
-    settings.demo.fbo.depth.texture,
-    fbo.target.depthTexture
-  );
   fbo.target.stencilBuffer =
     fbo.target.depthTexture.format === THREE.DepthStencilFormat;
 
   fbo.color = new Image();
   fbo.color.texture = [fbo.target.texture];
   fbo.color.generateMesh();
+  settings.toThreeJsProperties(
+    settings.demo.fbo.color.texture,
+    fbo.target.texture
+  );
+  fbo.target.texture.needsUpdate = true;
 
   fbo.depth = new Image();
   fbo.depth.texture = [fbo.target.depthTexture];
   fbo.depth.generateMesh();
+  settings.toThreeJsProperties(
+    settings.demo.fbo.depth.texture,
+    fbo.target.depthTexture
+  );
+  fbo.target.depthTexture.needsUpdate = true;
 
   fbo.ptr = fbo.target;
 
