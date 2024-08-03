@@ -1,3 +1,9 @@
+import { loggerTrace } from './Bindings';
+import { setWaitingForFrame } from './main';
+import { Settings } from './Settings';
+
+const settings = new Settings();
+
 const ToolClient = function () {
   return this.getInstance();
 };
@@ -11,14 +17,23 @@ ToolClient.prototype.getInstance = function () {
 };
 
 ToolClient.prototype.init = function () {
-  this.client = new WebSocket('ws://localhost:7447/');
+  this.client = new WebSocket(
+    `${settings.tool.uriScheme}://${settings.tool.host}:${settings.tool.port}`
+  );
 
   this.client.onopen = (event) => {
     this.client.send(JSON.stringify({ type: 'CONNECT' }));
   };
 
-  this.client.onmessage = (event) => {
-    console.log('SERVER MESSAGE', event);
+  this.client.onmessage = (data) => {
+    const event = JSON.parse(data.data);
+    if (event.type === 'HELLO') {
+      loggerTrace('Connected to server');
+    } else if (event.type === 'CAPTURE_FRAME_SUCCESS') {
+      setWaitingForFrame(true);
+    } else {
+      console.log('SERVER MESSAGE', data);
+    }
   };
 
   this.client.onclose = (event) => {
@@ -31,6 +46,10 @@ ToolClient.prototype.init = function () {
 };
 
 ToolClient.prototype.send = function (message) {
+  if (message.type !== 'CAPTURE_FRAME') {
+    loggerTrace(`Sending message to server: ${JSON.stringify(message)}`);
+  }
+
   this.client.send(JSON.stringify(message));
 };
 

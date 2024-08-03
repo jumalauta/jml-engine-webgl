@@ -27,6 +27,12 @@ Settings.prototype.init = function () {
     startTime: 0
   };
 
+  this.tool = {
+    uriScheme: 'ws',
+    host: 'localhost',
+    port: 7448
+  };
+
   this.menu = {
     quality: 1.0
   };

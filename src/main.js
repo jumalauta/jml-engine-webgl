@@ -124,12 +124,81 @@ toolUi.init();
 
 const demoRenderer = new DemoRenderer();
 
+function canvasToDataUrl() {
+  const canvas = document.getElementById('canvas');
+  const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+  return dataUrl;
+}
+
+function screenshot() {
+  window.open(canvasToDataUrl(), '_blank');
+}
+
 let animationFrameId;
 let oldTime;
+let capture = false;
+let frame = -1;
+let captureStartTime;
+let waitingForFrame = false;
+const fps = 60;
+const oneFrame = 1000 / fps;
+
+export function setWaitingForFrame(wait) {
+  waitingForFrame = wait;
+}
+
+function captureStop() {
+  if (capture) {
+    capture = false;
+    toolClient.send({ type: 'CAPTURE_STOP' });
+    loggerInfo(
+      `Capture ending. Captured ${frame} frames in ${((Date.now() - captureStartTime) / 1000 / 60).toFixed(2)} m`
+    );
+
+    alert('Capture ended');
+  }
+}
+
+function captureFrame() {
+  if (settings.engine.tool && capture && waitingForFrame) {
+    const newFrame = Math.floor(timer.getTime() / oneFrame + 0.5);
+    if (newFrame <= frame) {
+      return false;
+    }
+
+    frame = newFrame;
+    // setWaitingForFrame(false);
+
+    toolClient.send({
+      type: 'CAPTURE_FRAME',
+      dataUrl: canvasToDataUrl(),
+      frame,
+      time: timer.getTime()
+    });
+
+    console.log(
+      `Frame ${frame} captured at time ${(timer.getTime() / 1000).toFixed(4)} s`
+    );
+    timer.setTime(((frame + 1) * 1000) / fps);
+    const checkFrame = Math.floor(timer.getTime() / oneFrame + 0.5);
+    if (checkFrame !== frame + 1) {
+      throw new Error(
+        `Unexpected new frame ${(timer.getTime() / 1000).toFixed(4)} s, oldFrame: ${frame}, newFrame: ${checkFrame}`
+      );
+    }
+
+    return true;
+  }
+
+  return false;
+}
 
 function animate() {
   toolUi.update();
-  toolUi.stats.begin();
+
+  if (!capture) {
+    toolUi.stats.begin();
+  }
 
   if (loadingBar.percent < 1.0) {
     loadingBar.render();
@@ -162,11 +231,19 @@ function animate() {
     demoRenderer.render();
   }
 
-  toolUi.stats.end();
+  if (capture && settings.engine.tool) {
+    if (captureFrame()) {
+      toolUi.stats.end();
+      toolUi.stats.begin();
+    }
+  } else {
+    toolUi.stats.end();
+  }
 
-  if (timer.isEnd() && !timer.isPaused()) {
+  if (timer.isEnd()) {
     if (settings.engine.tool) {
-      timer.pause();
+      captureStop();
+      timer.pause(true);
     } else {
       demoRenderer.renderer.clear();
       stopDemo();
@@ -313,6 +390,8 @@ window.startDemo = startDemo;
 export function stopDemo() {
   loggerInfo('Stopping demo...');
 
+  captureStop();
+
   timer.stop();
 
   demoRenderer.clear();
@@ -361,16 +440,6 @@ function windowResize() {
   demoRenderer.setRenderNeedsUpdate(true);
 }
 
-function captureFrame() {
-  const canvas = document.getElementById('canvas');
-  const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
-  return dataUrl;
-}
-
-function screenshot() {
-  window.open(captureFrame(), '_blank');
-}
-
 window.addEventListener('resize', windowResize, false);
 
 function rewindTime(time) {
@@ -382,8 +451,6 @@ function rewindTime(time) {
 }
 
 document.addEventListener('keydown', (event) => {
-  const fps = 60;
-  const oneFrame = 1000 / fps;
   if (event.repeat) {
     return;
   }
@@ -432,24 +499,22 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key === 'Home') {
       timer.setTimePercent(0.0);
     } else if (event.key === 'p' && isStarted()) {
-      const frameDelay = 20;
-      const estimate = (frameDelay * timer.getEndTime()) / 1000 / 60;
-      if (
-        !confirm(
-          `Want to start video capture? Estimated time: ${estimate.toFixed(2)} m`
-        )
-      ) {
+      // const frameDelay = 20;
+      if (!confirm('Want to start video capture?')) {
         return;
       }
 
       timer.pause(true);
       timer.setTime(0);
-      let frame = 0;
-      const startTime = Date.now();
+      captureStartTime = Date.now();
       toolClient.send({ type: 'CAPTURE_START' });
 
       setTimeout(() => {
-        const intervalId = setInterval(() => {
+        frame = -1;
+        capture = true;
+        setWaitingForFrame(true);
+        captureFrame();
+        /* const intervalId = setInterval(() => {
           toolClient.send({
             type: 'CAPTURE_FRAME',
             dataUrl: captureFrame(),
@@ -463,7 +528,7 @@ document.addEventListener('keydown', (event) => {
               `Capture ending. Captured ${frame} frames in ${Date.now() - startTime} ms`
             );
           }
-        }, frameDelay);
+        }, frameDelay); */
       }, 1000);
     }
   }
