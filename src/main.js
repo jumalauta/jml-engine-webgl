@@ -161,7 +161,8 @@ function captureStop() {
 
 function captureFrame() {
   if (settings.engine.tool && capture && waitingForFrame) {
-    const newFrame = Math.floor(timer.getTime() / oneFrame + 0.5);
+    const roundingSkew = 0.1;
+    const newFrame = Math.floor(timer.getTime() / oneFrame + roundingSkew);
     if (newFrame <= frame) {
       return false;
     }
@@ -176,15 +177,33 @@ function captureFrame() {
       time: timer.getTime()
     });
 
-    console.log(
+    /* console.log(
       `Frame ${frame} captured at time ${(timer.getTime() / 1000).toFixed(4)} s`
-    );
+    ); */
     timer.setTime(((frame + 1) * 1000) / fps);
-    const checkFrame = Math.floor(timer.getTime() / oneFrame + 0.5);
+    const checkFrame = Math.floor(timer.getTime() / oneFrame + roundingSkew);
     if (checkFrame !== frame + 1) {
-      throw new Error(
+      loggerWarning(
         `Unexpected new frame ${(timer.getTime() / 1000).toFixed(4)} s, oldFrame: ${frame}, newFrame: ${checkFrame}`
       );
+
+      const allowedSkipFrameCount = 7;
+      if (checkFrame >= frame && checkFrame <= frame + allowedSkipFrameCount) {
+        loggerTrace(
+          `Timer inaccuracy detected. Adding frame ${frame - 1} as frames ${frame} to ${checkFrame}`
+        );
+        for (let i = frame + 1; i < checkFrame; i++) {
+          toolClient.send({
+            type: 'CAPTURE_FRAME',
+            dataUrl: canvasToDataUrl(),
+            frame: i,
+            time: timer.getTime()
+          });
+        }
+      } else {
+        loggerWarning('Timer too inaccurate, ending recording');
+        stopDemo();
+      }
     }
 
     return true;
