@@ -21,18 +21,18 @@ Spectogram.prototype.getInstance = function () {
 };
 
 Spectogram.prototype.init = async function () {
-  this.spectogramPath = 'spectogram.png';
+  this.spectogramPath = settings.demo.music.spectogramFile;
   this.available = false;
 
   try {
-    if (this.spectogramImage && this.spectogramImage.mesh) {
-      this.spectogramImage.mesh.remove();
-    }
+    if (this.spectogramPath) {
+      if (this.spectogramImage && this.spectogramImage.mesh) {
+        this.spectogramImage.mesh.remove();
+      }
 
-    this.spectogramImage = new Image();
-    await this.spectogramImage.load(this.spectogramPath);
+      this.spectogramImage = new Image();
+      await this.spectogramImage.load(this.spectogramPath);
 
-    if (settings.demo.music.spectogram) {
       this.fbo = Fbo.init('spectogram');
       this.fbo.scene.add(this.spectogramImage.mesh);
 
@@ -54,7 +54,7 @@ Spectogram.prototype.show = function (visible) {
   if (panel) {
     if (!visible || !this.available) {
       panel.style.backgroundImage = null;
-    } else if (visible) {
+    } else if (visible && this.spectogramPath) {
       const fileManager = new FileManager();
       panel.style.backgroundImage = `url(${fileManager.getPath(this.spectogramPath)})`;
     }
@@ -62,7 +62,7 @@ Spectogram.prototype.show = function (visible) {
 };
 
 Spectogram.prototype.update = function () {
-  if (this.available && settings.demo.music.spectogram) {
+  if (this.available && this.spectogramPath) {
     const timer = new Timer();
     const x = Math.floor(timer.getTimePercent() * this.fbo.target.width);
 

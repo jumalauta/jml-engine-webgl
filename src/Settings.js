@@ -28,11 +28,11 @@ Settings.prototype.init = function () {
   };
 
   this.menu = {
-    volume: 1.0,
     quality: 1.0
   };
 
   this.demo = {
+    duration: undefined, // duration in milliseconds, if not specified, music duration is used
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
     sync: {
       rocketFile: undefined, // rocket websocket + file connection can be enabled by defining rocket file path, e.g.: 'sync/sync.rocket'
@@ -41,7 +41,9 @@ Settings.prototype.init = function () {
     },
     music: {
       musicFile: 'music.mp3',
-      spectogram: true
+      spectogramFile: 'spectogram.png',
+      volume: 1.0,
+      loop: false
     },
     // backgroundColor: { r: 0.0, g: 1.0, b: 0.0 },
     /* fog: {

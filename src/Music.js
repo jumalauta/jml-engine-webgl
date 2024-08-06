@@ -51,9 +51,12 @@ Music.prototype.load = function (url) {
         instance.listener = new THREE.AudioListener();
         instance.audio = new THREE.Audio(instance.listener);
         instance.audio.setBuffer(buffer);
-        instance.audio.setVolume(settings.menu.volume);
+        instance.audio.setVolume(settings.demo.music.volume);
+        instance.audio.setLoop(settings.demo.music.loop);
         instance.duration = buffer.duration;
-        new Timer().setEndTime(instance.duration * 1000);
+        new Timer().setEndTime(
+          settings.demo.duration || instance.duration * 1000
+        );
         loggerDebug(
           'Loaded music ' + url + ' (length ' + instance.duration + 's)'
         );
