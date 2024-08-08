@@ -465,7 +465,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
       animationDefinition.duration === undefined &&
       animationDefinition.end === undefined
     ) {
-      animationDefinition.duration = 3600;
+      animationDefinition.duration = 10000;
     }
 
     if (animationDefinition.layer === undefined) {
