@@ -15,6 +15,19 @@ Settings.prototype.getInstance = function () {
   return Settings.prototype._singletonInstance;
 };
 
+Settings.prototype.asObject = function () {
+  return {
+    engine: this.engine,
+    tool: this.tool,
+    menu: this.menu,
+    demo: this.demo
+  };
+};
+
+Settings.prototype.asJson = function () {
+  return JSON.stringify(this.asObject(), null, 2);
+};
+
 Settings.prototype.init = function () {
   this.engine = {
     demoPathPrefix: 'data/',
@@ -25,6 +38,13 @@ Settings.prototype.init = function () {
     enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
     webDemoExe: false,
     startTime: 0
+  };
+
+  this.tool = {
+    enabled: false,
+    uriScheme: 'ws',
+    host: 'localhost',
+    port: 7448
   };
 
   this.menu = {

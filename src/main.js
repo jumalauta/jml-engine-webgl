@@ -17,6 +17,10 @@ import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { Music } from './Music';
 import { Fullscreen } from './Fullscreen';
+import { ToolClient } from './ToolClient';
+
+const toolClient = new ToolClient();
+toolClient.init();
 
 const fullscreen = new Fullscreen();
 
@@ -27,6 +31,13 @@ const javaScriptFile = new JavaScriptFile();
 const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
+
+function setDemoPathPrefix(prefix) {
+  settings.engine.demoPathPrefix = prefix;
+  if (toolClient.isEnabled()) {
+    toolClient.synchronizeSettings();
+  }
+}
 
 function setStartTime() {
   const startTime = new URLSearchParams(window.location.search).get('time');
@@ -56,7 +67,7 @@ function clearCache() {
 
   if (select) {
     if (select.value) {
-      settings.engine.demoPathPrefix = select.value;
+      setDemoPathPrefix(select.value);
     }
     javaScriptFile.load('Demo.js');
   }
@@ -87,14 +98,14 @@ if (select) {
       select.addEventListener('change', () => {
         clearCache();
         fileManager.clearCache();
-        settings.engine.demoPathPrefix = select.value;
+        setDemoPathPrefix(select.value);
         startButton.classList.add('disabled');
         select.classList.add('disabled');
       });
 
       if (select.value) {
         clearCache();
-        settings.engine.demoPathPrefix = select.value;
+        setDemoPathPrefix(select.value);
       } else {
         select.style.display = 'none';
       }
@@ -120,12 +131,100 @@ toolUi.init();
 
 const demoRenderer = new DemoRenderer();
 
+function canvasToDataUrl() {
+  const canvas = document.getElementById('canvas');
+  const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+  return dataUrl;
+}
+
+function screenshot() {
+  window.open(canvasToDataUrl(), '_blank');
+}
+
 let animationFrameId;
 let oldTime;
+let capture = false;
+let frame = -1;
+let captureStartTime;
+let waitingForFrame = false;
+const fps = 60;
+const oneFrame = 1000 / fps;
+
+export function setWaitingForFrame(wait) {
+  waitingForFrame = wait;
+}
+
+function captureStop() {
+  if (capture) {
+    capture = false;
+    toolClient.send({ type: 'CAPTURE_STOP' });
+    loggerInfo(
+      `Capture ending. Captured ${frame} frames in ${((Date.now() - captureStartTime) / 1000 / 60).toFixed(2)} m`
+    );
+
+    alert('Capture ended');
+  }
+}
+
+function captureFrame() {
+  if (settings.engine.tool && capture && waitingForFrame) {
+    const roundingSkew = 0.1;
+    const newFrame = Math.floor(timer.getTime() / oneFrame + roundingSkew);
+    if (newFrame <= frame) {
+      return false;
+    }
+
+    frame = newFrame;
+    // setWaitingForFrame(false);
+
+    toolClient.send({
+      type: 'CAPTURE_FRAME',
+      dataUrl: canvasToDataUrl(),
+      frame,
+      time: timer.getTime()
+    });
+
+    /* console.log(
+      `Frame ${frame} captured at time ${(timer.getTime() / 1000).toFixed(4)} s`
+    ); */
+    timer.setTime(((frame + 1) * 1000) / fps);
+    const checkFrame = Math.floor(timer.getTime() / oneFrame + roundingSkew);
+    if (checkFrame !== frame + 1) {
+      loggerWarning(
+        `Unexpected new frame ${(timer.getTime() / 1000).toFixed(4)} s, oldFrame: ${frame}, newFrame: ${checkFrame}`
+      );
+
+      const allowedSkipFrameCount = 7;
+      if (checkFrame >= frame && checkFrame <= frame + allowedSkipFrameCount) {
+        loggerTrace(
+          `Timer inaccuracy detected. Adding frame ${frame - 1} as frames ${frame} to ${checkFrame}`
+        );
+        for (let i = frame + 1; i < checkFrame; i++) {
+          toolClient.send({
+            type: 'CAPTURE_FRAME',
+            dataUrl: canvasToDataUrl(),
+            frame: i,
+            time: timer.getTime()
+          });
+        }
+      } else {
+        loggerWarning('Timer too inaccurate, ending recording');
+        stopDemo();
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+}
 
 function animate() {
   toolUi.update();
-  toolUi.stats.begin();
+
+  if (!capture) {
+    toolUi.stats.begin();
+  }
 
   if (loadingBar.percent < 1.0) {
     loadingBar.render();
@@ -158,11 +257,19 @@ function animate() {
     demoRenderer.render();
   }
 
-  toolUi.stats.end();
+  if (capture && settings.engine.tool) {
+    if (captureFrame()) {
+      toolUi.stats.end();
+      toolUi.stats.begin();
+    }
+  } else {
+    toolUi.stats.end();
+  }
 
-  if (timer.isEnd() && !timer.isPaused()) {
+  if (timer.isEnd()) {
     if (settings.engine.tool) {
-      timer.pause();
+      captureStop();
+      timer.pause(true);
     } else {
       demoRenderer.renderer.clear();
       stopDemo();
@@ -309,6 +416,8 @@ window.startDemo = startDemo;
 export function stopDemo() {
   loggerInfo('Stopping demo...');
 
+  captureStop();
+
   timer.stop();
 
   demoRenderer.clear();
@@ -357,12 +466,6 @@ function windowResize() {
   demoRenderer.setRenderNeedsUpdate(true);
 }
 
-function screenshot() {
-  const canvas = document.getElementById('canvas');
-  const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
-  window.open(dataUrl, '_blank');
-}
-
 window.addEventListener('resize', windowResize, false);
 
 function rewindTime(time) {
@@ -388,9 +491,9 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key === 'ArrowRight') {
       rewindTime(1000);
     } else if (event.key === 'ArrowDown') {
-      rewindTime(-1000 / 60);
+      rewindTime(-oneFrame);
     } else if (event.key === 'ArrowUp') {
-      rewindTime(1000 / 60);
+      rewindTime(oneFrame);
     } else if (event.key === 'PageDown') {
       rewindTime(-10000);
     } else if (event.key === 'PageUp') {
@@ -421,6 +524,27 @@ document.addEventListener('keydown', (event) => {
       timer.setTimePercent(0.99);
     } else if (event.key === 'Home') {
       timer.setTimePercent(0.0);
+    } else if (event.key === 'p' && isStarted()) {
+      if (!toolClient.isEnabled()) {
+        alert('Tool server not enabled, cannot capture');
+        return;
+      }
+
+      if (!confirm('Want to start video capture?')) {
+        return;
+      }
+
+      timer.pause(true);
+      timer.setTime(0);
+      captureStartTime = Date.now();
+      toolClient.send({ type: 'CAPTURE_START' });
+
+      setTimeout(() => {
+        frame = -1;
+        capture = true;
+        setWaitingForFrame(true);
+        captureFrame();
+      }, 1000);
     }
   }
 });
