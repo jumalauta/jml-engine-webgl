@@ -34,6 +34,10 @@ Timer.prototype.setEndTime = function (endTime) {
   this.endTime = endTime;
 };
 
+Timer.prototype.getEndTime = function () {
+  return this.endTime;
+};
+
 Timer.prototype.start = function () {
   loggerInfo('Starting demo timer');
   new FileManager().startWatchFileChanges();
