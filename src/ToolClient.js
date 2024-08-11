@@ -1,4 +1,4 @@
-import { loggerTrace } from './Bindings';
+import { loggerTrace, loggerWarning } from './Bindings';
 import { setWaitingForFrame } from './main';
 import { Settings } from './Settings';
 
@@ -16,19 +16,35 @@ ToolClient.prototype.getInstance = function () {
   return ToolClient.prototype._singletonInstance;
 };
 
+ToolClient.prototype.isEnabled = function () {
+  if (settings.tool.enabled && settings.engine.tool) {
+    return true;
+  }
+
+  return false;
+};
+
 ToolClient.prototype.init = function () {
+  if (!this.isEnabled()) {
+    return;
+  }
+
+  this.connected = false;
+
   this.client = new WebSocket(
     `${settings.tool.uriScheme}://${settings.tool.host}:${settings.tool.port}`
   );
 
-  this.client.onopen = (event) => {
+  this.client.onopen = () => {
     this.client.send(JSON.stringify({ type: 'CONNECT' }));
+    this.connected = true;
   };
 
   this.client.onmessage = (data) => {
     const event = JSON.parse(data.data);
     if (event.type === 'HELLO') {
       loggerTrace('Connected to server');
+      this.synchronizeSettings();
     } else if (event.type === 'CAPTURE_FRAME_SUCCESS') {
       setWaitingForFrame(true);
     } else {
@@ -38,6 +54,7 @@ ToolClient.prototype.init = function () {
 
   this.client.onclose = (event) => {
     console.log('SERVER CLOSE', event);
+    this.connected = false;
   };
 
   this.client.onerror = (event) => {
@@ -45,12 +62,28 @@ ToolClient.prototype.init = function () {
   };
 };
 
+ToolClient.prototype.synchronizeSettings = function () {
+  if (this.connected) {
+    this.send({ type: 'SETTINGS', settings: settings.asObject() });
+  }
+};
+
 ToolClient.prototype.send = function (message) {
-  if (message.type !== 'CAPTURE_FRAME') {
+  if (!this.connected) {
+    throw new Error(
+      `Client is not connected, cannot send message to server: ${JSON.stringify(message)}`
+    );
+  }
+
+  if (message.type !== 'CAPTURE_FRAME' && message.type !== 'SETTINGS') {
     loggerTrace(`Sending message to server: ${JSON.stringify(message)}`);
   }
 
-  this.client.send(JSON.stringify(message));
+  try {
+    this.client.send(JSON.stringify(message));
+  } catch (e) {
+    loggerWarning(`Failed to send message to server: ${e}`);
+  }
 };
 
 export { ToolClient };

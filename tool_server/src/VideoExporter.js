@@ -1,10 +1,19 @@
 import { pino } from 'pino';
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
 const logger = pino();
 
 const VideoExporter = function () {
   this.ready = false;
+};
+
+VideoExporter.prototype.setMusicPath = function (path) {
+  if (!existsSync(path)) {
+    throw new Error(`Music file not found: ${path}`);
+  }
+
+  this.musicPath = path;
 };
 
 VideoExporter.prototype.spawn = function (onSpawn, onClose) {
@@ -24,7 +33,7 @@ VideoExporter.prototype.spawn = function (onSpawn, onClose) {
     '-',
     // input audio
     '-i',
-    'music.mp3',
+    this.musicPath,
     '-c:a',
     'aac',
     '-b:a',
@@ -56,6 +65,10 @@ VideoExporter.prototype.spawn = function (onSpawn, onClose) {
   ffmpeg.on('spawn', () => {
     this.ready = true;
     onSpawn();
+  });
+
+  ffmpeg.on('error', (err) => {
+    logger.error(`ffmpeg error: ${err}`);
   });
 
   ffmpeg.on('close', (code) => {

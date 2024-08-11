@@ -32,6 +32,13 @@ const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
 
+function setDemoPathPrefix(prefix) {
+  settings.engine.demoPathPrefix = prefix;
+  if (toolClient.isEnabled()) {
+    toolClient.synchronizeSettings();
+  }
+}
+
 function setStartTime() {
   const startTime = new URLSearchParams(window.location.search).get('time');
   if (startTime) {
@@ -60,7 +67,7 @@ function clearCache() {
 
   if (select) {
     if (select.value) {
-      settings.engine.demoPathPrefix = select.value;
+      setDemoPathPrefix(select.value);
     }
     javaScriptFile.load('Demo.js');
   }
@@ -91,14 +98,14 @@ if (select) {
       select.addEventListener('change', () => {
         clearCache();
         fileManager.clearCache();
-        settings.engine.demoPathPrefix = select.value;
+        setDemoPathPrefix(select.value);
         startButton.classList.add('disabled');
         select.classList.add('disabled');
       });
 
       if (select.value) {
         clearCache();
-        settings.engine.demoPathPrefix = select.value;
+        setDemoPathPrefix(select.value);
       } else {
         select.style.display = 'none';
       }
@@ -518,7 +525,11 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key === 'Home') {
       timer.setTimePercent(0.0);
     } else if (event.key === 'p' && isStarted()) {
-      // const frameDelay = 20;
+      if (!toolClient.isEnabled()) {
+        alert('Tool server not enabled, cannot capture');
+        return;
+      }
+
       if (!confirm('Want to start video capture?')) {
         return;
       }
@@ -533,21 +544,6 @@ document.addEventListener('keydown', (event) => {
         capture = true;
         setWaitingForFrame(true);
         captureFrame();
-        /* const intervalId = setInterval(() => {
-          toolClient.send({
-            type: 'CAPTURE_FRAME',
-            dataUrl: captureFrame(),
-            frame: frame++
-          });
-          timer.setTime(timer.getTime() + oneFrame);
-          if (timer.isEnd() || !isStarted()) {
-            toolClient.send({ type: 'CAPTURE_STOP' });
-            clearInterval(intervalId);
-            loggerInfo(
-              `Capture ending. Captured ${frame} frames in ${Date.now() - startTime} ms`
-            );
-          }
-        }, frameDelay); */
       }, 1000);
     }
   }

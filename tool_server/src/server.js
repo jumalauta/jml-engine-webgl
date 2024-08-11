@@ -30,7 +30,12 @@ const server = async function () {
           if (msg.type === 'INIT') {
             ws.logger.child({ clientMessage: msg }).info('Init message');
             ws.state.init = msg;
-            // demoPathPrefix
+          } else if (msg.type === 'SETTINGS') {
+            ws.logger.info('Received settings');
+            if (msg.settings === undefined) {
+              throw new Error('Settings missing');
+            }
+            ws.state.settings = msg.settings;
           } else if (msg.type === 'CAPTURE_START') {
             ws.logger.child({ clientMessage: msg }).info('Capture start');
             ws.state.capture = {
@@ -41,6 +46,9 @@ const server = async function () {
               time: undefined
             };
             ws.state.videoExporter = new VideoExporter();
+            ws.state.videoExporter.setMusicPath(
+              `../public/${ws.state.settings.engine.demoPathPrefix}/${ws.state.settings.demo.music.musicFile}`
+            );
             ws.state.videoExporter.spawn(
               () => {
                 ws.logger.info('ffmpeg spawned');
