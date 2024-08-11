@@ -35,6 +35,17 @@ function setStartTime() {
   }
 }
 
+function customizeSettings() {
+  setStartTime();
+
+  const enabledLogLevels = new URLSearchParams(window.location.search).get(
+    'enabledLogLevels'
+  );
+  if (enabledLogLevels) {
+    settings.engine.enabledLogLevels = enabledLogLevels.split(',');
+  }
+}
+
 const Demo = function () {};
 window.Demo = Demo;
 
@@ -237,7 +248,7 @@ function startDemo() {
     .load('Demo.js')
     .then(() => {
       loggerTrace('Demo.js loaded');
-      setStartTime();
+      customizeSettings();
       restartDemo();
     })
     .catch(() => {
@@ -384,8 +395,14 @@ document.addEventListener('keydown', (event) => {
       rewindTime(-10000);
     } else if (event.key === 'PageUp') {
       rewindTime(10000);
-    } else if (event.key === '3' || event.code === 'Space') {
+    } else if (event.code === 'Space') {
       timer.pause();
+    } else if (event.key === '0') {
+      /* performance.measureUserAgentSpecificMemory().finally((result) => {
+        console.log(result);
+      }); */
+
+      console.log(demoRenderer.renderer.info);
     } else if (event.key === 'r') {
       deepReloadDemo();
     } else if (event.key === 'f') {
