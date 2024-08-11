@@ -12,7 +12,7 @@
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
-```
+```c
 uniform float      time;                    // Current time in seconds
 uniform float      timePercent;             // Current time in percent of the total duration from 0.0 to 1.0
 uniform vec4       color;                   // Main color of the vertex
@@ -786,3 +786,27 @@ Demo.prototype.someNewFunction = function() {
 
 ## Gamma correction
 - Use the nice tool from [Mercury](http://mercury.sexy/calibration02.png)
+
+## Memory optimizations
+- When targetting memory constrained systems (e.g., iOS devices) it might make sense to do some optimizations, here are some examples:
+  - Downscale textures, e.g. `convert ./tex_milky_way.png -resize 50% ./tex_milky_way.png`
+  - Optimize GLTF assets, e.g., `npx @gltf-transform/cli optimize obj.gltf obj2.gltf`
+  - Avoid deep copy of models, e.g., `settings.engine.cloneModels = true;`
+  - Use `cacheId` to reuse mesh/texture/material resources
+
+### CacheID
+
+In this example the initial use of 'cachedfist1' will cache data and next uses will use the reference of initial texture. This might mean issues if you do special handling of texture properties / materials on different iterations.
+
+```JavaScript
+for (let i=0; i<10; i++) {
+  this.loader.addAnimation({
+      "cacheId": 'cachedfist1',
+      ,"image": "jml_fist.png"
+      ,"position": [
+            {"x":-0.5+i*0.5, "y":-0.5}
+          ,{"duration":10, "x":0.5, "y":0.5}
+      ]
+  });
+}
+```

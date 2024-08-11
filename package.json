@@ -20,6 +20,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@gltf-transform/cli": "^4.0.8",
     "ace-builds": "^1.33.0",
     "clipboard": "^2.0.11",
     "dat.gui": "^0.7.9",

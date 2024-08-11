@@ -135,6 +135,12 @@ Effect.init = function (effectName) {
               effect.loader.promises.push(demoRenderer.preload(percent));
             }
 
+            const preloadPoints = settings.engine.preloadPoints || [];
+            preloadPoints.forEach((time) => {
+              const timeToPercent = time / timer.getEndTime();
+              effect.loader.promises.push(demoRenderer.preload(timeToPercent));
+            });
+
             if (!(await processPromises(effect.loader.promises, 0.85, 0.99))) {
               return;
             }

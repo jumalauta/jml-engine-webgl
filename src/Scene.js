@@ -563,7 +563,8 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
       if (animationDefinition.scene.fbo) {
         animationDefinition.scene.fbo.ref = Fbo.init(
           animationDefinition.scene.fbo.name,
-          animationDefinition.scene.name
+          animationDefinition.scene.name,
+          animationDefinition.scene.fbo.depth !== true
         );
         this.loader.addNotifyResource(animationDefinition.scene.fbo.name);
       }
@@ -1188,11 +1189,6 @@ Scene.prototype.processAnimation = function () {
                 animationDefinition.shader.ref.material;
             }
 
-            if (settings.engine.preload) {
-              // Shader uniforms need to be processed for prebaking of scenes
-              Shader.enableShader(animationDefinition);
-              Shader.disableShader(animationDefinition);
-            }
             this.validateResourceLoaded(
               animationDefinition,
               animationDefinition.shader.ref,

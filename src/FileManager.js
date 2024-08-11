@@ -6,6 +6,7 @@ import { loggerWarning, loggerDebug, loggerInfo } from './Bindings';
 import { Image } from './Image';
 import { Text } from './Text';
 import { Model } from './Model';
+import { GraphicsCacheManager } from './GraphicsCacheManager';
 import { Settings } from './Settings';
 
 import embeddedDefaultFsUrl from './_embedded/default.fs?url';
@@ -19,7 +20,7 @@ import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png
 import embeddedDefaultWhitePngUrl from './_embedded/defaultWhite.png?url';
 import embeddedTestUvMapPngUrl from './_embedded/testUvMap.png?url';
 
-THREE.Cache.enabled = true;
+THREE.Cache.enabled = false;
 
 const settings = new Settings();
 
@@ -50,6 +51,7 @@ FileManager.prototype.clearCache = function () {
   this.fileReferences = {};
   this.refreshFiles = {};
   Text.clearCache();
+  new GraphicsCacheManager().init();
 };
 
 FileManager.prototype.init = function () {
