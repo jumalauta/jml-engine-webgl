@@ -20,6 +20,7 @@ Want to see some examples? Check out: https://github.com/jumalauta/jml-engine-de
 | Home              | Rewind demo to start      |
 | End               | Rewind demo to near end   |
 | F                 | Toggle fullscreen |
+| P                 | Capture demo to video |
 | R                 | Deep reload demo and dispose used memory |
 | S                 | Take a screenshot of the current rendered frame |
 | T                 | Hide/show tool |
