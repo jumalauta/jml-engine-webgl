@@ -52,7 +52,7 @@ Fbo.get = function (name) {
   return fbos[name];
 };
 
-Fbo.init = function (name, sceneName) {
+Fbo.init = function (name, sceneName, noDepth) {
   if (fbos[name]) {
     return fbos[name];
   }
@@ -70,11 +70,14 @@ Fbo.init = function (name, sceneName) {
       settings.demo.fbo.quality *
       settings.menu.quality
   );
-  fbo.target.depthTexture = new THREE.DepthTexture();
-  fbo.target.depthTexture.format = THREE.DepthFormat;
-  fbo.target.depthTexture.type = THREE.UnsignedShortType;
-  fbo.target.stencilBuffer =
-    fbo.target.depthTexture.format === THREE.DepthStencilFormat;
+
+  if (!noDepth) {
+    fbo.target.depthTexture = new THREE.DepthTexture();
+    fbo.target.depthTexture.format = THREE.DepthFormat;
+    fbo.target.depthTexture.type = THREE.UnsignedShortType;
+    fbo.target.stencilBuffer =
+      fbo.target.depthTexture.format === THREE.DepthStencilFormat;
+  }
 
   fbo.color = new Image();
   fbo.color.texture = [fbo.target.texture];
@@ -85,14 +88,16 @@ Fbo.init = function (name, sceneName) {
   );
   fbo.target.texture.needsUpdate = true;
 
-  fbo.depth = new Image();
-  fbo.depth.texture = [fbo.target.depthTexture];
-  fbo.depth.generateMesh();
-  settings.toThreeJsProperties(
-    settings.demo.fbo.depth.texture,
-    fbo.target.depthTexture
-  );
-  fbo.target.depthTexture.needsUpdate = true;
+  if (!noDepth) {
+    fbo.depth = new Image();
+    fbo.depth.texture = [fbo.target.depthTexture];
+    fbo.depth.generateMesh();
+    settings.toThreeJsProperties(
+      settings.demo.fbo.depth.texture,
+      fbo.target.depthTexture
+    );
+    fbo.target.depthTexture.needsUpdate = true;
+  }
 
   fbo.ptr = fbo.target;
 

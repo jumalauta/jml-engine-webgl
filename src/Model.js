@@ -51,6 +51,10 @@ Model.prototype.cloneAnimations = function (srcAnimations) {
     srcAnimations = this.animations;
   }
 
+  if (!settings.engine.cloneModels) {
+    return srcAnimations;
+  }
+
   if (srcAnimations) {
     const animations = [];
     srcAnimations.forEach((clip) => {
@@ -63,7 +67,9 @@ Model.prototype.cloneAnimations = function (srcAnimations) {
 };
 
 Model.prototype.saveToCache = function (path) {
-  const mesh = SkeletonUtils.clone(this.mesh);
+  const mesh = settings.engine.cloneModels
+    ? SkeletonUtils.clone(this.mesh)
+    : this.mesh;
 
   cache[path] = {
     mesh,
@@ -75,7 +81,9 @@ Model.prototype.saveToCache = function (path) {
 Model.prototype.loadFromCache = function (path) {
   const cacheObject = cache[path];
   if (cacheObject) {
-    this.mesh = SkeletonUtils.clone(cacheObject.mesh);
+    this.mesh = settings.engine.cloneModels
+      ? SkeletonUtils.clone(cacheObject.mesh)
+      : cacheObject.mesh;
     this.ptr = this.mesh;
     this.animations = this.cloneAnimations(cacheObject.animations);
 

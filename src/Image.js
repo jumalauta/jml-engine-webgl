@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { Fbo } from './Fbo';
-import { loggerWarning } from './Bindings';
-import { DemoRenderer } from './DemoRenderer';
+import { loggerTrace, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 import { Video } from './Video';
 import { Instancer } from './Instancer';
+import { GraphicsCacheManager } from './GraphicsCacheManager';
 import vertexShader3dData from './_embedded/default.vs?raw';
 import vertexShader3dBillboardData from './_embedded/billboard.vs?raw';
 import vertexShader2dData from './_embedded/default2d.vs?raw';
@@ -34,6 +34,7 @@ const Image = function (animationDefinition) {
   this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
+  this.cacheId = animationDefinition.cacheId;
 
   if (this.sprite) {
     if (this.billboard) {
@@ -110,6 +111,12 @@ Image.prototype.createMaterial = function () {
 };
 
 Image.prototype.generateMesh = function () {
+  const graphicsCacheManager = new GraphicsCacheManager();
+  const meshCacheId = this.getMeshCacheId();
+  if (meshCacheId && graphicsCacheManager.updateFromCache(meshCacheId, this)) {
+    loggerTrace('Loaded mesh from cache, cacheId: ' + this.cacheId);
+  }
+
   if (this.texture[0] === undefined) {
     throw new Error('Texture not loaded, cannot generate image mesh');
   }
@@ -161,11 +168,28 @@ Image.prototype.generateMesh = function () {
     this.mesh.position.z = 0; // settings.demo.screen.perspective2dZ;
   }
 
-  if (settings.engine.preload) {
-    for (let i = 0; i < this.texture.length; i++) {
-      new DemoRenderer().renderer.initTexture(this.texture[i]);
-    }
+  if (meshCacheId) {
+    graphicsCacheManager.addToCache(meshCacheId, {
+      mesh: this.mesh,
+      material: this.material
+    });
   }
+};
+
+Image.prototype.getTextureCacheId = function () {
+  if (this.cacheId) {
+    // return this.cacheId + '.image.tex';
+  }
+
+  return undefined;
+};
+
+Image.prototype.getMeshCacheId = function () {
+  if (this.cacheId) {
+    // return this.cacheId + '.image.mesh';
+  }
+
+  return undefined;
 };
 
 Image.prototype.load = async function (filenames, noGenerate) {
@@ -173,8 +197,25 @@ Image.prototype.load = async function (filenames, noGenerate) {
     filenames = [filenames];
   }
 
-  for (let i = 0; i < filenames.length; i++) {
-    await this.loadTexture(filenames[i]);
+  const graphicsCacheManager = new GraphicsCacheManager();
+  const textureCacheId = this.getTextureCacheId();
+  if (
+    textureCacheId &&
+    graphicsCacheManager.updateFromCache(textureCacheId, this)
+  ) {
+    loggerTrace('Loaded image from cache, cacheId: ' + this.cacheId);
+  } else {
+    for (let i = 0; i < filenames.length; i++) {
+      await this.loadTexture(filenames[i]);
+    }
+
+    if (textureCacheId) {
+      graphicsCacheManager.addToCache(textureCacheId, {
+        texture: this.texture,
+        width: this.width,
+        height: this.height
+      });
+    }
   }
 
   if (noGenerate !== true) {
@@ -243,13 +284,36 @@ Image.prototype.loadTexture = function (filename) {
       instance.texture[textureI].video = video;
       instance.width = video.videoElement.videoWidth;
       instance.height = video.videoElement.videoHeight;
+
       // loggerDebug('Loaded video ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
       return true;
     });
   } else if (instance.filename.toUpperCase().endsWith('.PNG')) {
+    const graphicsCacheManager = new GraphicsCacheManager();
+    const textureCacheId = instance.filename + '.tex';
+    if (!settings.engine.cloneTextures) {
+      const texture = {};
+      if (graphicsCacheManager.updateFromCache(textureCacheId, texture)) {
+        loggerTrace('Loaded image from cache, cacheId: ' + textureCacheId);
+
+        return new Promise((resolve) => {
+          instance.texture[textureI] = texture.texture;
+          resolve(instance);
+        });
+      }
+    }
+
     return new FileManager().load(filename, instance, (instance, texture) => {
       instance.texture[textureI] = texture;
       // loggerDebug('Loaded texture ' + instance.filename + ' (' + instance.width + 'x' + instance.height + ')');
+
+      if (!settings.engine.cloneTextures) {
+        loggerTrace('Addeed image to cache, cacheId: ' + textureCacheId);
+        graphicsCacheManager.addToCache(textureCacheId, {
+          texture
+        });
+      }
+
       return true;
     });
   }
