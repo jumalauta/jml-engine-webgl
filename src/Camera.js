@@ -1,6 +1,10 @@
+import * as THREE from 'three';
 import { getCamera } from './DemoRenderer';
 import { Settings } from './Settings';
 const settings = new Settings();
+
+var camDir = new THREE.Vector3(0, 0, 0);
+window.camDirection = [0.0, 0.0, 0.0];
 
 const Camera = function () {
   return this.getInstance();
@@ -69,7 +73,11 @@ Camera.prototype.update = function () {
   // updateCamera();
 
   const camera = getCamera();
-  camera.updateProjectionMatrix();
+  camera.getWorldDirection(camDir);
+  window.camDirection[0] = camDir.x;
+  window.camDirection[1] = camDir.y;
+  window.camDirection[2] = camDir.z;
+  camera.updateProjectionMatrix(window.camDirection);
 };
 
 export { Camera };
