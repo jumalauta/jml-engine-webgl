@@ -17,7 +17,7 @@ ToolClient.prototype.getInstance = function () {
 };
 
 ToolClient.prototype.isEnabled = function () {
-  if (settings.tool.enabled && settings.engine.tool) {
+  if (settings.tool.server.enabled && settings.engine.tool) {
     return true;
   }
 
@@ -32,7 +32,7 @@ ToolClient.prototype.init = function () {
   this.connected = false;
 
   this.client = new WebSocket(
-    `${settings.tool.uriScheme}://${settings.tool.host}:${settings.tool.port}`
+    `${settings.tool.server.uriScheme}://${settings.tool.server.host}:${settings.tool.server.port}`
   );
 
   this.client.onopen = () => {

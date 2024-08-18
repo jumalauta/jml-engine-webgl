@@ -41,10 +41,12 @@ Settings.prototype.init = function () {
   };
 
   this.tool = {
-    enabled: false,
-    uriScheme: 'ws',
-    host: 'localhost',
-    port: 7448
+    server: {
+      enabled: true,
+      uriScheme: 'ws',
+      host: 'localhost',
+      port: 7448
+    }
   };
 
   this.menu = {
