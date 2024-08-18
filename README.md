@@ -4,6 +4,18 @@ Demo engine for creating [demoscene](https://en.wikipedia.org/wiki/Demoscene) de
 
 Want to see some examples? Check out: https://github.com/jumalauta/jml-engine-demos
 
+## Contributing
+
+Feel free to contribute with features and bug fixes. Aim to follow design principles.
+
+## Design principles
+
+- **Segmentation of demo and engine**: Demos should be separate from the engine. Don't make clearly single demo specific stuff into the engine. 
+- **Backwards compatibility**: Future changes of engine should not break demos made earlier with the engine. Demos made using older engine major versions (i.e., GL legacy or  GL3) should be portable with reasonable effort to newer engine versions (WebGL or newer).
+- **Cross compatibility**: Engine should be compatible with major browsers and operating systems, including mobile devices.
+- **Low code over no code**: Demos should primarily be made by coding. Engine should not be a no-code GUI tool. 
+- **Support mid-range**: One should be able to make 60 fps demos with poor to mediocre PC hardware.
+
 ## Tool controls
 
 | Key               | Action                    |
@@ -27,10 +39,10 @@ Want to see some examples? Check out: https://github.com/jumalauta/jml-engine-de
 
 ### Other controls
 
-* Skipping preloading: Press any rewinding key during loading
-* Mouse controls: To zoom / rotate around camera look-at (if default camera in use)
-* Query parameter `time=<millis>`: Set start time of the demo, e.g., to start at 30.5 sec mark: `http://localhost:5173/?time=30500`
-* Tool is watching for file changes automatically and attempting to do shallow reloads on changes.
+- Skipping preloading: Press any rewinding key during loading
+- Mouse controls: To zoom / rotate around camera look-at (if default camera in use)
+- Query parameter `time=<millis>`: Set start time of the demo, e.g., to start at 30.5 sec mark: `http://localhost:5173/?time=30500`
+- Tool is watching for file changes automatically and attempting to do shallow reloads on changes.
 
 ## Player controls
 
