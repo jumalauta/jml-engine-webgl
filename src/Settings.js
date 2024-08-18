@@ -32,6 +32,7 @@ Settings.prototype.init = function () {
   this.engine = {
     demoPathPrefix: 'data/',
     tool: true,
+    pauseOnInvisibility: true, // Pause demo if tab is not visible
     fileWatchInterval: 250,
     preload: true,
     preloadSteps: undefined, // defaults to every 0.5s

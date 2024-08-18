@@ -476,12 +476,22 @@ function rewindTime(time) {
   }
 }
 
-// Pause demo if tab in not visible.
-// Especially prevents audio from going onward in iOS or so if requestAnimationFrame is suspended by the OS/browser
-document.addEventListener('visibilitychange', () => {
-  loggerInfo(`Visibility changed to ${document.hidden}`);
-  timer.pause(document.hidden);
-});
+if (settings.engine.pauseOnInvisibility) {
+  // Especially prevents audio from going onward in iOS or so if requestAnimationFrame is suspended by the OS/browser
+  let timerPausedBeforeVisibilityChange = false;
+  document.addEventListener('visibilitychange', () => {
+    loggerInfo(`Visibility changed to ${document.hidden}`);
+    if (document.hidden) {
+      timerPausedBeforeVisibilityChange = timer.isPaused();
+    } else {
+      if (timerPausedBeforeVisibilityChange) {
+        return;
+      }
+    }
+
+    timer.pause(document.hidden);
+  });
+}
 
 document.addEventListener('keydown', (event) => {
   if (event.repeat) {
