@@ -53,6 +53,13 @@ Settings.prototype.init = function () {
 
   this.demo = {
     duration: undefined, // duration in milliseconds, if not specified, music duration is used
+    animation: {
+      default: {
+        start: 0,
+        duration: 10000, // default animation duration in seconds
+        layer: 1
+      }
+    },
     clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
     sync: {
       rocketFile: undefined, // rocket websocket + file connection can be enabled by defining rocket file path, e.g.: 'sync/sync.rocket'

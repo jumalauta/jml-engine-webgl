@@ -459,17 +459,17 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
     const animationDefinition = animationDefinitions[animationI];
 
     if (animationDefinition.start === undefined) {
-      animationDefinition.start = 0;
+      animationDefinition.start = settings.demo.animation.default.start;
     }
     if (
       animationDefinition.duration === undefined &&
       animationDefinition.end === undefined
     ) {
-      animationDefinition.duration = 10000;
+      animationDefinition.duration = settings.demo.animation.default.duration;
     }
 
     if (animationDefinition.layer === undefined) {
-      animationDefinition.layer = 1;
+      animationDefinition.layer = settings.demo.animation.default.layer;
     }
     animationDefinition.layer = this.loader.getLayerString(
       animationDefinition.layer
