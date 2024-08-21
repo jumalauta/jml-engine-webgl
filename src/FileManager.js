@@ -252,29 +252,33 @@ FileManager.prototype.processPromise = function (
   if (callback) {
     try {
       if (callback(instance, data)) {
-        if (
-          !(
-            instance instanceof Image ||
-            instance instanceof Text ||
-            instance instanceof Model
-          )
-        ) {
-          this.setFileData(filePath, data);
-        }
-        loggerDebug(
-          `${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`
-        );
         rejectPromise = false;
-        resolve(data);
       } else {
         loggerWarning('Callback failed');
       }
     } catch (e) {
       loggerWarning(`Received exception: ${e}`);
     }
+  } else {
+    rejectPromise = false;
   }
 
-  if (rejectPromise) {
+  if (!rejectPromise) {
+    if (
+      !(
+        instance instanceof Image ||
+        instance instanceof Text ||
+        instance instanceof Model
+      )
+    ) {
+      this.setFileData(filePath, data);
+    }
+    loggerDebug(
+      `${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`
+    );
+    rejectPromise = false;
+    resolve(data);
+  } else {
     loggerWarning(
       `${this.getInstanceName(instance)} file(s) could not be loaded: ${filePathString}`
     );

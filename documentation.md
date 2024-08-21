@@ -373,9 +373,72 @@ this.loader.addAnimation({
      "start": 0, "duration": 30
     ,"image": "vinyl_label.png"
     ,"angle": [
-         {"degreesZ":()=>Sync.getSyncValue('vinyl.scratch')}
+         {"degreesZ":()=>Sync.get('vinyl.scratch')}
     ]
 });
+```
+
+#### Use MIDI for syncing
+
+```JavaScript
+// Define handling
+Sync.setMidiSync(
+  'scratch',
+  (event) => {
+    loggerDebug(`logging the received event: ${JSON.stringify(event)}`);
+
+    return event.velocity / 127.0; // key velocity normalized to 0.0 - 1.0
+  },
+  {
+    recordingName: 'default', // name of the MIDI recording from which sync uses the data
+    single: true,  // by default callback will be array of events, this returns only first element of event array
+    onlyNew: true, // returns only new events, if false previous event will be repeated until a new event is encountered
+    default: 0, // default return value for callback if there are no new matching MIDI events
+    acceptedStatus: ['NOTE_ON'] // defines which MIDI status codes will be passed to the callback
+  }
+);
+
+//Use the MIDI sync
+this.loader.addAnimation({
+     "start": 0, "duration": 30
+    ,"image": "vinyl_label.png"
+    ,"angle": [
+         {"degreesZ":()=>Sync.get('scratch') * 360.0}
+    ]
+});
+
+```
+
+Example event array that sync callback could receive:
+```json
+[
+  {
+    "statusLong": "NOTE_ON",
+    "status": 144,
+    "channel": 9,
+    "key": 80,
+    "velocity": 73
+  },
+  {
+    "statusLong": "CHANNEL_PRESSURE",
+    "status": 208,
+    "channel": 9,
+    "pressure": 18
+  },
+  {
+    "statusLong": "CHANNEL_PRESSURE",
+    "status": 208,
+    "channel": 9,
+    "pressure": 0
+  },
+  {
+    "statusLong": "NOTE_OFF",
+    "status": 128,
+    "channel": 9,
+    "key": 80,
+    "velocity": 0
+  }
+]
 ```
 
 #### 3D Objects

@@ -1,8 +1,14 @@
 import { JSRocket } from './rocket/jsRocket';
-import { loggerDebug, loggerTrace, loggerError } from './Bindings';
+import {
+  loggerDebug,
+  loggerTrace,
+  loggerWarning,
+  loggerError
+} from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
 import { Spectogram } from './Spectogram';
+import { MidiManager } from './MidiManager';
 import { Settings } from './Settings';
 const settings = new Settings();
 
@@ -12,13 +18,14 @@ const Sync = function () {
 
 Sync.prototype.getInstance = function () {
   if (!Sync.prototype._singletonInstance) {
+    this.midiManager = new MidiManager();
     Sync.prototype._singletonInstance = this;
   }
 
   return Sync.prototype._singletonInstance;
 };
 
-Sync.prototype.init = async function () {
+Sync.prototype.initRocket = async function () {
   if (settings.demo.sync.rocketFile === undefined) {
     loggerTrace('Rocket file not defined, GNU Rocket not enabled');
     return;
@@ -33,7 +40,7 @@ Sync.prototype.init = async function () {
   }
 
   try {
-    if (!this.ready) {
+    if (!this.rocketReady) {
       await this.initDevice(false);
     }
   } catch (e) {
@@ -42,8 +49,28 @@ Sync.prototype.init = async function () {
   }
 };
 
+Sync.prototype.initMidi = async function () {
+  if (settings.demo.sync.midi.sync === undefined) {
+    loggerTrace('Midi sync not defined, MIDI not enabled');
+    return;
+  }
+
+  await this.midiManager.init();
+
+  this.midiReady = true;
+};
+
+Sync.prototype.init = async function () {
+  this.rowRate =
+    (settings.demo.sync.beatsPerMinute / 60) * settings.demo.sync.rowsPerBeat;
+
+  await this.initMidi();
+
+  await this.initRocket();
+};
+
 Sync.prototype.initDevice = function (webSocket) {
-  if (this.ready && webSocket) {
+  if (this.rocketReady && webSocket) {
     loggerTrace('GNU Rocket already loaded, not reinitializing');
     return;
   }
@@ -51,16 +78,13 @@ Sync.prototype.initDevice = function (webSocket) {
   this.syncDevice = new JSRocket.SyncDevice();
   this.previousIntRow = undefined;
   this.timer = new Timer();
-  this.ready = false;
+  this.rocketReady = false;
 
   const instance = this;
   return new Promise((resolve, reject) => {
-    instance.rowRate =
-      (settings.demo.sync.beatsPerMinute / 60) * settings.demo.sync.rowsPerBeat;
-
     instance.syncDevice.on('ready', () => {
       loggerDebug('GNU Rocket loaded');
-      instance.ready = true;
+      instance.rocketReady = true;
       resolve();
     });
     instance.syncDevice.on('update', function (row) {
@@ -96,15 +120,20 @@ Sync.prototype.initDevice = function (webSocket) {
   });
 };
 
-Sync.prototype.getRow = function () {
-  const row = this.timer.getTimeInSeconds() * this.rowRate;
+Sync.prototype.getRow = function (time) {
+  const row =
+    (time !== undefined ? time : this.timer.getTimeInSeconds()) * this.rowRate;
   return row;
 };
 
 Sync.prototype.update = function () {
-  if (this.ready) {
+  if (this.rocketReady) {
     const row = this.getRow();
     this.syncDevice.update(row);
+  }
+
+  if (this.midiReady) {
+    this.midiManager.update();
   }
 };
 
@@ -137,25 +166,37 @@ Sync.getFft = function (start, end) {
 
 const trackCache = {};
 
+Sync.setMidiSync = function (variable, callback, options) {
+  const sync = new Sync();
+
+  if (sync.midiManager) {
+    sync.midiManager.setSync(variable, callback, options);
+  } else {
+    loggerWarning(`MIDI not enabled, not setting MIDI sync for ${variable}`);
+  }
+};
+
 Sync.get = function (name) {
   const sync = new Sync();
-  if (!sync.ready) {
-    return 0;
+
+  if (sync.rocketReady) {
+    let track = trackCache[name];
+    if (track === undefined) {
+      track = sync.syncDevice.getTrack(name);
+      trackCache[name] = track;
+    }
+
+    if (track) {
+      const row = sync.getRow();
+      return track.getValue(row) || 0;
+    }
   }
 
-  let track = trackCache[name];
-  if (track === undefined) {
-    track = sync.syncDevice.getTrack(name);
-    trackCache[name] = track;
+  if (sync.midiReady) {
+    return sync.midiManager.callSync(name) || 0;
   }
 
-  let v = 0;
-  const row = sync.getRow();
-  if (track) {
-    v = track.getValue(row) || 0;
-  }
-
-  return v;
+  return 0;
 };
 
 Sync.getSyncValue = Sync.get;

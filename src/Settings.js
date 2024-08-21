@@ -47,6 +47,11 @@ Settings.prototype.init = function () {
       uriScheme: 'ws',
       host: 'localhost',
       port: 7448
+    },
+    midi: {
+      capture: true,
+      playbackLogging: true,
+      recordingName: 'default'
     }
   };
 
@@ -67,7 +72,10 @@ Settings.prototype.init = function () {
     sync: {
       rocketFile: undefined, // rocket websocket + file connection can be enabled by defining rocket file path, e.g.: 'sync/sync.rocket'
       beatsPerMinute: 120,
-      rowsPerBeat: 8
+      rowsPerBeat: 8,
+      midi: {
+        sync: undefined // MIDI + file connection can be enabled by defining sync file path or JSON data, e.g.: 'sync/midi.json'
+      }
     },
     music: {
       musicFile: 'music.mp3',
