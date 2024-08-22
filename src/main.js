@@ -18,6 +18,7 @@ import { Settings } from './Settings';
 import { Music } from './Music';
 import { Fullscreen } from './Fullscreen';
 import { ToolClient } from './ToolClient';
+import { MidiManager } from './MidiManager';
 
 const toolClient = new ToolClient();
 toolClient.init();
@@ -521,6 +522,11 @@ document.addEventListener('keydown', (event) => {
       rewindTime(10000);
     } else if (event.code === 'Space') {
       timer.pause();
+    } else if (event.key === 'Insert') {
+      const midiManager = new MidiManager();
+      if (midiManager.capture) {
+        midiManager.setCaptureOverwrite(!midiManager.isCaptureOverwrite());
+      }
     } else if (event.key === '0') {
       /* performance.measureUserAgentSpecificMemory().finally((result) => {
         console.log(result);
