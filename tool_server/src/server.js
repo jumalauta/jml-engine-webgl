@@ -6,9 +6,10 @@ import { VideoExporter } from './VideoExporter.js';
 const logger = pino();
 
 const server = async function () {
-  const wss = new WebSocketServer({ port: 7448 });
+  const port = 7447;
+  const wss = new WebSocketServer({ port });
 
-  logger.info('Tool server started');
+  logger.info(`Tool server started in port ${port}`);
 
   wss.on('connection', (ws) => {
     ws.state = { id: uuidv4() };
