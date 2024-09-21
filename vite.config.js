@@ -7,6 +7,7 @@ export default defineConfig(({ command }) => {
     return {
       server: {
         hmr: false,
+        host: '127.0.0.1'
       },
       plugins: [
         fs()
