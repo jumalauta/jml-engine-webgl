@@ -46,7 +46,7 @@ Settings.prototype.init = function () {
       enabled: true,
       uriScheme: 'ws',
       host: 'localhost',
-      port: 7448
+      port: 7447
     },
     midi: {
       capture: true,

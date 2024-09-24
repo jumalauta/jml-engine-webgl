@@ -1,3 +1,5 @@
+![Build](https://github.com/jumalauta/jml-engine-webgl/workflows/Build/badge.svg)
+
 # JML demo engine, WebGL edition
 
 Demo engine for creating [demoscene](https://en.wikipedia.org/wiki/Demoscene) demos or other realtime graphics animations. This engine's development was initially started in August of 2015 to replace earlier demo engine from circa 2002.
