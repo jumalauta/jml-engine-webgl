@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { Fbo } from './Fbo';
 import { loggerWarning } from './Bindings';
-import { DemoRenderer } from './DemoRenderer';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 import { Video } from './Video';
@@ -159,12 +158,6 @@ Image.prototype.generateMesh = function () {
     this.mesh.castShadow = false;
     this.mesh.receiveShadow = false;
     this.mesh.position.z = 0; // settings.demo.screen.perspective2dZ;
-  }
-
-  if (settings.engine.preload) {
-    for (let i = 0; i < this.texture.length; i++) {
-      new DemoRenderer().renderer.initTexture(this.texture[i]);
-    }
   }
 };
 
