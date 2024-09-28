@@ -3,7 +3,7 @@ import { getCamera } from './DemoRenderer';
 import { Settings } from './Settings';
 const settings = new Settings();
 
-var camDir = new THREE.Vector3(0, 0, 0);
+const camDir = new THREE.Vector3(0, 0, 0);
 window.camDirection = [0.0, 0.0, 0.0];
 
 const Camera = function () {
