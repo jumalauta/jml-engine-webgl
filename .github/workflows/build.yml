@@ -36,7 +36,7 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npx prettier --check src/ tool_server/
-    - run: npx eslint src/ tool_server/
+    - run: npx eslint --max-warnings 0 src/ tool_server/
     - run: npx vite build && mv dist release-node && tar cvjf release-node.tar.gz release-node
     - name: Upload Node Release
       uses: actions/upload-artifact@v3.1.0
