@@ -12,6 +12,18 @@
     "src/**/*.js": [
       "prettier --check",
       "eslint"
+    ],
+    "tool_server/src/**/*.js": [
+      "prettier --check",
+      "eslint"
+    ],
+    "*.js": [
+      "prettier --check",
+      "eslint"
+    ],
+    "*.mjs": [
+      "prettier --check",
+      "eslint"
     ]
   },
   "author": "",
