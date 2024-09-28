@@ -12,6 +12,8 @@ RUN apk add --no-cache \
 # Git syntax highlighting
   less \
 # Git commit signing
-  gpg
+  gpg \
+# GitHub CLI tool
+  github-cli
 
 USER node
