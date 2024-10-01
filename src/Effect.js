@@ -100,9 +100,9 @@ Effect.init = function (effectName) {
       effect.loader.promises.push(new Spectogram().init());
 
       const music = new Music();
-      effect.loader.promises.push(
-        music.load(fileManager.getPath(settings.demo.music.musicFile))
-      );
+      if (settings.demo.music.musicFile) {
+        music.load(fileManager.getPath(settings.demo.music.musicFile));
+      }
 
       const demoRenderer = new DemoRenderer();
       demoRenderer.clear();
@@ -115,6 +115,8 @@ Effect.init = function (effectName) {
       if (!(await processPromises(effect.loader.promises, 0.0, 0.8))) {
         return;
       }
+
+      timer.setEndTime(settings.demo.duration || music.getDuration() * 1000);
 
       loadingBar.setPercent(0.85);
       await new Sync().init();
