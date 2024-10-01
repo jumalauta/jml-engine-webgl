@@ -221,6 +221,46 @@ Model.prototype.load = function (filename) {
             ),
             material
           );
+        } else if (instance.shape.type === 'RING') {
+          object = instance.instancer.createMesh(
+            new THREE.RingGeometry(
+              instance.shape.innerRadius !== undefined
+                ? instance.shape.innerRadius
+                : 0.5,
+              instance.shape.outerRadius !== undefined
+                ? instance.shape.outerRadius
+                : 1,
+              instance.shape.thetaSegments !== undefined
+                ? instance.shape.thetaSegments
+                : 8,
+              instance.shape.phiSegments !== undefined
+                ? instance.shape.phiSegments
+                : 1,
+              instance.shape.thetaStart !== undefined
+                ? instance.shape.thetaStart
+                : 0,
+              instance.shape.thetaLength !== undefined
+                ? instance.shape.thetaLength
+                : Math.PI * 2
+            ),
+            material
+          );
+        } else if (instance.shape.type === 'TORUSKNOT') {
+          object = instance.instancer.createMesh(
+            new THREE.TorusKnotGeometry(
+              instance.shape.radius !== undefined ? instance.shape.radius : 1,
+              instance.shape.tube !== undefined ? instance.shape.tube : 0.4,
+              instance.shape.tubularSegments !== undefined
+                ? instance.shape.tubularSegments
+                : 64,
+              instance.shape.radialSegments !== undefined
+                ? instance.shape.radialSegments
+                : 8,
+              instance.shape.p !== undefined ? instance.shape.p : 2,
+              instance.shape.q !== undefined ? instance.shape.q : 3
+            ),
+            material
+          );
         } else {
           loggerWarning('Unsupported shape: ' + instance.shape.type);
           reject(instance);
