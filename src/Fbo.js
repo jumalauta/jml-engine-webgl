@@ -94,6 +94,8 @@ Fbo.init = function (name, sceneName) {
   );
   fbo.target.depthTexture.needsUpdate = true;
 
+  fbo.setRenderTarget(fbo.target);
+
   fbo.ptr = fbo.target;
 
   loggerDebug('Created FBO ' + name);
@@ -110,8 +112,12 @@ Fbo.prototype.pop = function () {
   popView();
 };
 
+Fbo.prototype.setRenderTarget = function (target) {
+  this.renderTarget = target;
+};
+
 Fbo.prototype.bind = function () {
-  demoRenderer.renderer.setRenderTarget(this.target);
+  demoRenderer.renderer.setRenderTarget(this.renderTarget);
   demoRenderer.renderer.clear();
 };
 
@@ -120,4 +126,5 @@ Fbo.prototype.unbind = function () {
   demoRenderer.renderer.setRenderTarget(null);
 };
 
+window.Fbo = Fbo;
 export { Fbo };
