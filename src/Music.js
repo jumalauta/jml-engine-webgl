@@ -1,6 +1,4 @@
-import * as THREE from 'three';
-import { loggerDebug, loggerError } from './Bindings';
-import { Timer } from './Timer';
+import { AudioFile } from './AudioFile';
 import { Settings } from './Settings';
 const settings = new Settings();
 
@@ -18,101 +16,38 @@ Music.prototype.getInstance = function () {
 };
 
 Music.prototype.init = function () {
-  this.stop();
-  this.listener = undefined;
-  this.audio = undefined;
-  this.duration = undefined;
-  this.error = undefined;
+  this.audioFile = new AudioFile();
 };
 
 Music.prototype.load = function (url) {
-  if (!url.toUpperCase().endsWith('.MP3')) {
-    // To ensure best possible cross-browser and engine support, supported file formats are being restricted
-    throw new Error('Unsupported music format ' + url);
-  }
+  this.audioFile.setVolume(settings.demo.music.volume);
+  this.audioFile.setLoop(settings.demo.music.loop);
 
-  const instance = this;
-  return new Promise((resolve, reject) => {
-    if (instance.duration) {
-      loggerDebug(
-        'Loaded music from cache ' +
-          url +
-          ' (length ' +
-          instance.duration +
-          's)'
-      );
-      resolve(instance);
-      return;
-    }
-    const loader = new THREE.AudioLoader();
-    loader.load(
-      url,
-      function (buffer) {
-        instance.listener = new THREE.AudioListener();
-        instance.audio = new THREE.Audio(instance.listener);
-        instance.audio.setBuffer(buffer);
-        instance.audio.setVolume(settings.demo.music.volume);
-        instance.audio.setLoop(settings.demo.music.loop);
-        instance.duration = buffer.duration;
-        new Timer().setEndTime(
-          settings.demo.duration || instance.duration * 1000
-        );
-        loggerDebug(
-          'Loaded music ' + url + ' (length ' + instance.duration + 's)'
-        );
-        resolve(instance);
-      },
-      undefined,
-      function (err) {
-        loggerError('Could not load ' + url);
-        instance.error = true;
-        reject(err);
-      }
-    );
-  });
+  return this.audioFile.load(url);
 };
 
 Music.prototype.getDuration = function () {
-  return this.audio.duration;
+  return this.audioFile.getDuration();
 };
 
 Music.prototype.play = function () {
-  this.audio.play();
+  this.audioFile.play();
 };
 
 Music.prototype.stop = function () {
-  if (!this.audio) {
-    return;
-  }
-  this.audio.stop();
+  this.audioFile.stop();
 };
 
 Music.prototype.pause = function () {
-  if (!this.audio) {
-    return;
-  }
-
-  if (new Timer().isPaused()) {
-    this.audio.pause();
-  } else {
-    this.audio.play();
-  }
+  this.audioFile.pause();
 };
 
 Music.prototype.setTime = function (time) {
-  if (!this.audio) {
-    return;
-  }
-  this.stop();
-  this.audio.offset = time;
-  this.play();
-  if (new Timer().isPaused()) {
-    this.pause();
-  }
+  this.audioFile.setTime(time);
 };
 
 Music.prototype.getTime = function () {
-  return this.context.currentTime;
+  return this.audioFile.getTime();
 };
 
 export { Music };

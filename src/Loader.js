@@ -10,6 +10,12 @@ const Loader = function () {
   return this.getInstance();
 };
 
+Loader.prototype.newPromise = function (f) {
+  const promise = new Promise(f);
+  this.promises.push(promise);
+  return promise;
+};
+
 const defaultSceneName = 'main';
 
 Loader.prototype.getInstance = function () {
