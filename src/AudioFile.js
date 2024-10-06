@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { loggerDebug, loggerError } from './Bindings';
 import { Timer } from './Timer';
 import { Loader } from './Loader';
+import { FileManager } from './FileManager';
 
 const AudioFile = function () {
   this.init();
@@ -31,12 +32,14 @@ AudioFile.prototype.load = function (url) {
     throw new Error('Unsupported AudioFile format ' + url);
   }
 
+  const path = new FileManager().getPath(url);
+
   const instance = this;
   return new Loader().newPromise((resolve, reject) => {
     if (instance.duration) {
       loggerDebug(
         'Loaded AudioFile from cache ' +
-          url +
+          path +
           ' (length ' +
           instance.duration +
           's)'
@@ -46,7 +49,7 @@ AudioFile.prototype.load = function (url) {
     }
     const loader = new THREE.AudioLoader();
     loader.load(
-      url,
+      path,
       function (buffer) {
         instance.listener = new THREE.AudioListener();
         instance.audio = new THREE.Audio(instance.listener);
@@ -55,13 +58,13 @@ AudioFile.prototype.load = function (url) {
         instance.audio.setLoop(instance.loop);
         instance.duration = buffer.duration;
         loggerDebug(
-          'Loaded AudioFile ' + url + ' (length ' + instance.duration + 's)'
+          'Loaded AudioFile ' + path + ' (length ' + instance.duration + 's)'
         );
         resolve(instance);
       },
       undefined,
       function (err) {
-        loggerError('Could not load ' + url);
+        loggerError(`Failed to load AudioFile ${path}: ${err}`);
         instance.error = true;
         reject(err);
       }
@@ -118,5 +121,7 @@ AudioFile.prototype.getTime = function () {
 
   return this.context.currentTime;
 };
+
+window.AudioFile = AudioFile;
 
 export { AudioFile };
