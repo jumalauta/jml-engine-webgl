@@ -101,7 +101,7 @@ Effect.init = function (effectName) {
 
       const music = new Music();
       if (settings.demo.music.musicFile) {
-        music.load(fileManager.getPath(settings.demo.music.musicFile));
+        music.load(settings.demo.music.musicFile);
       }
 
       const demoRenderer = new DemoRenderer();
