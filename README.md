@@ -56,7 +56,7 @@ Feel free to contribute with features and bug fixes. Aim to follow design princi
 
 ## Installing tool
 
-- Install [Node.js](https://nodejs.org/en)
+- Use the preconfigured [Development Container](https://containers.dev/) or install [Node.js](https://nodejs.org/en)  
 - Install dependencies: `npm ci`
 
 ## Using tool
