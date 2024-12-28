@@ -9,6 +9,21 @@
 * [Exporting animations from Blender](#exporting-animations)
 * [Gamma correction](#gamma-correction)
 
+## Having multiple projects
+
+- Create `playlist.js` in `public/`
+- Create demo projects as separate directories in `public/` and reference the projects in `playlist.js`
+
+### Example playlist.js
+
+```js
+// Creates project items to demo start menu
+// First parameter is the visible name
+// Second parameter points to a directory under public/ which contains the demo
+appendDemoToPlaylist('New project','data/demo-project-20xx/');
+appendDemoToPlaylist('Point of No Return','data/demo-jml-ponr/');
+```
+
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
