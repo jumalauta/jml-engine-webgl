@@ -49,6 +49,31 @@ uniform sampler2D  texture0;                // Samplers for input textures i
 | .FS         | Fragment shader           |
 | .ROCKET     | GNU Rocket syncs          |
 
+## Assets processing tips and tricks
+
+### Video processing
+
+For all videos prefer MP4 H.264 videos with AAC audio or no audio to ensure best cross-browser compatibility.
+
+```
+// Cut ogg video, scale (and maintain aspect ratio) and reencode without audio to MP4 H.264:
+ffmpeg -ss 00:02:29 -i source.ogv -t 00:00:03 -vf scale=1920:-1 -vcodec libx264 -crf 18 -an destination.mp4
+
+//to make video grayscale while scaling it: -vf hue=s=0,scale=480:-1
+
+```
+
+### Audio file mass conversion
+```
+bash; for i in *.wav; do ffmpeg -i "$i" "${i%.*}.mp3"; done
+```
+
+### Vector graphics to PNG
+```
+convert -density 300 -colorspace sRGB vector_file.eps -resize 5076x5106 -background transparent -units PixelsPerInch vector_file_rasterized.png
+
+```
+
 ## Music spectogram
 
 Create a spectogram from audio track: `ffmpeg -i music.mp3 -lavfi showspectrumpic=s=1920x1080:legend=disabled spectogram.png`
