@@ -51,6 +51,12 @@ uniform sampler2D  texture0;                // Samplers for input textures i
 
 ## Assets processing tips and tricks
 
+### Media asset info query
+
+```
+ffmpeg -i music.mp3  -f null -
+```
+
 ### Video processing
 
 For all videos prefer MP4 H.264 videos with AAC audio or no audio to ensure best cross-browser compatibility.
