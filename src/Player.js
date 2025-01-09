@@ -405,21 +405,15 @@ Player.prototype.drawTextAnimation = function (time, animation) {
   const scale = this.calculateScaleAnimation(time, animation);
   animation.ref.setScale(scale.x, scale.y, scale.z);
 
-  if (animation.text.perspective === '2d') {
-    if (animation.position !== undefined) {
-      const position = this.calculatePositionAnimation(time, animation);
-      const x = position.x;
-      const y = position.y;
-      animation.ref.setPosition(x, y, 0);
-    }
+  if (animation.position !== undefined) {
+    const position = this.calculatePositionAnimation(time, animation);
+    animation.ref.setPosition(position.x, position.y, position.z);
+    console.log('position', position);
+  }
 
+  if (animation.ref.perspective2d) {
     if (animation.align !== undefined) {
       animation.ref.setCenterAlignment(animation.align);
-    }
-  } else {
-    if (animation.position !== undefined) {
-      const position = this.calculatePositionAnimation(time, animation);
-      animation.ref.setPosition(position.x, position.y, position.z);
     }
   }
 
