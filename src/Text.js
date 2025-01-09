@@ -24,6 +24,7 @@ const Text = function (animationDefinition) {
 
   this.additive = animationDefinition.additive === true;
   this.billboard = animationDefinition.billboard === true;
+  this.perspective2d = animationDefinition.perspective !== '3d';
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
 
