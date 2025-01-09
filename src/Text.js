@@ -26,6 +26,7 @@ const Text = function (animationDefinition) {
   this.billboard = animationDefinition.billboard === true;
   this.perspective2d = animationDefinition.perspective !== '3d';
   this.instancer = new Instancer(this, animationDefinition.instancer);
+  this.group = new THREE.Group();
 };
 
 Text.fonts = {};
@@ -131,8 +132,11 @@ Text.prototype.createMaterial = function () {
 
 Text.prototype.setValue = function (text) {
   if (this.text !== text) {
+    if (this.geometry) {
+      // Warning: Changing text on the fly will cause significant performance penalty
+      this.geometry.dispose();
+    }
     this.text = text;
-    // this.geometry.dispose();
     this.geometry = new TextGeometry(text, {
       font: this.font,
       size: this.perspective2d ? 1.0 : 4.3,
@@ -160,14 +164,20 @@ Text.prototype.setValue = function (text) {
       (this.geometry.boundingBox.max.z - this.geometry.boundingBox.min.z);
 
     // this.material = new THREE.MeshBasicMaterial( { color: 0xffffff, blending:THREE.CustomBlending, depthTest: false, depthWrite: false } );
-    this.material = this.createMaterial();
+    if (!this.material) {
+      this.material = this.createMaterial();
+    }
 
     this.mesh = this.instancer.createMesh(this.geometry, this.material);
     this.mesh.geometry.center();
     if (this.perspective2d) {
       this.mesh.frustumCulled = false; // Avoid getting clipped in 2d
     }
-    this.ptr = this.mesh;
+
+    this.ptr = this.group;
+
+    this.group.clear();
+    this.group.add(this.mesh);
 
     this.setPosition(0, 0, 0);
   }

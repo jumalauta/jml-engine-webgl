@@ -408,7 +408,6 @@ Player.prototype.drawTextAnimation = function (time, animation) {
   if (animation.position !== undefined) {
     const position = this.calculatePositionAnimation(time, animation);
     animation.ref.setPosition(position.x, position.y, position.z);
-    console.log('position', position);
   }
 
   if (animation.ref.perspective2d) {
