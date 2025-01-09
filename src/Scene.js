@@ -1023,7 +1023,7 @@ Scene.prototype.processAnimation = function () {
             animationDefinition.align = Constants.Align.CENTER;
           }
 
-          parentObject.add(animationDefinition.ref.mesh);
+          parentObject.add(animationDefinition.ref.group);
 
           const animStart = startTime;
           const animEnd = endTime;
