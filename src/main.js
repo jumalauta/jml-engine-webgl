@@ -19,6 +19,7 @@ import { Music } from './Music';
 import { Fullscreen } from './Fullscreen';
 import { ToolClient } from './ToolClient';
 import { MidiManager } from './MidiManager';
+import { Video } from './Video';
 
 const toolClient = new ToolClient();
 toolClient.init();
@@ -171,7 +172,7 @@ function captureFrame() {
   if (settings.engine.tool && capture && waitingForFrame) {
     const roundingSkew = 0.1;
     const newFrame = Math.floor(timer.getTime() / oneFrame + roundingSkew);
-    if (newFrame <= frame) {
+    if (newFrame <= frame || Video.isSeeking()) {
       return false;
     }
 
@@ -485,7 +486,7 @@ if (settings.engine.pauseOnInvisibility) {
       return;
     }
 
-    loggerInfo(`Visibility changed to ${document.hidden}`);
+    loggerDebug(`Visibility changed to ${document.hidden}`);
     if (document.hidden) {
       timerPausedBeforeVisibilityChange = timer.isPaused();
     } else {

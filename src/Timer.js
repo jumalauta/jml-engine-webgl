@@ -51,6 +51,7 @@ Timer.prototype.stop = function () {
   new FileManager().stopWatchFileChanges();
   this.setTime(0);
   this.music.stop();
+  Video.stop();
   this.startTime = undefined;
   this.pauseTime = undefined;
   this.time = 0;
@@ -64,7 +65,7 @@ Timer.prototype.pause = function (pauseState) {
 
     loggerInfo('Pausing demo timer');
     this.pauseTime = this.now();
-    Video.pauseAll();
+    Video.pause();
   } else {
     if (pauseState === true) {
       return;
@@ -73,7 +74,7 @@ Timer.prototype.pause = function (pauseState) {
     loggerInfo('Resuming demo timer');
     this.startTime += this.now() - this.pauseTime;
     this.pauseTime = undefined;
-    Video.playAll();
+    Video.play();
   }
   this.prevTime = this.time;
   this.deltaTime = 0.0;
@@ -107,7 +108,7 @@ Timer.prototype.setTime = function (time, skipMusicUpdate) {
     this.music.setTime(time / 1000);
   }
   this.update(true);
-  Video.rewindAll();
+  Video.rewind();
 };
 
 Timer.prototype.update = function (force) {

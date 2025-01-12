@@ -376,13 +376,7 @@ Player.prototype.drawImageAnimation = function (time, animation) {
         );
       }
 
-      if (!multiTexRef.video.isPlaying()) {
-        multiTexRef.video.play();
-      }
-
-      if (multiTexRef.video.isPlaying()) {
-        multiTexRef.video.draw();
-      }
+      multiTexRef.video.handleState();
     }
   }
 

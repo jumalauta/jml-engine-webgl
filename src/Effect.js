@@ -156,6 +156,8 @@ Effect.init = function (effectName) {
               throw new Error('Shader compilation failed');
             }
 
+            Video.stop();
+
             loggerDebug(
               `Preloading ${steps} frames took ${Date.now() - now} ms`
             );
