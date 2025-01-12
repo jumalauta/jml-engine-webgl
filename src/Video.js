@@ -9,34 +9,43 @@ const Video = function () {
   this.ptr = undefined;
   this.id = undefined;
   this.filename = undefined;
+  this.playStarted = undefined;
+  this.playEnded = undefined;
 };
 
 Video.clear = function () {
-  Video.stopAll();
+  Video.stop();
   videos = [];
 };
 
-Video.playAll = function () {
+Video.play = function () {
   videos.forEach((video) => {
     video.play();
   });
 };
 
-Video.pauseAll = function () {
+Video.pause = function () {
   videos.forEach((video) => {
     video.pause();
   });
 };
 
-Video.stopAll = function () {
+Video.stop = function () {
   videos.forEach((video) => {
     video.stop();
   });
 };
 
-Video.rewindAll = function () {
+Video.rewind = function () {
   videos.forEach((video) => {
+    video.handleState();
     video.rewind();
+  });
+};
+
+Video.isSeeking = function () {
+  return videos.some((video) => {
+    return video.videoElement.seeking;
   });
 };
 
@@ -58,6 +67,25 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
     instance.videoElement.playsInline = true;
     instance.videoElement.muted = true;
     instance.setSpeed(1.0);
+    instance.videoElement.onerror = (event) => {
+      loggerWarning(`Video error: ${filename} ${event}`);
+    };
+    instance.videoElement.onstalled = (event) => {
+      loggerWarning(`Video stalled: ${filename} ${event}`);
+    };
+    instance.videoElement.onwaiting = (event) => {
+      loggerWarning(`Video waiting: ${filename} ${event}`);
+    };
+    instance.videoElement.onabort = (event) => {
+      loggerWarning(`Video aborted: ${filename} ${event}`);
+    };
+    instance.videoElement.onended = (event) => {
+      loggerTrace(`Video ended: ${filename} ${event}`);
+      this.startTime = undefined;
+      this.playStarted = false;
+      this.playEnded = true;
+    };
+
     instance.videoElement.oncanplaythrough = (event) => {
       instance.texture = new THREE.VideoTexture(instance.videoElement);
       instance.ptr = instance.videoElement;
@@ -115,7 +143,7 @@ Video.prototype.setLength = function (length) {
 
 Video.prototype.isPlaying = function () {
   // return videoIsPlaying(this.ptr)
-  return !this.videoElement.paused && this.startTime !== undefined;
+  return !this.videoElement.paused;
 };
 
 Video.prototype.play = function () {
@@ -123,6 +151,9 @@ Video.prototype.play = function () {
   if (this.isPlaying()) {
     return;
   }
+
+  this.playStarted = true;
+  this.playEnded = false;
 
   this.videoElement
     .play()
@@ -140,24 +171,34 @@ Video.prototype.play = function () {
     })
     .catch((error) => {
       loggerWarning(`Could not play video ${this.filename}: ${error}`);
+      this.playStarted = false;
     });
 };
 
 Video.prototype.pause = function () {
   // videoPause(this.ptr)
-  this.videoElement.pause();
+  if (this.isPlaying()) {
+    this.videoElement.pause();
+  }
 };
 
 Video.prototype.stop = function () {
   // videoStop(this.ptr)
-  this.videoElement.pause();
+  if (!this.videoElement.paused) {
+    this.videoElement.pause();
+  }
   this.videoElement.currentTime = 0;
   this.startTime = undefined;
+  this.playStarted = false;
 };
 
 Video.prototype.setAnimationTime = function (time) {
   // Note that this might be very sluggish if the video has not buffered properly
   this.currentTime = time;
+};
+
+Video.prototype.getDuration = function () {
+  return this.videoElement.duration * this.videoElement.playbackRate;
 };
 
 Video.prototype.getTimeDelta = function () {
@@ -189,23 +230,36 @@ Video.prototype.getTimeDelta = function () {
 };
 
 Video.prototype.rewind = function () {
+  if (this.startTime === undefined || !this.playStarted) {
+    return;
+  }
   const timeDelta = this.getTimeDelta();
   // videoSetTime(this.ptr, time)
+  const oldTime = this.videoElement.currentTime;
+  if (timeDelta === oldTime) {
+    return;
+  } else if (timeDelta < 0) {
+    this.stop();
+  }
 
-  // loggerTrace(`Rewinding video ${this.filename} from ${this.videoElement.currentTime} to ${timeDelta} seconds (video start ${this.startTime})`);
   this.videoElement.currentTime = timeDelta;
+
+  // loggerTrace(`Rewinding video '${this.filename}' from ${oldTime} to ${this.videoElement.currentTime} seconds (video start ${this.startTime})`);
   this.texture.update();
 };
 
-Video.prototype.draw = function () {
-  // videoDraw(this.ptr)
-  if (this.isPlaying()) {
-    const timeDelta = this.getTimeDelta();
-    if (
-      this.currentTime !== undefined ||
-      (!this.videoElement.loop && timeDelta >= this.videoElement.duration)
-    ) {
-      this.videoElement.currentTime = timeDelta;
+Video.prototype.handleState = function () {
+  const now = new Timer().getTimeInSeconds();
+  const musicNow = now - this.animationStartTime;
+
+  if (
+    now >= this.animationStartTime &&
+    musicNow < this.getDuration() &&
+    (!this.playStarted || this.playEnded)
+  ) {
+    this.play();
+    if (new Timer().isPaused()) {
+      this.pause();
     }
   }
 };
