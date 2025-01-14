@@ -108,27 +108,48 @@ FileManager.prototype.loadUpdatedFiles = async function () {
   this.markAsUpdated();
 };
 
+FileManager.prototype.getFileModifiedTime = async function (path) {
+  try {
+    const stats = await fs.stat(path);
+    if (!stats) {
+      throw new Error(`Error getting file modification time: ${path}`);
+    }
+
+    const mtime = stats.mtime || stats.mtimeMs;
+    if (mtime === undefined) {
+      throw new Error(`Error parsing file modification time: ${path}`);
+    }
+
+    return mtime;
+  } catch (e) {
+    throw new Error(`Error getting file modification time: ${path} - ${e}`);
+  }
+};
+
 FileManager.prototype.checkFiles = async function () {
   try {
     if (!fs) {
       return;
     }
 
-    // loggerDebug(`Checking files for changes: ${Object.keys(fileManager.refreshFiles).join(', ')}`);
+    // loggerDebug(`Checking files for changes: ${Object.keys(this.refreshFiles).join(', ')}`);
     for (const filePath in this.refreshFiles) {
       const path = this.getDiskPath(filePath);
-      // loggerDebug('Checking file: ' + path);
-      const stats = await fs.stat(path);
+      const mtime = await this.getFileModifiedTime(path);
+      const mtimeOld = this.getRefreshFileFromCache(filePath);
 
-      if (this.getRefreshFileFromCache(filePath) === null) {
-        this.setRefreshFileFromCache(filePath, stats.mtime);
+      // loggerDebug(`File modified time: ${filePath} - ${mtime} - ${mtimeOld}`);
+
+      if (mtimeOld === undefined) {
+        this.setRefreshFileFromCache(filePath, mtime);
         continue;
       }
 
-      if (stats.mtime > this.getRefreshFileFromCache(filePath)) {
-        loggerDebug('File changed: ' + filePath);
+      if (mtime > mtimeOld) {
+        const delta = Math.floor(mtime - mtimeOld);
+        loggerDebug(`File changed: ${filePath} - delta time: ${delta}`);
 
-        this.setRefreshFileFromCache(filePath, stats.mtime);
+        this.setRefreshFileFromCache(filePath, mtime);
         this.needsDeepUpdate = true;
 
         if (this.getFileFromCache(filePath)) {
