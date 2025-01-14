@@ -762,6 +762,23 @@ this.loader.addAnimation({
 });
 ```
 
+```JavaScript
+this.loader.addAnimation({
+  light: {
+      type: 'Spot',
+      properties: {
+        intensity: 2.0,
+        distance:0,
+        decay:0,
+        angle:Math.PI/12
+      },
+      castShadow: false,
+      texture: 'jmlfist.png', // add an optional custom texture to spot light
+  },
+  position: [{ x: 5, y: 0, z: 0.0 }]
+});
+```
+
 #### FBO / render to texture example
 
 ```JavaScript

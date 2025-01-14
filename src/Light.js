@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Image } from './Image';
 import { loggerWarning } from './Bindings';
 import { Settings } from './Settings';
 
@@ -80,6 +81,23 @@ const Light = function (animationDefinition) {
     light.shadow.mapSize.height = settings.demo.shadow.mapSize.height;
     light.shadow.camera.near = settings.demo.camera.near;
     light.shadow.camera.far = settings.demo.camera.far;
+  }
+
+  if (lightDefinition.texture) {
+    const filename = lightDefinition.texture;
+    const image = new Image();
+    if (image.isFileSupported(filename)) {
+      image
+        .load(filename, false)
+        .then(() => {
+          light.map = image.texture[0];
+        })
+        .catch(() => {
+          loggerWarning(`Image could not be loaded for light: ${filename}`);
+        });
+    } else {
+      loggerWarning(`Unsupported image format ${filename}`);
+    }
   }
 
   this.mesh = light;
