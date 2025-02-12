@@ -323,6 +323,7 @@ this.loader.addAnimation({
       // position instance
       object.position.x = Math.sin(time + i * Math.PI * 2 / count) * 2;
       object.position.y = Math.cos(time + i * Math.PI * 2 / count) * 2;
+      object.position.z = Sync.get('coolpositionz');
 
       // rotate instance
       object.rotation.z = time;
