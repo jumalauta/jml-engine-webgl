@@ -8,7 +8,12 @@ import { Fbo } from './Fbo';
 import { Light } from './Light';
 import { Camera } from './Camera';
 import { ToolUi } from './ToolUi';
-import { windowSetTitle, loggerError, loggerWarning } from './Bindings';
+import {
+  windowSetTitle,
+  loggerError,
+  loggerWarning,
+  loggerDebug
+} from './Bindings';
 import { Settings } from './Settings';
 
 import * as THREE from 'three';
@@ -444,6 +449,26 @@ Scene.prototype.preprocessAnimationDefinitions = function (
   );
 };
 
+Scene.prototype.preloadMaterialProperties = function (
+  animationDefinition,
+  promises
+) {
+  if (animationDefinition.material) {
+    if ('map' in animationDefinition.material) {
+      const mapValue = animationDefinition.material.map;
+      if (typeof mapValue === 'string') {
+        const filename = mapValue;
+        const image = new Image();
+        if (image.isFileSupported(filename)) {
+          loggerDebug(`Preloading material map: ${filename}`);
+          promises.push(image.load(filename, false));
+          animationDefinition.material.map = image;
+        }
+      }
+    }
+  }
+};
+
 Scene.prototype.addAnimation = function (animationDefinitions) {
   if (Utils.isArray(animationDefinitions) === false) {
     animationDefinitions = [animationDefinitions];
@@ -457,6 +482,9 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
     animationI++
   ) {
     const animationDefinition = animationDefinitions[animationI];
+
+    const promises = [];
+    this.preloadMaterialProperties(animationDefinition, promises);
 
     if (animationDefinition.start === undefined) {
       animationDefinition.start = settings.demo.animation.default.start;
@@ -494,7 +522,6 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
         animationDefinition.ref.setShape(animationDefinition.shape);
       }
 
-      const promises = [];
       promises.push(
         animationDefinition.ref.load(animationDefinition.object.name)
       );
@@ -508,7 +535,6 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
       animationDefinition.ref.setPerspective2d(
         animationDefinition.perspective === '2d'
       );
-      const promises = [];
       promises.push(
         animationDefinition.ref.load(animationDefinition.text.name)
       );
@@ -543,7 +569,6 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
       animationDefinition.ref.setPerspective2d(
         animationDefinition.perspective === '2d'
       );
-      const promises = [];
       promises.push(animationDefinition.ref.load(filenames));
 
       if (
@@ -571,7 +596,6 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
 
     if (animationDefinition.shader !== undefined) {
       animationDefinition.shader.ref = new Shader(animationDefinition);
-      const promises = [];
       if (animationDefinition.shader.name) {
         promises.push(animationDefinition.shader.ref.load());
       }
