@@ -74,7 +74,7 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
       loggerWarning(`Video stalled: ${filename} ${event}`);
     };
     instance.videoElement.onwaiting = (event) => {
-      loggerWarning(`Video waiting: ${filename} ${event}`);
+      loggerDebug(`Video waiting: ${filename} ${event}`);
     };
     instance.videoElement.onabort = (event) => {
       loggerWarning(`Video aborted: ${filename} ${event}`);
