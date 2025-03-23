@@ -453,30 +453,54 @@ Model.prototype.setScale = function (x, y, z) {
 Model.prototype.cloneMaterials = function () {
   this.mesh.traverse((obj) => {
     if (obj.isMesh && obj.material) {
-      obj.material = obj.material.clone(); // material changes (e.g., color tweaking) should not affect other objects
+      // material changes (e.g., color tweaking) should not affect other objects
+      if (obj.material instanceof Array) {
+        obj.material = obj.material.map((material) => {
+          return material.clone();
+        });
+      } else {
+        obj.material = obj.material.clone();
+      }
     }
   });
 };
 
+Model.prototype.setMaterialDefaultValues = function (material) {
+  material.transparent = false;
+  material.opacity = 1;
+  material.depthWrite = true;
+  material.depthTest = true;
+  material.side = THREE.FrontSide;
+  material.flatShading = false;
+  material.needsUpdate = true;
+
+  if (settings.demo.compatibility.oldMaterials) {
+    material.side = THREE.DoubleSide;
+  }
+
+  if (this.additive) {
+    material.depthWrite = false;
+    material.blending = THREE.AdditiveBlending;
+  }
+};
+
+Model.prototype.processMaterial = function (material, functionToApply) {
+  if (material instanceof Array) {
+    material.forEach((material) => {
+      functionToApply(material);
+    });
+  } else {
+    functionToApply(material);
+  }
+};
+
 Model.prototype.setMaterialDefaults = function () {
+  const model = this;
   this.mesh.traverse((obj) => {
     if (obj.isMesh && obj.material) {
-      obj.material.transparent = false;
-      obj.material.opacity = 1;
-      obj.material.depthWrite = true;
-      obj.material.depthTest = true;
-      obj.material.side = THREE.FrontSide;
-      obj.material.flatShading = false;
-      obj.material.needsUpdate = true;
-
-      if (settings.demo.compatibility.oldMaterials) {
-        obj.material.side = THREE.DoubleSide;
-      }
-
-      if (this.additive) {
-        obj.material.depthWrite = false;
-        obj.material.blending = THREE.AdditiveBlending;
-      }
+      model.processMaterial(obj.material, (material) => {
+        model.setMaterialDefaultValues(material);
+      });
     }
   });
 };
@@ -486,12 +510,15 @@ Model.prototype.setMaterial = function (material) {
     loggerWarning('not material, cannot add to mesh');
     return;
   }
+  const model = this;
   this.mesh.traverse((obj) => {
     if (obj.isMesh && obj.material) {
-      if (obj.material.map && material.uniforms && material.uniforms.texture0) {
-        material.uniforms.texture0.value = obj.material.map;
-      }
-      obj.material = material;
+      model.processMaterial(obj.material, (mat) => {
+        if (mat.map && material.uniforms && material.uniforms.texture0) {
+          material.uniforms.texture0.value = mat.map;
+        }
+        mat = material;
+      });
     }
   });
 
@@ -548,16 +575,19 @@ Model.prototype.setColor = function (r, g, b, a) {
     na = a / 0xff;
   }
 
+  const model = this;
   this.mesh.traverse(function (obj) {
-    if (obj.isMesh) {
-      if (obj.material instanceof THREE.ShaderMaterial) {
-        if (obj.material.uniforms && obj.material.uniforms.color) {
-          obj.material.uniforms.color.value = new THREE.Vector4(nr, ng, nb, na);
+    if (obj.isMesh && obj.material) {
+      model.processMaterial(obj.material, (material) => {
+        if (material instanceof THREE.ShaderMaterial) {
+          if (material.uniforms && material.uniforms.color) {
+            material.uniforms.color.value = new THREE.Vector4(nr, ng, nb, na);
+          }
+        } else {
+          material.color.set(new THREE.Color(nr, ng, nb));
+          material.opacity = na;
         }
-      } else {
-        obj.material.color = new THREE.Color(nr, ng, nb);
-        obj.material.opacity = na;
-      }
+      });
     }
   });
 };
