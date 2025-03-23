@@ -262,7 +262,15 @@ Utils.deepCopyJson = function (jsonObject) {
 
 Utils.getRandomArrayIndex = function (array) {
   if (array.length !== undefined) {
-    return Math.floor(Math.random() * array.length);
+    return Math.floor(Utils.random() * array.length);
+  }
+
+  return undefined;
+};
+
+Utils.getRandomArrayElement = function (array) {
+  if (array.length !== undefined) {
+    return array[Utils.getRandomArrayIndex(array)];
   }
 
   return undefined;
