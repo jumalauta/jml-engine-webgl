@@ -23,7 +23,7 @@ Utils.setSeed = function (seed) {
 };
 
 Utils.updateProperties = function (animation) {
-  const object = animation.light;
+  const object = animation.light || animation.object;
   if (!object) {
     return;
   }
