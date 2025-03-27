@@ -809,6 +809,13 @@ Player.prototype.drawSceneAnimation = function (
             continue;
           }
 
+          if (
+            animation.pause &&
+            Utils.evaluateVariable(animation, animation.pause)
+          ) {
+            continue;
+          }
+
           sceneTimeFromStart = currentTime;
 
           if (animation.shader !== undefined) {
