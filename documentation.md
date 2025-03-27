@@ -144,6 +144,7 @@ this.loader.addAnimation(
         ,"duration":<time> //duration time, default is the animation block's duration time
         ,"end":<time>      //end time, default is the animation block's end time
         ,"time":<time or function> //to override the animation time programmatically. start and duration/end will be honored normally.
+        ,"pause":<boolean or function> //to control if animation is executed or not, can be used to pause scene drawing
         /*more animation variables per animation primitive*/
     }
      ,{/*animation primitive 2*/}
