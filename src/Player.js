@@ -886,6 +886,10 @@ function getSceneTimeFromStart() {
   return sceneTimeFromStart;
 }
 
+function getGlobalTimeFromStart() {
+  return new Timer().getTimeInSeconds();
+}
+
 function getDeltaTime() {
   return new Timer().getDeltaTime();
 }
@@ -893,6 +897,7 @@ function getSceneVariable() {
   return sceneVariable;
 }
 window.getSceneTimeFromStart = getSceneTimeFromStart;
+window.getGlobalTimeFromStart = getGlobalTimeFromStart;
 window.getSceneVariable = getSceneVariable;
 window.getDeltaTime = getDeltaTime;
-export { Player, getSceneTimeFromStart };
+export { Player, getSceneTimeFromStart, getGlobalTimeFromStart };
