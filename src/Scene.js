@@ -952,6 +952,13 @@ Scene.prototype.processAnimation = function () {
             animationDefinition.camera = 'Camera01';
           }
 
+          if (animationDefinition.objectOnLoadFunction) {
+            animationDefinition.ref.customModelProcessing(
+              animationDefinition,
+              animationDefinition.objectOnLoadFunction
+            );
+          }
+
           animationDefinition.ref.setFps(animationDefinition.fps);
           animationDefinition.ref.setCameraName(animationDefinition.camera);
 
