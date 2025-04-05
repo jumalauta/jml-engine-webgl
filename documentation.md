@@ -514,6 +514,30 @@ this.loader.addAnimation({
    "start": start, "duration":end
   ,"object":"duck.obj"
   ,"position":[{"x":0,"y":0,"z":-10}]
+  // Optional function that is called after mesh has loaded
+  ,"objectOnLoadFunction":(meshData, animationDefinition) => {
+    // meshData example:
+    // {
+    //   "filename": "duck.obj",
+    //   "mesh": [
+    //     {
+    //       "name": "Object03.001",
+    //       "position": {
+    //         "array": <typed array>,
+    //         "count": 1596
+    //       },
+    //       "uv": {
+    //         "array": <typed array>,
+    //         "count": 1596
+    //       },
+    //       "normal": {
+    //         "array": <typed array>,
+    //         "count": 1596
+    //       }
+    //     }
+    //   ]
+    // }
+  }
 });
 ```
 

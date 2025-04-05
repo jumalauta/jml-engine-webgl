@@ -505,6 +505,50 @@ Model.prototype.setMaterialDefaults = function () {
   });
 };
 
+Model.prototype.customModelProcessing = function (
+  animationDefinition,
+  processingCallback
+) {
+  if (!(typeof processingCallback === 'function')) {
+    loggerWarning('callback is not a function in customModelProcessing');
+    return;
+  }
+
+  if (!this.mesh) {
+    loggerWarning('mesh not defined in customModelProcessing');
+    return;
+  }
+
+  const meshData = { filename: this.filename, mesh: [] };
+  this.mesh.traverse((obj) => {
+    if (obj.isMesh && obj.geometry) {
+      const meshSubData = { name: obj.name };
+      const keys = Object.keys(obj.geometry.attributes);
+
+      const index = obj.geometry.index;
+      if (index) {
+        meshSubData.index = {
+          array: index.array,
+          count: index.count
+        };
+      }
+
+      for (let i = 0; i < keys.length; i++) {
+        const attributeName = keys[i];
+        const attribute = obj.geometry.getAttribute(attributeName);
+        meshSubData[attributeName] = {
+          array: attribute.array,
+          count: attribute.count
+        };
+      }
+
+      meshData.mesh.push(meshSubData);
+    }
+  });
+
+  processingCallback(meshData, animationDefinition);
+};
+
 Model.prototype.setMaterial = function (material) {
   if (!(material instanceof THREE.Material)) {
     loggerWarning('not material, cannot add to mesh');
