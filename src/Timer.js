@@ -65,7 +65,7 @@ Timer.prototype.pause = function (pauseState) {
 
     loggerInfo('Pausing demo timer');
     this.pauseTime = this.now();
-    Video.pause();
+    Video.pause(true);
   } else {
     if (pauseState === true) {
       return;
@@ -74,7 +74,7 @@ Timer.prototype.pause = function (pauseState) {
     loggerInfo('Resuming demo timer');
     this.startTime += this.now() - this.pauseTime;
     this.pauseTime = undefined;
-    Video.play();
+    Video.pause(false);
   }
   this.prevTime = this.time;
   this.deltaTime = 0.0;

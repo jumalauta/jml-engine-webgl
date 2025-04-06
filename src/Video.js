@@ -18,15 +18,9 @@ Video.clear = function () {
   videos = [];
 };
 
-Video.play = function () {
+Video.pause = function (pauseState) {
   videos.forEach((video) => {
-    video.play();
-  });
-};
-
-Video.pause = function () {
-  videos.forEach((video) => {
-    video.pause();
+    video.pause(pauseState);
   });
 };
 
@@ -175,10 +169,16 @@ Video.prototype.play = function () {
     });
 };
 
-Video.prototype.pause = function () {
+Video.prototype.pause = function (pauseState) {
   // videoPause(this.ptr)
-  if (this.isPlaying()) {
-    this.videoElement.pause();
+  if (pauseState === undefined || pauseState === true) {
+    if (this.isPlaying()) {
+      this.videoElement.pause();
+    }
+  } else {
+    if (this.videoElement.paused && this.playStarted) {
+      this.play();
+    }
   }
 };
 
@@ -259,7 +259,7 @@ Video.prototype.handleState = function () {
   ) {
     this.play();
     if (new Timer().isPaused()) {
-      this.pause();
+      this.pause(true);
     }
   }
 };
