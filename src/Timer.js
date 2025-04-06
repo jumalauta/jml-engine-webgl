@@ -23,7 +23,7 @@ Timer.prototype.getInstance = function () {
 };
 
 Timer.prototype.now = function () {
-  return performance.now();
+  return performance.now() * settings.demo.timerSpeed;
 };
 
 Timer.prototype.setEndTime = function (endTime) {

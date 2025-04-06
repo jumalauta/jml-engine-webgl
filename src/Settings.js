@@ -61,6 +61,7 @@ Settings.prototype.init = function () {
 
   this.demo = {
     duration: undefined, // duration in milliseconds, if not specified, music duration is used
+    timerSpeed: 1.0, // speed of the timer, 1.0 = normal speed, 0.5 = half speed, e.g., one timer second = two real seconds
     animation: {
       default: {
         start: 0,
