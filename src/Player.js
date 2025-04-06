@@ -376,7 +376,7 @@ Player.prototype.drawImageAnimation = function (time, animation) {
         );
       }
 
-      multiTexRef.video.handleState();
+      multiTexRef.video.play();
     }
   }
 
