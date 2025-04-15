@@ -32,13 +32,24 @@ Utils.updateProperties = function (animation) {
     return;
   }
   const properties = object.properties;
-  if (!properties) {
-    return;
+  if (properties) {
+    for (const key in properties) {
+      if (key in threeObject) {
+        threeObject[key] = Utils.evaluateVariable(animation, properties[key]);
+      }
+    }
   }
 
-  for (const key in properties) {
-    if (threeObject[key] !== undefined) {
-      threeObject[key] = Utils.evaluateVariable(animation, properties[key]);
+  const shadowProperties = object.shadowProperties;
+  const threeShadowObject = threeObject.shadow;
+  if (shadowProperties && threeShadowObject) {
+    for (const key in shadowProperties) {
+      if (key in threeShadowObject) {
+        threeShadowObject[key] = Utils.evaluateVariable(
+          animation,
+          shadowProperties[key]
+        );
+      }
     }
   }
 };
