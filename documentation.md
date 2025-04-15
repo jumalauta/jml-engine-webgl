@@ -781,6 +781,12 @@ this.loader.addAnimation({
     "type": "Directional",
     "properties": { "intensity": 1.0 },
     "castShadow": true, // cast shadows
+    // configure shadow properties
+    "shadowProperties": {
+      "bias": 0.001,
+      "radius": 1.0,
+      "normalBias": 0.0
+    } 
   },
   "color":[{"r":1.0,"g":0.0,"b":0.0}], // red light
   "position":[{"x":2.0,"y":1.0,"z":0.0}], // Directional light that is directioned from position to xyz 0,0,0 
