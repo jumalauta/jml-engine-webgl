@@ -103,6 +103,10 @@ LoadingBar.prototype.setPercent = function (percent) {
   }
 };
 
+LoadingBar.prototype.getPercent = function () {
+  return this.percent;
+};
+
 LoadingBar.prototype.render = function () {
   if (!this.renderer) {
     throw new Error('Renderer not set');
