@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Fbo } from './Fbo';
-import { loggerWarning } from './Bindings';
+import { loggerInfo, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 import { Video } from './Video';
@@ -11,6 +11,8 @@ import vertexShader2dData from './_embedded/default2d.vs?raw';
 import fragmentShaderData from './_embedded/default2d.fs?raw';
 
 const settings = new Settings();
+
+const customImages = {};
 
 const Image = function (animationDefinition) {
   this.ptr = undefined;
@@ -161,6 +163,29 @@ Image.prototype.generateMesh = function () {
   }
 };
 
+Image.prototype.loadCustom = function (
+  filenames,
+  textureGenerationFunction,
+  noGenerate
+) {
+  if (typeof filenames === 'string') {
+    filenames = [filenames];
+  }
+
+  for (let i = 0; i < filenames.length; i++) {
+    this.filename = filenames[i];
+    const texture = new THREE.Texture(textureGenerationFunction(filenames[i]));
+    texture.needsUpdate = true;
+    this.texture.push(texture);
+    customImages[filenames[i]] = this;
+    loggerInfo(`Loaded custom image: ${filenames[i]}`);
+  }
+
+  if (noGenerate !== true) {
+    this.generateMesh();
+  }
+};
+
 Image.prototype.load = async function (filenames, noGenerate) {
   if (typeof filenames === 'string') {
     filenames = [filenames];
@@ -184,7 +209,8 @@ Image.prototype.isFileSupported = function (filenames) {
       !filename ||
       (!filename.toUpperCase().endsWith('.PNG') &&
         !filename.toUpperCase().endsWith('.MP4') &&
-        !filename.endsWith('.fbo'))
+        !filename.endsWith('.fbo') &&
+        !customImages[filename])
     ) {
       return false;
     }
@@ -210,7 +236,20 @@ Image.prototype.loadTexture = function (filename) {
   instance.texture.push(undefined);
   const textureI = instance.texture.length - 1;
 
-  if (instance.filename.endsWith('.fbo')) {
+  const customImage = customImages[filename];
+  if (customImage) {
+    return new Promise((resolve, reject) => {
+      try {
+        instance.texture[textureI] = customImage.texture[0];
+        instance.width = customImage.width;
+        instance.height = customImage.height;
+        resolve(instance);
+      } catch (e) {
+        loggerWarning('Could not load FBO ' + instance.filename);
+        reject(instance);
+      }
+    });
+  } else if (instance.filename.endsWith('.fbo')) {
     const colorTexture = instance.filename.endsWith('.color.fbo');
     const fboName = instance.filename
       .replace('.depth.fbo', '')
@@ -347,4 +386,6 @@ Image.prototype.draw = function (time) {
   }
 };
 
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.Image = Image;
 export { Image };
