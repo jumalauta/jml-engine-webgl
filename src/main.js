@@ -149,7 +149,7 @@ let capture = false;
 let frame = -1;
 let captureStartTime;
 let waitingForFrame = false;
-const fps = 60;
+const fps = settings.engine.fps;
 const oneFrame = 1000 / fps;
 
 export function setWaitingForFrame(wait) {

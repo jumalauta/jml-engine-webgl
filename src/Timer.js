@@ -77,7 +77,7 @@ Timer.prototype.pause = function (pauseState) {
     Video.pause(false);
   }
   this.prevTime = this.time;
-  this.deltaTime = 0.0;
+  this.deltaTime = 1 / settings.engine.fps;
   this.music.pause();
   this.update(true);
 };
@@ -95,7 +95,7 @@ Timer.prototype.setTime = function (time, skipMusicUpdate) {
     time = 0;
   } else if (this.endTime && time > this.endTime) {
     this.prevTime = this.time;
-    this.deltaTime = 0.0;
+    this.deltaTime = 1 / settings.engine.fps;
     time = this.endTime;
   }
 
