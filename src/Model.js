@@ -329,6 +329,7 @@ Model.prototype.load = function (filename) {
 
     return new Promise((resolve, reject) => {
       const mtlLoader = new MTLLoader();
+      mtlLoader.setResourcePath(fileManager.getPathDirectory(materialFilename));
       mtlLoader.load(
         fileManager.getPath(materialFilename),
         (materials) => {

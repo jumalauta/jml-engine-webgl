@@ -324,6 +324,15 @@ FileManager.prototype.getPath = function (filePath) {
   return filePath;
 };
 
+FileManager.prototype.getPathDirectory = function (filePath) {
+  const path = this.getPath(filePath);
+  const lastSlash = path.lastIndexOf('/');
+  if (lastSlash === -1) {
+    return '';
+  }
+  return path.substring(0, lastSlash + 1);
+};
+
 FileManager.prototype.getDiskPath = function (filePath) {
   if (filePath.startsWith('src/') || filePath.startsWith('public/')) {
     return filePath;
