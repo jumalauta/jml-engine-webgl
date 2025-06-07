@@ -79,6 +79,13 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
       this.playStarted = false;
       this.playEnded = true;
     };
+    instance.videoElement.onseeked = (event) => {
+      // console.log(`Video seeked: ${filename} ${event}`);
+      this.texture.update();
+    };
+    instance.videoElement.ontimeupdate = (event) => {
+      // console.log(`Video time update: ${filename} ${event} ${this.videoElement.currentTime}`);
+    };
 
     instance.videoElement.oncanplaythrough = (event) => {
       instance.texture = new THREE.VideoTexture(instance.videoElement);
@@ -142,7 +149,7 @@ Video.prototype.isPlaying = function () {
 
 Video.prototype.play = function () {
   // videoPlay(this.ptr)
-  if (this.isPlaying()) {
+  if (this.isPlaying() || (this.playStarted && !this.playEnded)) {
     return;
   }
 
@@ -244,7 +251,7 @@ Video.prototype.rewind = function () {
 
   this.videoElement.currentTime = timeDelta;
 
-  // loggerTrace(`Rewinding video '${this.filename}' from ${oldTime} to ${this.videoElement.currentTime} seconds (video start ${this.startTime})`);
+  // console.log(`Rewinding video '${this.filename}' from ${oldTime} to ${this.videoElement.currentTime} seconds (video start ${this.startTime})`);
   this.texture.update();
 };
 
