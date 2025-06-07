@@ -376,6 +376,16 @@ Utils.interpolate = function (p, a, b, type) {
   return value;
 };
 
+Utils.wrapAsync = function (func) {
+  return (...args) => {
+    return new Promise((resolve, reject) => {
+      func(...args)
+        .then(resolve)
+        .catch(reject);
+    });
+  };
+};
+
 const Constants = function () {};
 
 Constants.Align = {
