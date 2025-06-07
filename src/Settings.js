@@ -38,7 +38,8 @@ Settings.prototype.init = function () {
     preloadSteps: undefined, // defaults to every 0.5s
     enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
     webDemoExe: false,
-    startTime: 0
+    startTime: 0,
+    fps: 60
   };
 
   this.tool = {
