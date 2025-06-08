@@ -274,6 +274,51 @@ this.loader.addAnimation({
 });
 ```
 
+#### 2D image - custom image loading
+
+```JavaScript
+// Renders single character (e.g., emoji) to HTML 2D canvas
+function renderCharacterToCanvas(character) {
+  const size = 128;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+
+  const context = canvas.getContext('2d');
+  context.font = `${size/2}px monospace`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.textRendering = 'geometricPrecision';
+  context.fillText(character, size/2, size/2, size);
+
+  return {
+    image: canvas,
+    properties:{
+      magFilter: 'LinearFilter',
+      minFilter: 'LinearMipmapLinearFilter'
+    }
+  };
+}
+
+Demo.prototype.scenesCommonInit = function () {
+  // https://unicode.org/emoji/charts/full-emoji-list.html#1f922
+  const emojiList = [
+    '😂', '😃', '😎'
+  ];
+  emojiList.forEach((emojiChar) => {
+    //create image using renderCharacterToCanvas function call
+    const emoji = new DemoEngine.Image();
+    emoji.loadCustomSync(emojiChar, renderCharacterToCanvas);
+  });
+
+  // Display custom loaded image (the sunglasses emoji)
+  this.loader.addAnimation({
+    image: '😎'
+  });
+};
+```
+
 #### 3D image - sprite
 
 3D Image that faces the camera

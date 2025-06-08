@@ -163,7 +163,7 @@ Image.prototype.generateMesh = function () {
   }
 };
 
-Image.prototype.loadCustom = function (
+Image.prototype.loadCustomSync = function (
   filenames,
   textureGenerationFunction,
   noGenerate
@@ -174,11 +174,18 @@ Image.prototype.loadCustom = function (
 
   for (let i = 0; i < filenames.length; i++) {
     this.filename = filenames[i];
-    const texture = new THREE.Texture(textureGenerationFunction(filenames[i]));
+    const customData = textureGenerationFunction(filenames[i]);
+    const texture = new THREE.Texture(customData.image);
+    if (customData.properties) {
+      settings.toThreeJsProperties(customData.properties, texture);
+    }
+
     texture.needsUpdate = true;
     this.texture.push(texture);
     customImages[filenames[i]] = this;
-    loggerInfo(`Loaded custom image: ${filenames[i]}`);
+    loggerInfo(
+      `Loaded custom image: ${filenames[i]} (properties: ${JSON.stringify(customData.properties || {})})`
+    );
   }
 
   if (noGenerate !== true) {
