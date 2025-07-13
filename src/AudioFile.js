@@ -76,6 +76,13 @@ AudioFile.prototype.getDuration = function () {
   return this.duration;
 };
 
+AudioFile.prototype.isPlaying = function () {
+  if (!this.audio) {
+    return false;
+  }
+  return this.audio.isPlaying;
+};
+
 AudioFile.prototype.play = function () {
   if (!this.audio) {
     return;
