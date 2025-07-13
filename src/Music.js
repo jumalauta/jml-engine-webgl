@@ -20,8 +20,8 @@ Music.prototype.init = function () {
 };
 
 Music.prototype.load = function (url) {
-  this.audioFile.setVolume(settings.demo.music.volume);
-  this.audioFile.setLoop(settings.demo.music.loop);
+  this.audioFile.setVolumeInit(settings.demo.music.volume);
+  this.audioFile.setLoopInit(settings.demo.music.loop);
 
   return this.audioFile.load(url);
 };
