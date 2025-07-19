@@ -54,8 +54,8 @@ AudioFile.prototype.load = function (url) {
         instance.listener = new THREE.AudioListener();
         instance.audio = new THREE.Audio(instance.listener);
         instance.audio.setBuffer(buffer);
-        instance.audio.setVolumeInit(instance.volume);
-        instance.audio.setLoopInit(instance.loop);
+        instance.audio.setVolume(instance.volume);
+        instance.audio.setLoop(instance.loop);
         instance.duration = buffer.duration;
         loggerDebug(
           'Loaded AudioFile ' + path + ' (length ' + instance.duration + 's)'
@@ -76,14 +76,14 @@ AudioFile.prototype.setVolume = function (volume) {
   if (!this.audio) {
     return false;
   }
-  this.audio.volume = volume;
+  this.audio.setVolume(volume);
 };
 
 AudioFile.prototype.setLoop = function (loop) {
   if (!this.audio) {
     return false;
   }
-  this.audio.loop = loop;
+  this.audio.setLoop(loop);
 };
 
 AudioFile.prototype.getDuration = function () {
