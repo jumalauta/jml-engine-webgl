@@ -38,6 +38,7 @@ Settings.prototype.init = function () {
     preloadSteps: undefined, // defaults to every 0.5s
     enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
     webDemoExe: false,
+    autoStart: false,
     startTime: 0,
     fps: 60
   };
@@ -203,6 +204,10 @@ Settings.prototype.init = function () {
     this.engine.tool = false;
     this.engine.enabledLogLevels = ['info', 'warn', 'error'];
     this.engine.webDemoExe = process.env.NODE_ENV === 'exe';
+
+    if (this.engine.webDemoExe) {
+      this.engine.autoStart = true;
+    }
   }
 };
 

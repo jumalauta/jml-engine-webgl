@@ -42,7 +42,9 @@ function setDemoPathPrefix(prefix) {
 }
 
 function setStartTime() {
-  const startTime = new URLSearchParams(window.location.search).get('time');
+  const startTime = new URLSearchParams(window.location.search).get(
+    'startTime'
+  );
   if (startTime) {
     settings.engine.startTime = parseInt(startTime);
   }
@@ -51,11 +53,16 @@ function setStartTime() {
 function customizeSettings() {
   setStartTime();
 
-  const enabledLogLevels = new URLSearchParams(window.location.search).get(
-    'enabledLogLevels'
-  );
+  const queryParams = new URLSearchParams(window.location.search);
+
+  const enabledLogLevels = queryParams.get('enabledLogLevels');
   if (enabledLogLevels) {
     settings.engine.enabledLogLevels = enabledLogLevels.split(',');
+  }
+
+  const preload = queryParams.get('preload');
+  if (preload) {
+    settings.engine.preload = preload === 'true';
   }
 }
 
@@ -81,6 +88,13 @@ window.appendDemoToPlaylist = function (name, path) {
   }
 };
 
+// auto-select the demo from the URL parameter if given
+const selectValue = new URLSearchParams(window.location.search).get('select');
+const customDemoPath = selectValue ? `${selectValue}/` : undefined;
+if (customDemoPath) {
+  setDemoPathPrefix(customDemoPath);
+}
+
 if (select) {
   // playlist.js is expected to just list available productions, e.g., appendDemoToPlaylist('JUHA 001', 'data_juha001/');
   new JavaScriptFile()
@@ -88,12 +102,8 @@ if (select) {
     .then(() => {
       loggerDebug('Initializing playlist');
 
-      // auto-select the demo from the URL parameter if given
-      const selectValue = new URLSearchParams(window.location.search).get(
-        'select'
-      );
-      if (selectValue) {
-        select.value = `${selectValue}/`;
+      if (customDemoPath) {
+        select.value = customDemoPath;
       }
 
       // if select has only one option, hide the select element
@@ -121,10 +131,6 @@ if (select) {
     .catch((e) => {
       loggerDebug('No playlist.js found, loading default demo...: ' + e);
       select.style.display = 'none';
-      // load Demo from default path if playlist.js is not defined
-      if (settings.engine.webDemoExe) {
-        startDemo();
-      }
     });
 }
 
@@ -358,13 +364,13 @@ function startDemoAnimation() {
   startAnimate();
 }
 
-function startDemo(options = {}) {
+function startDemo() {
   javaScriptFile
     .load('Demo.js')
     .then(() => {
       loggerTrace('Demo.js loaded');
       customizeSettings();
-      restartDemo(options);
+      restartDemo();
     })
     .catch(() => {
       windowSetTitle('LOADING ERROR');
@@ -380,7 +386,11 @@ function startDemo(options = {}) {
     });
 }
 
-function restartDemo(options = {}) {
+function isAppleMobileDevice() {
+  return /iPad|iPhone/.test(navigator.userAgent);
+}
+
+function restartDemo() {
   if (Effect.loading) {
     loggerInfo('Effect is loading, not starting');
     return;
@@ -397,19 +407,9 @@ function restartDemo(options = {}) {
 
   togglePlayerUserInterface(true);
 
-  // without 100ms delay this explodes - maybe demoRendered should be awaited? Bindings.js:40 0.00 (1043 ms) [ERROR]: Error in loading demo: this.sceneIntro is not a function, stack: TypeError: this.sceneIntro is not a function at Demo.init (eval at <anonymous> (http://127.0.0.1:5173/src/JavaScriptFile.js:16:7), <anonymous>:198:8) at http://127.0.0.1:5173/src/Effect.js:93:16
-
-  if (options.silent === false) {
-    setTimeout(() => {
-      startDemoAnimation();
-    }, 100);
-
-    return;
-  }
-
   // HTML5 audio tag needs to be used so that WebAudio can be played also when Apple device hardware mute switch is ON
   const appleSilence = document.getElementById('appleSilence');
-  if (appleSilence) {
+  if (appleSilence && isAppleMobileDevice()) {
     appleSilence.onseeked = () => {
       loggerDebug('AppleSilence ended');
       appleSilence.onseeked = null;
@@ -426,7 +426,10 @@ function restartDemo(options = {}) {
     appleSilence.load();
     appleSilence.play();
   } else {
-    startDemoAnimation();
+    // without 100ms delay this explodes - maybe demoRendered should be awaited? Bindings.js:40 0.00 (1043 ms) [ERROR]: Error in loading demo: this.sceneIntro is not a function, stack: TypeError: this.sceneIntro is not a function at Demo.init (eval at <anonymous> (http://127.0.0.1:5173/src/JavaScriptFile.js:16:7), <anonymous>:198:8) at http://127.0.0.1:5173/src/Effect.js:93:16
+    setTimeout(() => {
+      startDemoAnimation();
+    }, 100);
   }
 }
 window.startDemo = startDemo;
@@ -595,9 +598,11 @@ document.addEventListener('keydown', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('start') === 'yes') {
-    startDemo({
-      silent: false
-    });
+  if (params.get('autoStart') === 'true') {
+    settings.engine.autoStart = true;
+  }
+
+  if (settings.engine.autoStart) {
+    startDemo();
   }
 });
