@@ -96,7 +96,13 @@ if (select) {
         select.value = `${selectValue}/`;
       }
 
-      select.style.display = 'block';
+      // if select has only one option, hide the select element
+      if (select.options.length === 1) {
+        select.style.display = 'none';
+      } else {
+        select.style.display = 'block';
+      }
+
       select.addEventListener('change', () => {
         clearCache();
         fileManager.clearCache();
