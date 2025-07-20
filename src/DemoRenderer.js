@@ -7,7 +7,6 @@ import { Settings } from './Settings';
 import { Spectogram } from './Spectogram';
 import { ToolUi } from './ToolUi';
 import { Timer } from './Timer';
-
 const settings = new Settings();
 
 const DemoRenderer = function () {
@@ -177,10 +176,11 @@ DemoRenderer.prototype.resize = function () {
   }
   this.canvasWidth *= scaleDown;
   this.canvasHeight *= scaleDown;
+  this.canvasPositionY = (this.fullCanvasHeight - this.canvasHeight) / 2;
 
   const canvas = document.getElementById('canvas');
   if (canvas) {
-    canvas.style.margin = `${(this.fullCanvasHeight - this.canvasHeight) / 2}px auto`;
+    canvas.style.margin = `${this.canvasPositionY}px auto`;
     canvas.style.transform = `scale(${scaleUp})`;
   }
 
@@ -283,6 +283,7 @@ function popView() {
   scenes.pop();
   cameras.pop();
 }
+
 export { getScene, getCamera, pushView, popView };
 
 function getScreenWidth() {

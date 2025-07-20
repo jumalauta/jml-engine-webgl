@@ -871,6 +871,23 @@ this.loader.addAnimation({
 });
 ```
 
+#### Mouse cursor movement capture
+
+Mouse cursor may be used for debugging or other purposes. 
+To make more complex event handling, add event listeners to the page/HTML canvas and use them for controlling activities: https://developer.mozilla.org/en-US/docs/Web/Events
+
+```JavaScript
+let cursorPosition = {x:0,y:0};
+this.loader.addAnimation({
+  image: 'mouseCursor.png',
+  cursor:{onmouseover:(animation)=>{
+    console.log(`Mouse position: x: ${animation.cursor.position.x}, y: ${animation.cursor.position.y}`);
+    cursorPosition = animation.cursor.position;
+  }},
+  position:[{x:()=>cursorPosition.x,y:()=>cursorPosition.y}]
+});
+```
+
 #### Custom JavaScript functions
 ##### Simple example
 Definition in the init method:
