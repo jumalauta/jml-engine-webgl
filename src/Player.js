@@ -3,9 +3,10 @@ import { Utils } from './Utils';
 import { Shader } from './Shader';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
-import { DemoRenderer } from './DemoRenderer';
+import { DemoRenderer, getCamera } from './DemoRenderer';
 import { Loader } from './Loader';
 import { DmxLightManager } from './DmxLightManager';
+import { Input } from './Input';
 
 window.DmxLightManager = DmxLightManager;
 
@@ -728,6 +729,51 @@ Player.prototype.is3dObject = function (obj) {
   );
 };
 
+Player.prototype.handleCursorEvents = function (animation) {
+  if (
+    animation.cursor &&
+    animation.visible &&
+    animation.ref &&
+    this.is3dObject(animation.ref.mesh)
+  ) {
+    const input = new Input();
+    if (input.cursorPosition === undefined) {
+      return;
+    }
+
+    let camera = getCamera();
+    if (animation.ref.perspective2d) {
+      if (animation.type === 'image') {
+        // Orthographic camera for 2D perspective aligned with default2d.vs
+        camera = new THREE.OrthographicCamera(
+          -0.5 * settings.demo.camera.aspectRatio,
+          0.5 * settings.demo.camera.aspectRatio,
+          0.5,
+          -0.5,
+          -1.0,
+          1.0
+        );
+      } else {
+        // Text in 2D perspective is actually 3D, so we use a perspective camera
+        camera = settings.createCamera();
+      }
+      camera.position.set(0, 0, 0);
+      camera.lookAt(new THREE.Vector3(0, 0, -1));
+      camera.updateMatrixWorld();
+    }
+
+    if (input.isCursorOverAnimation(camera, animation)) {
+      if (animation.cursor.onmouseover) {
+        animation.cursor.position = {
+          x: input.cursorPosition.x,
+          y: input.cursorPosition.y
+        };
+        Utils.evaluateVariable(animation, animation.cursor.onmouseover);
+      }
+    }
+  }
+};
+
 Player.prototype.setAnimationVisibility = function (animation, visible) {
   if (animation.visible === visible) {
     return;
@@ -866,6 +912,8 @@ Player.prototype.drawSceneAnimation = function (
             // loggerInfo("shader disable!");
             Shader.disableShader(animation);
           }
+
+          this.handleCursorEvents(animation);
         } else {
           this.setAnimationVisibility(animation, false);
         }
