@@ -39,11 +39,22 @@ Feel free to contribute with features and bug fixes. Aim to follow design princi
 | S                 | Take a screenshot of the current rendered frame |
 | T                 | Hide/show tool |
 
+### Query parameters
+
+| Query parameter   | Action                    |
+|-------------------|---------------------------|
+| `startTime=<millis>`   | Set start time of the demo` |
+| `enabledLogLevels=trace,debug,info,warn,error` | Enable logging levels |
+| `autoStart=<true\|false>`  | Automatically start demo |
+| `preload=<true\|false>`  | If preload should be enabled |
+| `select=<path-to-demo>` | Change demo path from `data` directory to something else |
+
+If you're developing a demo and want to iterate some scene at 30.5 seconds with minimal loading times you can, for example, do following: `http://localhost:5173/?startTime=30500&autoStart=true&preload=false&select=projects/new-demo`
+
 ### Other controls
 
 - Skipping preloading: Press any rewinding key during loading
 - Mouse controls: To zoom / rotate around camera look-at (if default camera in use)
-- Query parameter `time=<millis>`: Set start time of the demo, e.g., to start at 30.5 sec mark: `http://localhost:5173/?time=30500`
 - Tool is watching for file changes automatically and attempting to do shallow reloads on changes.
 
 ## Player controls
