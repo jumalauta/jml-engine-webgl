@@ -469,13 +469,13 @@ function reloadDemo() {
   Effect.init('Demo');
 }
 
-function deepReloadDemo(options = {}) {
+function deepReloadDemo() {
   loggerInfo('Deep reload demo');
   const isPause = timer.isPaused();
   const time = timer.getTime();
   stopDemo();
   settings.engine.preload = false; // deep reload should not do preloading
-  restartDemo(options);
+  restartDemo();
   settings.engine.startTime = time;
   if (isPause) {
     timer.pause();
