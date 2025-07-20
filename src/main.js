@@ -358,13 +358,13 @@ function startDemoAnimation() {
   startAnimate();
 }
 
-function startDemo() {
+function startDemo(options = {}) {
   javaScriptFile
     .load('Demo.js')
     .then(() => {
       loggerTrace('Demo.js loaded');
       customizeSettings();
-      restartDemo();
+      restartDemo(options);
     })
     .catch(() => {
       windowSetTitle('LOADING ERROR');
@@ -380,7 +380,7 @@ function startDemo() {
     });
 }
 
-function restartDemo() {
+function restartDemo(options = {}) {
   if (Effect.loading) {
     loggerInfo('Effect is loading, not starting');
     return;
@@ -396,6 +396,16 @@ function restartDemo() {
   demoRenderer.init();
 
   togglePlayerUserInterface(true);
+
+  // without 100ms delay this explodes - maybe demoRendered should be awaited? Bindings.js:40 0.00 (1043 ms) [ERROR]: Error in loading demo: this.sceneIntro is not a function, stack: TypeError: this.sceneIntro is not a function at Demo.init (eval at <anonymous> (http://127.0.0.1:5173/src/JavaScriptFile.js:16:7), <anonymous>:198:8) at http://127.0.0.1:5173/src/Effect.js:93:16
+
+  if (options.silent === false) {
+    setTimeout(() => {
+      startDemoAnimation();
+    }, 100);
+
+    return;
+  }
 
   // HTML5 audio tag needs to be used so that WebAudio can be played also when Apple device hardware mute switch is ON
   const appleSilence = document.getElementById('appleSilence');
@@ -456,13 +466,13 @@ function reloadDemo() {
   Effect.init('Demo');
 }
 
-function deepReloadDemo() {
+function deepReloadDemo(options = {}) {
   loggerInfo('Deep reload demo');
   const isPause = timer.isPaused();
   const time = timer.getTime();
   stopDemo();
   settings.engine.preload = false; // deep reload should not do preloading
-  restartDemo();
+  restartDemo(options);
   settings.engine.startTime = time;
   if (isPause) {
     timer.pause();
@@ -580,5 +590,14 @@ document.addEventListener('keydown', (event) => {
         captureFrame();
       }, 1000);
     }
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('start') === 'yes') {
+    startDemo({
+      silent: false
+    });
   }
 });
