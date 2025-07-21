@@ -732,7 +732,7 @@ Player.prototype.is3dObject = function (obj) {
 Player.prototype.handleCursorEvents = function (animation) {
   if (
     animation.cursor &&
-    animation.visible &&
+    animation._visible &&
     animation.ref &&
     this.is3dObject(animation.ref.mesh)
   ) {
@@ -775,11 +775,11 @@ Player.prototype.handleCursorEvents = function (animation) {
 };
 
 Player.prototype.setAnimationVisibility = function (animation, visible) {
-  if (animation.visible === visible) {
+  if (animation._visible === visible) {
     return;
   }
 
-  animation.visible = visible;
+  animation._visible = visible;
   if (animation.ref && this.is3dObject(animation.ref.mesh)) {
     animation.ref.mesh.visible = visible;
   }
@@ -843,8 +843,6 @@ Player.prototype.drawSceneAnimation = function (
             continue;
           }
 
-          this.setAnimationVisibility(animation, true);
-
           const currentTime =
             animation.time !== undefined
               ? startTime + Utils.evaluateVariable(animation, animation.time)
@@ -852,6 +850,17 @@ Player.prototype.drawSceneAnimation = function (
 
           if (currentTime < startTime || currentTime >= animation.end) {
             this.setAnimationVisibility(animation, false);
+            continue;
+          }
+
+          const animationVisible = Utils.evaluateVariable(
+            animation,
+            animation.visible !== undefined ? animation.visible : true
+          );
+
+          this.setAnimationVisibility(animation, animationVisible);
+
+          if (animationVisible === false) {
             continue;
           }
 
