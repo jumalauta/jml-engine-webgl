@@ -43,7 +43,7 @@ Feel free to contribute with features and bug fixes. Aim to follow design princi
 
 | Query parameter   | Action                    |
 |-------------------|---------------------------|
-| `startTime=<millis>`   | Set start time of the demo` |
+| `startTime=<millis>`   | Set start time of the demo |
 | `enabledLogLevels=trace,debug,info,warn,error` | Enable logging levels |
 | `autoStart=<true\|false>`  | Automatically start demo |
 | `preload=<true\|false>`  | If preload should be enabled |
