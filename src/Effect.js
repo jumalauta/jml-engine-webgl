@@ -102,6 +102,12 @@ Effect.init = function (effectName) {
       const music = new Music();
       if (settings.demo.music.musicFile) {
         music.load(settings.demo.music.musicFile);
+      } else {
+        if (settings.demo.duration === undefined) {
+          throw new Error(
+            'Demo duration is not defined and no music file is provided, please define settings.demo.music.musicFile or settings.demo.duration'
+          );
+        }
       }
 
       const demoRenderer = new DemoRenderer();
