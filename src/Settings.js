@@ -30,61 +30,62 @@ Settings.prototype.asJson = function () {
 
 Settings.prototype.init = function () {
   this.engine = {
-    demoPathPrefix: 'data/',
-    tool: true,
+    demoPathPrefix: 'data/', // default demo project root
+    tool: true, // true = enable tool mode, false = player mode
     pauseOnInvisibility: true, // Pause demo if tab is not visible
-    fileWatchInterval: 250,
-    preload: true,
-    preloadSteps: undefined, // defaults to every 0.5s
-    enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'],
-    webDemoExe: false,
-    autoStart: false,
-    startTime: 0,
-    fps: 60
+    fileWatchInterval: 250, // Interval in milliseconds to check for file changes
+    preload: true, // Preload all resources before starting the demo, for quicker demo development it's recommended to set this to false
+    preloadSteps: undefined, // preload calculation of the demo, defaults to render frame every 0.5s during loading
+    enabledLogLevels: ['trace', 'debug', 'info', 'warn', 'error'], // enabled log levels you can see in Browser Console
+    webDemoExe: false, // true = build for https://github.com/pandrr/WebDemoExe/ executable
+    autoStart: false, // start demo automatically when the page is loaded skipping menu / user interaction, this may disable sound until user interaction happens
+    startTime: 0, // place of time where the demo starts
+    fps: 60 // frames per second
   };
 
   this.tool = {
     server: {
-      enabled: true,
-      uriScheme: 'ws',
-      host: 'localhost',
-      port: 7447
+      enabled: true, // if tool mode should connect to tool server (program in tool_server/ directory)
+      uriScheme: 'ws', // communication protocol
+      host: 'localhost', // host address
+      port: 7447 // host port
     },
     midi: {
-      capture: true,
-      playbackLogging: true,
-      recordingName: 'default'
+      capture: true, // capture MIDI events
+      playbackLogging: true, // enable playback logging
+      recordingName: 'default' // name of the MIDI recording
     }
   };
 
   this.menu = {
-    quality: 1.0
+    quality: 1.0 // quality of the screen, 1.0 = full quality, 0.8 = medium quality, 0.6 = low quality etc.
   };
 
   this.demo = {
     duration: undefined, // duration in milliseconds, if not specified, music duration is used
     timerSpeed: 1.0, // speed of the timer, 1.0 = normal speed, 0.5 = half speed, e.g., one timer second = two real seconds
     animation: {
+      // defaults for animations (e.g., this.loader.addAnimation method calls)
       default: {
-        start: 0,
+        start: 0, // default animation start time in seconds
         duration: 10000, // default animation duration in seconds
-        layer: 1
+        layer: 1 // default animation layer
       }
     },
-    clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+    clearColor: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, // default clear color for the scene
     sync: {
       rocketFile: undefined, // rocket websocket + file connection can be enabled by defining rocket file path, e.g.: 'sync/sync.rocket'
-      beatsPerMinute: 120,
-      rowsPerBeat: 8,
+      beatsPerMinute: 120, // beats per minute for the demo, used for calculating beat time
+      rowsPerBeat: 8, // number of rows per beat for GNU Rocket
       midi: {
         sync: undefined // MIDI + file connection can be enabled by defining sync file path or JSON data, e.g.: 'sync/midi.json'
       }
     },
     music: {
-      musicFile: 'music.mp3',
-      spectogramFile: 'spectogram.png',
-      volume: 1.0,
-      loop: false
+      musicFile: 'music.mp3', // music file to be played, can be undefined if no music is used
+      spectogramFile: 'spectogram.png', // spectogram image file, can be undefined if no spectogram is used
+      volume: 1.0, // volume of the music, 1.0 = full volume, 0.5 = half volume, etc.
+      loop: false // whether the music should loop
     },
     // backgroundColor: { r: 0.0, g: 1.0, b: 0.0 },
     /* fog: {
@@ -93,29 +94,29 @@ Settings.prototype.init = function () {
       far: 900,
     }, */
     compatibility: {
-      old2dCoordinates: false,
-      oldRotation: false,
-      oldColors: false,
-      oldMaterials: false
+      old2dCoordinates: false, // true = use old pixel based 2D coordinate system, for example: x: 0 - 1920, y: 0 - 1080
+      oldRotation: false, // true = use old degree rotation system where positive rotation is counter-clockwisee
+      oldColors: false, // true = use old HEX color format 0 - 255 per color channel, for example: { r: 255, g: 0, b: 0, a: 255 }
+      oldMaterials: false // true = 3D model material is DoubleSide by default
     },
     text: {
       perspective3d: {
         material: {
-          type: 'Phong',
-          transparent: true
+          type: 'Phong', // default material type for 3D text
+          transparent: true // whether the material is transparent
         }
       }
     },
     model: {
       shape: {
         material: {
-          type: 'Phong',
-          transparent: true
+          type: 'Phong', // default material type for 3D shapes
+          transparent: true // whether the material is transparent
         },
         skysphere: {
           material: {
-            type: 'Basic',
-            transparent: true
+            type: 'Basic', // default material type for skysphere
+            transparent: true // whether the material is transparent
           }
         }
       }
@@ -125,54 +126,54 @@ Settings.prototype.init = function () {
         type: 'Basic',
       }, */
       texture: {
-        minFilter: 'LinearFilter',
-        magFilter: 'LinearFilter',
-        wrapS: 'ClampToEdgeWrapping',
-        wrapT: 'ClampToEdgeWrapping'
+        minFilter: 'LinearFilter', // default texture minification filter
+        magFilter: 'LinearFilter', // default texture magnification filter
+        wrapS: 'ClampToEdgeWrapping', // default texture wrapping mode for S (horizontal) axis
+        wrapT: 'ClampToEdgeWrapping' // default texture wrapping mode for T (vertical) axis
       }
     },
     fbo: {
-      quality: 1.0,
+      quality: 1.0, // quality of the FBO, 1.0 = full quality, 0.8 = medium quality, 0.6 = low quality etc.
       color: {
         texture: {
-          minFilter: 'LinearFilter',
-          magFilter: 'LinearFilter',
-          wrapS: 'ClampToEdgeWrapping',
-          wrapT: 'ClampToEdgeWrapping'
+          minFilter: 'LinearFilter', // default color texture minification filter
+          magFilter: 'LinearFilter', // default color texture magnification filter
+          wrapS: 'ClampToEdgeWrapping', // default color texture wrapping mode for S (horizontal) axis
+          wrapT: 'ClampToEdgeWrapping' // default color texture wrapping mode for T (vertical) axis
         }
       },
       depth: {
         texture: {
-          minFilter: 'LinearFilter',
-          magFilter: 'LinearFilter',
-          wrapS: 'ClampToEdgeWrapping',
-          wrapT: 'ClampToEdgeWrapping'
+          minFilter: 'LinearFilter', // default depth texture minification filter
+          magFilter: 'LinearFilter', // default depth texture magnification filter
+          wrapS: 'ClampToEdgeWrapping', // default depth texture wrapping mode for S (horizontal) axis
+          wrapT: 'ClampToEdgeWrapping' // default depth texture wrapping mode for T (vertical) axis
         }
       }
     },
     screen: {
-      quality: 1.0,
-      width: 1920,
-      height: 1080
+      quality: 1.0, // quality of the screen, 1.0 = full quality, 0.8 = medium quality, 0.6 = low quality etc.
+      width: 1920, // default (virtual) screen width, canvas is as big as the device has it but demo assumes internal virtual screen where canvas is rendered to have these (FullHD) dimensions
+      height: 1080 // default (virtual) screen height
       // aspectRatio calculated below
       // perspectiveText2dZ: -0.11,
     },
     shadow: {
       mapSize: {
-        width: 1024,
-        height: 1024
+        width: 1024, // default shadow map size width
+        height: 1024 // default shadow map size height
       }
     },
     camera: {
-      type: 'Perspective',
-      fov: 75,
+      type: 'Perspective', // default camera type, can be 'Perspective' or 'Orthographic'
+      fov: 75, // field of view
       // aspectRatio calculated below
-      near: 0.1,
-      far: 1000,
-      zoom: 1.0,
-      position: { x: 0.0, y: 0.0, z: 2.0 },
-      lookAt: { x: 0.0, y: 0.0, z: 0.0 },
-      up: { x: 0.0, y: 1.0, z: 0.0 }
+      near: 0.1, // near clipping plane
+      far: 1000, // far clipping plane
+      zoom: 1.0, // zoom level
+      position: { x: 0.0, y: 0.0, z: 2.0 }, // camera position in 3D space
+      lookAt: { x: 0.0, y: 0.0, z: 0.0 }, // point the camera is looking at
+      up: { x: 0.0, y: 1.0, z: 0.0 } // up direction of the camera
     },
     lights: [
       /* {
@@ -189,11 +190,11 @@ Settings.prototype.init = function () {
       }, */
     ],
     renderer: {
-      antialias: false,
-      alpha: true,
-      autoClear: true,
-      sortObjects: false,
-      preserveDrawingBuffer: true
+      antialias: false, // whether to use antialiasing
+      alpha: true, // whether to enable alpha channel
+      autoClear: true, // whether to automatically clear the canvas
+      sortObjects: false, // whether to sort objects by distance
+      preserveDrawingBuffer: true // whether to preserve the drawing buffer
     }
   };
   this.demo.screen.aspectRatio =
