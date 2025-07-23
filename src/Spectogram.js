@@ -25,7 +25,7 @@ Spectogram.prototype.init = async function () {
   this.available = false;
 
   try {
-    if (this.spectogramPath) {
+    if (this.spectogramPath && settings.demo.music.musicFile) {
       if (this.spectogramImage && this.spectogramImage.mesh) {
         this.spectogramImage.mesh.remove();
       }
@@ -37,9 +37,9 @@ Spectogram.prototype.init = async function () {
       this.fbo.scene.add(this.spectogramImage.mesh);
 
       this.readBuffer = new Uint8Array(4 * this.fbo.target.height);
-    }
 
-    this.available = true;
+      this.available = true;
+    }
   } catch (e) {
     loggerTrace('Not loading spectogram: ' + e);
   }
