@@ -115,7 +115,8 @@ FileManager.prototype.getFileModifiedTime = async function (path) {
       throw new Error(`Error getting file modification time: ${path}`);
     }
 
-    const mtime = stats.mtime || stats.mtimeMs;
+    const mtime =
+      stats.mtimeMs || (stats.mtime ? stats.mtime * 1000 : undefined);
     if (mtime === undefined) {
       throw new Error(`Error parsing file modification time: ${path}`);
     }
@@ -134,6 +135,14 @@ FileManager.prototype.checkFiles = async function () {
 
     // loggerDebug(`Checking files for changes: ${Object.keys(this.refreshFiles).join(', ')}`);
     for (const filePath in this.refreshFiles) {
+      if (!this.getPath(filePath).startsWith(settings.engine.demoPathPrefix)) {
+        loggerDebug(
+          `File watch will not monitor changes for non-project file: ${filePath}`
+        );
+        this.setRefreshFileFromCache(filePath, null);
+        continue;
+      }
+
       const path = this.getDiskPath(filePath);
       const mtime = await this.getFileModifiedTime(path);
       const mtimeOld = this.getRefreshFileFromCache(filePath);
@@ -393,24 +402,27 @@ FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
     return;
   }
 
-  if (fs) {
-    const path = this.getDiskPath(filePath);
-    fs.stat(path)
-      .then((stats) => {
-        this.setRefreshFileFromCache(filePath, stats.mtime);
-      })
-      .catch((e) => {
-        loggerDebug(
-          `Error setting file refresh timestamp for ${filePath}: ${e}`
-        );
-        this.setRefreshFileFromCache(filePath, null);
-      });
-  } else {
-    if (settings.engine.tool) {
-      loggerWarning(`File watch not available, not checking: ${filePath}`);
-    }
+  if (settings.engine.tool) {
+    const currentTime = new Date().getTime();
 
-    this.setRefreshFileFromCache(filePath, null);
+    if (fs) {
+      const path = this.getDiskPath(filePath);
+      fs.stat(path)
+        .then((stats) => {
+          this.setRefreshFileFromCache(filePath, stats.mtime);
+        })
+        .catch((e) => {
+          loggerInfo(
+            `Error setting file refresh timestamp for ${filePath}, setting current time (${currentTime}) as default timestamp: ${e}`
+          );
+          this.setRefreshFileFromCache(filePath, currentTime);
+        });
+    } else {
+      loggerInfo(
+        `File watch not available for ${filePath}, setting current time (${currentTime}) as default timestamp`
+      );
+      this.setRefreshFileFromCache(filePath, currentTime);
+    }
   }
 };
 
