@@ -96,7 +96,7 @@ Settings.prototype.init = function () {
     }, */
     compatibility: {
       old2dCoordinates: false, // true = use old pixel based 2D coordinate system, for example: x: 0 - 1920, y: 0 - 1080
-      oldRotation: false, // true = use old degree rotation system where positive rotation is counter-clockwisee
+      oldRotation: false, // true = use old degree rotation system where positive rotation is clockwise
       oldColors: false, // true = use old HEX color format 0 - 255 per color channel, for example: { r: 255, g: 0, b: 0, a: 255 }
       oldMaterials: false // true = 3D model material is DoubleSide by default
     },
