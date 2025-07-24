@@ -25,7 +25,10 @@ JavaScriptFile.prototype.load = function (filename) {
 };
 
 function includeFile(filename) {
-  return new JavaScriptFile().load(filename);
+  const promise = new JavaScriptFile().load(filename);
+  const fileManager = new FileManager();
+  fileManager.addFileToWait(promise);
+  return promise;
 }
 
 window.includeFile = includeFile;

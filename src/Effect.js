@@ -89,6 +89,8 @@ Effect.init = function (effectName) {
 
       Effect.effects[effectName] = effect;
 
+      await fileManager.waitForFilesToLoad();
+
       if (effect.init !== undefined) {
         effect.init();
       }

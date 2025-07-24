@@ -2,7 +2,12 @@ import * as THREE from 'three';
 import { TTFLoader } from 'three/addons/loaders/TTFLoader';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
-import { loggerWarning, loggerDebug, loggerInfo } from './Bindings';
+import {
+  loggerTrace,
+  loggerDebug,
+  loggerInfo,
+  loggerWarning
+} from './Bindings';
 import { Image } from './Image';
 import { Text } from './Text';
 import { Model } from './Model';
@@ -49,7 +54,31 @@ FileManager.prototype.clearCache = function () {
   this.files = {};
   this.fileReferences = {};
   this.refreshFiles = {};
+  this.promises = [];
   Text.clearCache();
+};
+
+FileManager.prototype.addFileToWait = function (promise) {
+  if (!(promise instanceof Promise)) {
+    throw new Error('Invalid promise provided to FileManager');
+  }
+  this.promises.push(promise);
+};
+
+FileManager.prototype.waitForFilesToLoad = async function () {
+  const promises = this.promises;
+  this.promises = [];
+  if (promises.length === 0) {
+    return;
+  }
+
+  return Promise.all(promises)
+    .then(() => {
+      loggerTrace('All files loaded: ' + promises.length);
+    })
+    .catch((e) => {
+      loggerWarning('Encountered issues when loading files: ' + e);
+    });
 };
 
 FileManager.prototype.init = function () {
