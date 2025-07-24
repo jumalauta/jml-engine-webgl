@@ -1,5 +1,10 @@
 import * as THREE from 'three';
-import { loggerDebug, loggerTrace, loggerWarning } from './Bindings';
+import {
+  loggerDebug,
+  loggerTrace,
+  loggerInfo,
+  loggerWarning
+} from './Bindings';
 import { FileManager } from './FileManager';
 import { Timer } from './Timer';
 
@@ -65,7 +70,7 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
       loggerWarning(`Video error: ${filename} ${event}`);
     };
     instance.videoElement.onstalled = (event) => {
-      loggerWarning(`Video stalled: ${filename} ${event}`);
+      loggerInfo(`Video stalled: ${filename} ${event}`);
     };
     instance.videoElement.onwaiting = (event) => {
       loggerDebug(`Video waiting: ${filename} ${event}`);
