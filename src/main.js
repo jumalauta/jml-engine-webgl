@@ -596,7 +596,29 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+function checkWebGlSupport() {
+  const temporaryCanvas = document.createElement('canvas');
+  const gl = temporaryCanvas.getContext('webgl2');
+
+  if (!gl) {
+    const alertElement = document.getElementById('webgl-alert');
+    if (alertElement) {
+      alertElement.style.display = 'block';
+    }
+    return false;
+  }
+
+  temporaryCanvas.remove();
+
+  return true;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  if (!checkWebGlSupport()) {
+    loggerError(`WebGL2 not supported by the browser: ${navigator.userAgent}`);
+    return;
+  }
+
   const params = new URLSearchParams(window.location.search);
   if (params.get('autoStart') === 'true') {
     settings.engine.autoStart = true;
