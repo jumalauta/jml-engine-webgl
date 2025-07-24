@@ -516,9 +516,14 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       undefined,
       // onError callback
       (err) => {
-        loggerWarning(
-          `${fileManager.getInstanceName(instance)} file could not be loaded: ${path}: ${err}`
-        );
+        // spectogram.png is an info message not a warning
+        const instanceName = fileManager.getInstanceName(instance);
+        const logMethod =
+          instanceName === 'Image' &&
+          path.endsWith(`/${settings.demo.music.spectogramFile}`)
+            ? loggerInfo
+            : loggerWarning;
+        logMethod(`${instanceName} file could not be loaded: ${path}: ${err}`);
         if (instance) {
           instance.error = true;
         }
