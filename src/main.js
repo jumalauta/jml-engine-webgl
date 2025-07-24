@@ -6,7 +6,8 @@ import {
   loggerWarning,
   loggerError,
   windowSetTitle,
-  windowSetTitleTime
+  windowSetTitleTime,
+  showAlertBanner
 } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { ToolUi } from './ToolUi';
@@ -78,7 +79,10 @@ function clearCache() {
     if (select.value) {
       setDemoPathPrefix(select.value);
     }
-    javaScriptFile.load('Demo.js');
+    javaScriptFile.load('Demo.js').catch(() => {
+      windowSetTitle('LOADING ERROR');
+      loggerError('Could not load demo');
+    });
   }
 }
 
@@ -457,6 +461,13 @@ export function stopDemo() {
     // magic to make the WebDemoExe exit
     window.location.hash = 'webdemoexe_exit';
   }
+
+  if (document.title.includes('ERROR')) {
+    showAlertBanner(
+      `<strong>${document.title}</strong> Please check the console for details.`,
+      'error'
+    );
+  }
 }
 
 export function isStarted() {
@@ -601,10 +612,6 @@ function checkWebGlSupport() {
   const gl = temporaryCanvas.getContext('webgl2');
 
   if (!gl) {
-    const alertElement = document.getElementById('webgl-alert');
-    if (alertElement) {
-      alertElement.style.display = 'block';
-    }
     return false;
   }
 
@@ -616,6 +623,10 @@ function checkWebGlSupport() {
 document.addEventListener('DOMContentLoaded', () => {
   if (!checkWebGlSupport()) {
     loggerError(`WebGL2 not supported by the browser: ${navigator.userAgent}`);
+    showAlertBanner(
+      '<strong>WebGL2 Not Supported:</strong> Your browser does not support WebGL2. Please use a modern browser like Chrome, Firefox, or Edge to run this application.',
+      'error'
+    );
     return;
   }
 
