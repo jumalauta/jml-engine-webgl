@@ -13,6 +13,10 @@
         <title>JML Engine</title>
     </head>
     <body>
+        <div id="webgl-alert" style="display: none; background-color: #f44336; color: white; padding: 15px; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
+            <strong>WebGL2 Not Supported:</strong> Your browser does not support WebGL2. Please use a modern browser like Chrome, Firefox, or Edge to run this application.
+            <button onclick="document.getElementById('webgl-alert').style.display='none'" style="margin-left: 10px; background: white; color: #f44336; border: none; padding: 5px 10px; cursor: pointer;">✕</button>
+        </div>
         <canvas id="canvas" hidden></canvas>
         <div class="menu">
             <button onclick="startDemo()" id="start">Start</button>
