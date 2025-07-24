@@ -520,7 +520,9 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       // onLoad callback
       (data) => {
         if (data[0] === '<') {
-          loggerWarning(
+          const logMethod =
+            path === './playlist.js' ? loggerTrace : loggerWarning;
+          logMethod(
             `${fileManager.getInstanceName(instance)} file not found: ${path}`
           );
           if (instance) {
