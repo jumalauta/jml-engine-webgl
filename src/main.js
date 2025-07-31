@@ -609,22 +609,25 @@ document.addEventListener('keydown', (event) => {
 
 function checkWebGlSupport() {
   const temporaryCanvas = document.createElement('canvas');
-  const gl = temporaryCanvas.getContext('webgl2');
 
+  let gl = temporaryCanvas.getContext('webgl2');
   if (!gl) {
-    return false;
+    // we omit experimental-webgl as it is deprecated
+    gl = temporaryCanvas.getContext('webgl');
   }
+
+  const isSupported = !!gl;
 
   temporaryCanvas.remove();
 
-  return true;
+  return isSupported;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!checkWebGlSupport()) {
-    loggerError(`WebGL2 not supported by the browser: ${navigator.userAgent}`);
+    loggerError(`WebGL not supported by the browser: ${navigator.userAgent}`);
     showAlertBanner(
-      '<strong>WebGL2 Not Supported:</strong> Your browser does not support WebGL2. Please use a modern browser like Chrome, Firefox, or Edge to run this application.',
+      '<strong>WebGL Not Supported:</strong> Your browser does not support WebGL. Please use a modern browser like Chrome, Firefox, or Edge to run this application.',
       'error'
     );
     return;
