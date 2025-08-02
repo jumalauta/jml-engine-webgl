@@ -18,12 +18,23 @@ Feel free to contribute with features and bug fixes. Aim to follow design princi
 - **Low code over no code**: Demos should primarily be made by coding. Engine should not be a no-code GUI tool. 
 - **Support mid-range**: One should be able to make 60 fps demos with poor to mediocre PC hardware.
 
+## Player controls
+
+Player controls are always enabled.
+
+| Key               | Action                      |
+|-------------------|-----------------------------|
+| Enter             | Start demo                  |
+| Esc               | Stop demo                   |
+| Click screen      | Stop demo (good for mobile) |
+| F                 | Toggle fullscreen           |
+
 ## Tool controls
+
+Tool controls are only enabled when tool mode (`settings.engine.tool`) is enabled.
 
 | Key               | Action                    |
 |-------------------|---------------------------|
-| Enter             | Start demo                |
-| Esc               | Stop demo                 |
 | Left arrow        | Rewind demo -1 second     |
 | Right arrow       | Rewind demo +1 second     |
 | Down arrow        | Rewind demo -1 frame      |
@@ -33,7 +44,6 @@ Feel free to contribute with features and bug fixes. Aim to follow design princi
 | Space             | Pause/resume demo         |
 | Home              | Rewind demo to start      |
 | End               | Rewind demo to near end   |
-| F                 | Toggle fullscreen |
 | P                 | Capture demo to video |
 | R                 | Deep reload demo and dispose used memory |
 | S                 | Take a screenshot of the current rendered frame |
