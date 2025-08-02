@@ -8,6 +8,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [ published ]
 
 jobs:
   test:
@@ -27,19 +29,42 @@ jobs:
     - run: npm test
   release:
     runs-on: ubuntu-latest
+    if: github.event_name != 'release'
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js 
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - run: npm ci
     - run: npx prettier --check src/ tool_server/
     - run: npx eslint --max-warnings 0 src/ tool_server/
-    - run: npx vite build && mv dist release-node && tar cvjf release-node.tar.gz release-node
+    - run: npx vite build && mv dist release-node
     - name: Upload Node Release
       uses: actions/upload-artifact@v4.6.0
       with:
-        name: release-node.tar.gz
-        path: 'release-node.tar.gz'
+        name: release-node
+        path: 'release-node/'
+  
+  github-release:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+    - run: npm ci
+    - run: npx vite build && mv dist release-node && zip -r release-node.zip release-node
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release-node.zip
+        asset_name: release-node.zip
+        asset_content_type: application/zip
