@@ -538,6 +538,8 @@ document.addEventListener('keydown', (event) => {
     stopDemo();
   } else if (event.key === 'Enter') {
     startDemo();
+  } else if (event.key === 'f') {
+    fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
   } else if (settings.engine.tool) {
     if (event.key === 'ArrowLeft') {
       rewindTime(-1000);
@@ -566,8 +568,6 @@ document.addEventListener('keydown', (event) => {
       console.log(demoRenderer.renderer.info);
     } else if (event.key === 'r') {
       deepReloadDemo();
-    } else if (event.key === 'f') {
-      fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
     } else if (event.key === 's') {
       screenshot();
     } else if (event.key === 't') {
