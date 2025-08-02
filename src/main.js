@@ -208,7 +208,7 @@ function captureFrame() {
     timer.setTime(((frame + 1) * 1000) / fps);
     const checkFrame = Math.floor(timer.getTime() / oneFrame + roundingSkew);
     if (checkFrame !== frame + 1) {
-      loggerWarning(
+      loggerInfo(
         `Unexpected new frame ${(timer.getTime() / 1000).toFixed(4)} s, oldFrame: ${frame}, newFrame: ${checkFrame}`
       );
 
