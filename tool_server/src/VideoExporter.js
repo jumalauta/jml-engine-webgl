@@ -6,7 +6,6 @@ const logger = pino();
 
 const VideoExporter = function () {
   this.ready = false;
-  this.fastEncoding = true;
 };
 
 VideoExporter.prototype.setMusicPath = function (path) {
@@ -17,101 +16,54 @@ VideoExporter.prototype.setMusicPath = function (path) {
   this.musicPath = path;
 };
 
-VideoExporter.prototype.setFastEncoding = function (enabled) {
-  this.fastEncoding = enabled;
-};
-
 VideoExporter.prototype.spawn = function (onSpawn, onClose) {
   // * YouTube Recommended upload encoding settings: https://support.google.com/youtube/answer/1722171?hl=en
   // * Audio: AAC-LC audio with high bitrate, stereo/5.1 and samplerate 48/96kHz
   // * Video: 16:9 MP4 H.264 60 fps (/w nearly lossless quality)
 
   const outputPath = 'output.mp4';
-  let ffmpegArgs;
 
-  if (this.fastEncoding) {
-    // fast encoding settings - prioritize speed while maintaining quality
-    ffmpegArgs = [
-      // overwrite output file / say yes to everything
-      '-y',
-      // input video
-      '-f',
-      'image2pipe',
-      '-framerate',
-      '60',
-      '-i',
-      '-',
-      // input audio
-      '-i',
-      this.musicPath,
-      '-c:a',
-      'aac',
-      '-b:a',
-      '512k',
-      '-strict',
-      '-2',
-      // output video - fast encoding settings
-      '-framerate',
-      '60',
-      '-vcodec',
-      'libx264',
-      '-preset',
-      'ultrafast',
-      '-tune',
-      'zerolatency',
-      '-crf',
-      '18',
-      '-x264-params',
-      'nal-hrd=cbr',
-      '-shortest',
-      '-filter:v',
-      'scale=1920:-1',
-      outputPath
-    ];
-  } else {
-    // High quality encoding settings (original)
-    ffmpegArgs = [
-      // overwrite output file / say yes to everything
-      '-y',
-      // input video
-      '-f',
-      'image2pipe',
-      '-framerate',
-      '60',
-      '-i',
-      '-',
-      // input audio
-      '-i',
-      this.musicPath,
-      '-c:a',
-      'aac',
-      '-b:a',
-      '512k',
-      '-strict',
-      '-2',
-      // output video
-      '-framerate',
-      '60',
-      '-vcodec',
-      'libx264',
-      '-crf',
-      '18',
-      '-shortest',
-      '-filter:v',
-      'scale=1920:-1',
-      outputPath
-    ];
-  }
+  const ffmpegArgs = [
+    // overwrite output file / say yes to everything
+    '-y',
+    // input video
+    '-f',
+    'image2pipe',
+    '-framerate',
+    '60',
+    '-i',
+    '-',
+    // input audio
+    '-i',
+    this.musicPath,
+    '-c:a',
+    'aac',
+    '-b:a',
+    '512k',
+    '-strict',
+    '-2',
+    // output video
+    '-framerate',
+    '60',
+    '-vcodec',
+    'libx264',
+    '-crf',
+    '18',
+    '-shortest',
+    '-filter:v',
+    'scale=1920:-1',
+    outputPath
+  ];
 
   const ffmpeg = spawn('ffmpeg', ffmpegArgs);
 
   ffmpeg.stdout.on('data', (data) => {
-    logger.info(`ffmpeg output: ${data}`);
+    logger.info(`ffmpeg stdout: ${data}`);
   });
 
   ffmpeg.stderr.on('data', (data) => {
     // STDERR contains progress information in case of ffmpeg
-    logger.info(`ffmpeg output: ${data}`);
+    logger.info(`ffmpeg stderr: ${data}`);
   });
 
   ffmpeg.on('spawn', () => {

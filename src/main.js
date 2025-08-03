@@ -192,15 +192,28 @@ function captureFrame() {
       return false;
     }
 
+    if (!toolClient.canQueueMessage()) {
+      return false;
+    }
+
+    const oldFrame = frame;
     frame = newFrame;
     // setWaitingForFrame(false);
 
-    toolClient.send({
+    const sendResult = toolClient.send({
       type: 'CAPTURE_FRAME',
       dataUrl: canvasToDataUrl(),
       frame,
       time: timer.getTime()
     });
+
+    if (!sendResult) {
+      frame = oldFrame;
+      loggerTrace(
+        `Failed to queue frame ${newFrame}, will retry frame ${frame}`
+      );
+      return false;
+    }
 
     /* console.log(
       `Frame ${frame} captured at time ${(timer.getTime() / 1000).toFixed(4)} s`
@@ -218,12 +231,17 @@ function captureFrame() {
           `Timer inaccuracy detected. Adding frame ${frame - 1} as frames ${frame} to ${checkFrame}`
         );
         for (let i = frame + 1; i < checkFrame; i++) {
-          toolClient.send({
+          const sendResult = toolClient.send({
             type: 'CAPTURE_FRAME',
             dataUrl: canvasToDataUrl(),
             frame: i,
             time: timer.getTime()
           });
+
+          if (!sendResult) {
+            loggerWarning(`Failed to queue additional frame ${i}, stopping`);
+            break;
+          }
         }
       } else {
         loggerWarning('Timer too inaccurate, ending recording');

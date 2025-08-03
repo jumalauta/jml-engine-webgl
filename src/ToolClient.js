@@ -1,4 +1,4 @@
-import { loggerTrace, loggerWarning } from './Bindings';
+import { loggerTrace, loggerInfo, loggerWarning } from './Bindings';
 import { setWaitingForFrame } from './main';
 import { Settings } from './Settings';
 
@@ -30,6 +30,7 @@ ToolClient.prototype.init = function () {
   }
 
   this.connected = false;
+  this.maxBufferedAmount = settings.tool.client.maxBufferedAmount;
 
   this.client = new WebSocket(
     `${settings.tool.server.uriScheme}://${settings.tool.server.host}:${settings.tool.server.port}`
@@ -74,6 +75,12 @@ ToolClient.prototype.send = function (message) {
       `Client is not connected, cannot send message to server: ${JSON.stringify(message)}`
     );
   }
+  if (!this.canQueueMessage()) {
+    loggerInfo(
+      `Cannot queue message, client not ready or queue full: ${message.type}`
+    );
+    return false;
+  }
 
   if (message.type !== 'CAPTURE_FRAME' && message.type !== 'SETTINGS') {
     loggerTrace(`Sending message to server: ${JSON.stringify(message)}`);
@@ -81,9 +88,25 @@ ToolClient.prototype.send = function (message) {
 
   try {
     this.client.send(JSON.stringify(message));
+
+    return true;
   } catch (e) {
     loggerWarning(`Failed to send message to server: ${e}`);
+
+    return false;
   }
+};
+
+ToolClient.prototype.canQueueMessage = function () {
+  if (!this.connected || !this.client) {
+    return false;
+  }
+
+  if (this.client.bufferedAmount > this.maxBufferedAmount) {
+    return false;
+  }
+
+  return true;
 };
 
 export { ToolClient };
