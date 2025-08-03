@@ -51,6 +51,9 @@ Settings.prototype.init = function () {
       host: 'localhost', // host address
       port: 7447 // host port
     },
+    client: {
+      maxBufferedAmount: 1024 * 1024 * 100 // 100MB payload data buffer
+    },
     midi: {
       capture: true, // capture MIDI events
       playbackLogging: true, // enable playback logging
