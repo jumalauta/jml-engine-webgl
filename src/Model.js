@@ -297,10 +297,10 @@ Model.prototype.load = function (filename) {
             material.map = image.texture[0];
             material.needsUpdate = true;
 
-            resolve(instance);
+            return resolve(instance);
           })
           .catch(() => {
-            reject(instance);
+            return reject(instance);
           });
       } else {
         resolve(instance);

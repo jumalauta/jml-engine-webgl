@@ -91,9 +91,11 @@ const Light = function (animationDefinition) {
         .load(filename, false)
         .then(() => {
           light.map = image.texture[0];
+          return true;
         })
         .catch(() => {
           loggerWarning(`Image could not be loaded for light: ${filename}`);
+          return false;
         });
     } else {
       loggerWarning(`Unsupported image format ${filename}`);

@@ -32,13 +32,19 @@ async function processPromises(promises, startPercent, endPercent) {
   let processedPromises = 0;
 
   for (let i = 0; i < promiseCount; i++) {
-    promises[i].finally(() => {
-      processedPromises++;
-      const percent =
-        startPercent +
-        (processedPromises / promiseCount) * (endPercent - startPercent);
-      loadingBar.setPercent(percent);
-    });
+    promises[i] = promises[i]
+      .finally(() => {
+        processedPromises++;
+        const percent =
+          startPercent +
+          (processedPromises / promiseCount) * (endPercent - startPercent);
+        loadingBar.setPercent(percent);
+      })
+      .catch((err) => {
+        loggerInfo(
+          `Promise failed in processing, ${i}/${promiseCount}: ${err}`
+        );
+      });
   }
 
   while (promises.length > 0) {
@@ -48,7 +54,9 @@ async function processPromises(promises, startPercent, endPercent) {
       return false;
     }
 
-    await promises.shift();
+    await promises.shift().catch((err) => {
+      throw err;
+    });
   }
 
   return true;
@@ -80,7 +88,6 @@ Effect.init = function (effectName) {
       const fileManager = new FileManager();
       await fileManager.loadUpdatedFiles();
 
-      /* eslint-disable no-eval */
       const effect = eval('new ' + effectName);
 
       effect.loader = new Loader();

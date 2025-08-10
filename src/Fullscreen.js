@@ -78,9 +78,11 @@ Fullscreen.prototype.toggleFullscreen = function (fullscreen) {
         promise
           .then(() => {
             loggerDebug('Fullscreen entered');
+            return true;
           })
           .catch(() => {
             loggerWarning('Could not enter fullscreen');
+            return false;
           });
       }
     }
@@ -96,9 +98,11 @@ Fullscreen.prototype.toggleFullscreen = function (fullscreen) {
         promise
           .then(() => {
             loggerDebug('Fullscreen exited');
+            return true;
           })
           .catch(() => {
             loggerWarning('Could not exit fullscreen');
+            return false;
           });
       }
     }

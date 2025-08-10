@@ -30,10 +30,15 @@ const settings = new Settings();
 
 let fs = null;
 if (settings.engine.tool && import.meta.env.MODE !== 'production') {
-  import('vite-plugin-fs/browser').then((module) => {
-    loggerDebug('fs plugin for file watching loaded');
-    fs = module.default;
-  });
+  import('vite-plugin-fs/browser')
+    .then((module) => {
+      loggerDebug('fs plugin for file watching loaded');
+      fs = module.default;
+      return fs;
+    })
+    .catch((e) => {
+      loggerWarning('Failed to load fs plugin for file watching: ' + e);
+    });
 }
 
 const FileManager = function () {
@@ -69,15 +74,17 @@ FileManager.prototype.waitForFilesToLoad = async function () {
   const promises = this.promises;
   this.promises = [];
   if (promises.length === 0) {
-    return;
+    return true;
   }
 
   return Promise.all(promises)
     .then(() => {
       loggerTrace('All files loaded: ' + promises.length);
+      return true;
     })
     .catch((e) => {
       loggerWarning('Encountered issues when loading files: ' + e);
+      return false;
     });
 };
 
@@ -125,7 +132,7 @@ FileManager.prototype.loadUpdatedFiles = async function () {
       if (filePath.toUpperCase().endsWith('.JS')) {
         try {
           loggerDebug('Executing JavaScript file: ' + filePath);
-          /* eslint-disable no-eval */
+
           eval(file);
         } catch (e) {
           loggerWarning('Error loading JavaScript file: ' + filePath + ' ' + e);
@@ -408,6 +415,8 @@ FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
           values,
           callback
         );
+
+        return true;
       })
       .catch((e) => {
         loggerWarning(
@@ -439,12 +448,14 @@ FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
       fs.stat(path)
         .then((stats) => {
           this.setRefreshFileFromCache(filePath, stats.mtime);
+          return true;
         })
         .catch((e) => {
           loggerInfo(
             `Error setting file refresh timestamp for ${filePath}, setting current time (${currentTime}) as default timestamp: ${e}`
           );
           this.setRefreshFileFromCache(filePath, currentTime);
+          return false;
         });
     } else {
       loggerInfo(
