@@ -9,15 +9,11 @@ export default defineConfig(({ command }) => {
         hmr: false,
         host: '127.0.0.1'
       },
-      plugins: [
-        fs()
-      ]
+      plugins: [fs()]
     };
   } else {
     return {
-      plugins: [
-        viteSingleFile()
-      ]
+      plugins: [viteSingleFile()]
     };
   }
 });

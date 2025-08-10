@@ -131,10 +131,13 @@ if (select) {
       } else {
         select.style.display = 'none';
       }
+
+      return true;
     })
     .catch((e) => {
       loggerDebug('No playlist.js found, loading default demo...: ' + e);
       select.style.display = 'none';
+      return false;
     });
 }
 
@@ -387,16 +390,18 @@ function startDemoAnimation() {
 }
 
 function startDemo() {
-  javaScriptFile
+  return javaScriptFile
     .load('Demo.js')
     .then(() => {
       loggerTrace('Demo.js loaded');
       customizeSettings();
       restartDemo();
+      return true;
     })
-    .catch(() => {
+    .catch((err) => {
       windowSetTitle('LOADING ERROR');
-      loggerError('Could not load demo');
+      loggerError('Could not load demo: ' + err);
+      return false;
     })
     .finally(() => {
       if (startButton) {

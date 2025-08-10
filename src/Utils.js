@@ -247,7 +247,6 @@ Utils.evaluateVariable = function (animation, variable) {
   if (Utils.isFunction(variable)) {
     return variable(animation);
   } else if (Utils.isString(variable) && variable.charAt(0) === '{') {
-    /* eslint-disable no-new-func */
     const func = new Function('animation', variable);
     return func(animation);
   }

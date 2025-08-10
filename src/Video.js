@@ -174,10 +174,13 @@ Video.prototype.play = function () {
           `Starting to play video ${this.filename} from ${this.videoElement.currentTime} seconds`
         );
       }
+
+      return true;
     })
     .catch((error) => {
       loggerWarning(`Could not play video ${this.filename}: ${error}`);
       this.playStarted = false;
+      return false;
     });
 };
 

@@ -12,7 +12,7 @@ JavaScriptFile.prototype.load = function (filename) {
         'Executing JavaScript file: ' + fileManager.getPath(instance.filename)
       );
       // (new DemoRenderer()).setupScene();
-      /* eslint-disable no-eval */
+
       eval(data);
     } catch (e) {
       loggerWarning(
