@@ -27,7 +27,11 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          tool_server/package-lock.json
     - run: npm ci
+    - run: cd tool_server && npm ci
     - run: npm test
   check:
     runs-on: ubuntu-latest
@@ -40,6 +44,9 @@ jobs:
       with:
         node-version: '22'
         cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          tool_server/package-lock.json
     - run: npm ci && npm audit --audit-level=moderate
     - run: cd tool_server && npm ci && npm audit --audit-level=moderate
     - run: cd change-favicon && npm ci && npm audit --audit-level=moderate
@@ -56,7 +63,11 @@ jobs:
       with:
         node-version: '22'
         cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          tool_server/package-lock.json
     - run: npm ci
+    - run: cd tool_server && npm ci
     - run: npx vite build && mv dist release-node
     - name: Upload Node Release
       uses: actions/upload-artifact@v4.6.0
