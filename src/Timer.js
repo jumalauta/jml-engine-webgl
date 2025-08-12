@@ -40,7 +40,6 @@ Timer.prototype.getEndTime = function () {
 
 Timer.prototype.start = function () {
   loggerInfo('Starting demo timer');
-  new FileManager().startWatchFileChanges();
   // this.setTime(0);
   // this.music.play();
   // this.update();

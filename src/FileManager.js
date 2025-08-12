@@ -11,6 +11,7 @@ import {
 import { Image } from './Image';
 import { Text } from './Text';
 import { Model } from './Model';
+import { ToolClient } from './ToolClient';
 import { Settings } from './Settings';
 
 import embeddedDefaultFsUrl from './_embedded/default.fs?url';
@@ -27,19 +28,6 @@ import embeddedTestUvMapPngUrl from './_embedded/testUvMap.png?url';
 THREE.Cache.enabled = true;
 
 const settings = new Settings();
-
-let fs = null;
-if (settings.engine.tool && import.meta.env.MODE !== 'production') {
-  import('vite-plugin-fs/browser')
-    .then((module) => {
-      loggerDebug('fs plugin for file watching loaded');
-      fs = module.default;
-      return fs;
-    })
-    .catch((e) => {
-      loggerWarning('Failed to load fs plugin for file watching: ' + e);
-    });
-}
 
 const FileManager = function () {
   return this.getInstance();
@@ -107,19 +95,12 @@ FileManager.prototype.init = function () {
 };
 
 FileManager.prototype.stopWatchFileChanges = async function () {
-  if (this.intervalFunction) {
-    clearInterval(this.intervalFunction);
-  }
-};
-
-FileManager.prototype.startWatchFileChanges = async function () {
-  if (settings.engine.tool) {
-    this.stopWatchFileChanges();
-
-    this.intervalFunction = setInterval(async () => {
-      const fileManager = new FileManager();
-      await fileManager.checkFiles();
-    }, settings.engine.fileWatchInterval);
+  if (!settings.engine.tool) return;
+  try {
+    const toolClient = new ToolClient();
+    toolClient.send({ type: 'FS_STOP_WATCH' });
+  } catch (e) {
+    loggerInfo('Failed to send FS_STOP_WATCH: ' + e);
   }
 };
 
@@ -142,75 +123,6 @@ FileManager.prototype.loadUpdatedFiles = async function () {
   }
 
   this.markAsUpdated();
-};
-
-FileManager.prototype.getFileModifiedTime = async function (path) {
-  try {
-    const stats = await fs.stat(path);
-    if (!stats) {
-      throw new Error(`Error getting file modification time: ${path}`);
-    }
-
-    const mtime =
-      stats.mtimeMs || (stats.mtime ? stats.mtime * 1000 : undefined);
-    if (mtime === undefined) {
-      throw new Error(`Error parsing file modification time: ${path}`);
-    }
-
-    return mtime;
-  } catch (e) {
-    throw new Error(`Error getting file modification time: ${path} - ${e}`);
-  }
-};
-
-FileManager.prototype.checkFiles = async function () {
-  try {
-    if (!fs) {
-      return;
-    }
-
-    // loggerDebug(`Checking files for changes: ${Object.keys(this.refreshFiles).join(', ')}`);
-    for (const filePath in this.refreshFiles) {
-      if (!this.getPath(filePath).startsWith(settings.engine.demoPathPrefix)) {
-        loggerDebug(
-          `File watch will not monitor changes for non-project file: ${filePath}`
-        );
-        this.setRefreshFileFromCache(filePath, null);
-        continue;
-      }
-
-      const path = this.getDiskPath(filePath);
-      const mtime = await this.getFileModifiedTime(path);
-      const mtimeOld = this.getRefreshFileFromCache(filePath);
-
-      // loggerDebug(`File modified time: ${filePath} - ${mtime} - ${mtimeOld}`);
-
-      if (mtimeOld === undefined) {
-        this.setRefreshFileFromCache(filePath, mtime);
-        continue;
-      }
-
-      if (mtime > mtimeOld) {
-        const delta = Math.floor(mtime - mtimeOld);
-        loggerDebug(`File changed: ${filePath} - delta time: ${delta}`);
-
-        this.setRefreshFileFromCache(filePath, mtime);
-        this.needsDeepUpdate = true;
-
-        if (this.getFileFromCache(filePath)) {
-          const file = await fs.readFile(path);
-          this.setFileData(filePath, file);
-          if (this.updateReferences(filePath)) {
-            this.needsDeepUpdate = false;
-          }
-        }
-
-        this.needsUpdateFiles.push(filePath);
-      }
-    }
-  } catch (e) {
-    loggerDebug('Error checking files: ' + e);
-  }
 };
 
 FileManager.prototype.setReference = function (filePath, reference) {
@@ -264,6 +176,28 @@ FileManager.prototype.updateReferences = function (filePath) {
   }
 
   return updated;
+};
+
+FileManager.prototype.setFileChanged = function (filePath, content) {
+  if (!content) {
+    loggerWarning(`File changed but no content provided: ${filePath}`);
+    return;
+  }
+  loggerInfo(`File changed: ${filePath}`);
+
+  THREE.Cache.add(this.getUrl(filePath), content);
+  this.setRefreshFileFromCache(filePath, content);
+  this.setFileFromCache(filePath, content);
+
+  this.setFileNeedsUpdate(filePath);
+
+  if (!this.updateReferences(filePath)) {
+    this.needsDeepUpdate = true;
+  }
+};
+
+FileManager.prototype.setFileNeedsUpdate = function (filePath) {
+  this.needsUpdateFiles.push(filePath);
 };
 
 FileManager.prototype.isNeedsUpdate = function () {
@@ -330,15 +264,6 @@ FileManager.prototype.processPromise = function (
   }
 
   if (!rejectPromise) {
-    if (
-      !(
-        instance instanceof Image ||
-        instance instanceof Text ||
-        instance instanceof Model
-      )
-    ) {
-      this.setFileData(filePath, data);
-    }
     loggerDebug(
       `${this.getInstanceName(instance)} file(s) loaded: ${filePathString}`
     );
@@ -441,28 +366,7 @@ FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
   }
 
   if (settings.engine.tool) {
-    const currentTime = new Date().getTime();
-
-    if (fs) {
-      const path = this.getDiskPath(filePath);
-      fs.stat(path)
-        .then((stats) => {
-          this.setRefreshFileFromCache(filePath, stats.mtime);
-          return true;
-        })
-        .catch((e) => {
-          loggerInfo(
-            `Error setting file refresh timestamp for ${filePath}, setting current time (${currentTime}) as default timestamp: ${e}`
-          );
-          this.setRefreshFileFromCache(filePath, currentTime);
-          return false;
-        });
-    } else {
-      loggerInfo(
-        `File watch not available for ${filePath}, setting current time (${currentTime}) as default timestamp`
-      );
-      this.setRefreshFileFromCache(filePath, currentTime);
-    }
+    this.setRefreshFileFromCache(filePath, null);
   }
 };
 
@@ -499,13 +403,35 @@ FileManager.prototype.load = function (filePath, instance, callback) {
   return new Promise((resolve, reject) => {
     const path = fileManager.getPath(filePath);
 
-    if (this.getFileFromCache(filePath)) {
+    if (
+      settings.engine.tool &&
+      !filePath.startsWith('_embedded/') &&
+      filePath !== 'spectogram.png' &&
+      filePath !== './playlist.js'
+    ) {
+      try {
+        fileManager.setRefreshFileTimestamp(filePath);
+        const toolClient = new ToolClient();
+        toolClient.send({
+          type: 'FS_MONITORFILE',
+          path: filePath,
+          instanceName: fileManager.getInstanceName(instance)
+        });
+      } catch (err) {
+        loggerDebug(
+          `File changed but no content provided: ${filePath}: ${err}`
+        );
+      }
+    }
+
+    const cacheData = this.getFileFromCache(filePath);
+    if (cacheData) {
       fileManager.processPromise(
         resolve,
         reject,
         filePath,
         instance,
-        this.getFileFromCache(filePath),
+        cacheData,
         callback
       );
       return;
@@ -551,8 +477,6 @@ FileManager.prototype.load = function (filePath, instance, callback) {
           data,
           callback
         );
-
-        fileManager.setRefreshFileTimestamp(filePath);
       },
       // onProgress callback
       undefined,
