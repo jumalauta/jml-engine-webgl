@@ -35,14 +35,18 @@ function toolServerPlugin() {
             } else {
               child.kill(signal);
             }
-          } catch {}
+          } catch (err) {
+            console.error('[tool_server] error killing process:', err);
+          }
 
           const guard = setTimeout(() => {
             try {
               if (process.platform !== 'win32' && pid)
                 process.kill(-pid, 'SIGKILL');
               else child.kill('SIGKILL');
-            } catch {}
+            } catch (err) {
+              console.error('[tool_server] error killing process:', err);
+            }
           }, 3000);
           guard.unref();
 

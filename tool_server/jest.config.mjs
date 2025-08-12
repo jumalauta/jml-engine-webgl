@@ -9,7 +9,7 @@ export default {
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.test.mjs', '**/?(*.)+(spec|test).mjs'],
   collectCoverageFrom: [
-    'src/**/*.js',
+    'src/**/*.{js,mjs}',
     '!src/**/*.test.js',
     '!**/node_modules/**'
   ],
