@@ -207,11 +207,7 @@ Shader.prototype.load = function () {
               return;
             }
 
-            // Ensure we have working updates...
-            fileManager.setRefreshFileTimestamp(instance.vertexShaderUrl);
             fileManager.setFileData(instance.vertexShaderUrl, vertexData);
-
-            fileManager.setRefreshFileTimestamp(instance.fragmentShaderUrl);
             fileManager.setFileData(instance.fragmentShaderUrl, fragmentData);
 
             instance.createMaterial(
