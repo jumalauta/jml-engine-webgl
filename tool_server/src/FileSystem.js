@@ -187,7 +187,12 @@ FileSystem.prototype.monitorFile = function (relativePath, onChange) {
       const close = () => {
         try {
           watcher.close();
-        } catch {}
+        } catch (err) {
+          this.logger.warn(
+            { err, absolutePath },
+            'Error closing file watcher during cleanup'
+          );
+        }
       };
       this.watchers.set(absolutePath, close);
       return true;
@@ -204,7 +209,9 @@ FileSystem.prototype.stopFileWatch = function () {
   for (const [, close] of this.watchers) {
     try {
       close();
-    } catch {}
+    } catch (err) {
+      this.logger.warn({ err }, 'Error closing file watcher during cleanup');
+    }
   }
   this.watchers.clear();
   this.contentCache.clear();
@@ -251,8 +258,8 @@ const validatePath = async (ws, relativePath) => {
   try {
     await access(abs, constants.R_OK);
     await stat(abs);
-  } catch {
-    ws.logger.child({ relativePath, abs }).error('Path not accessible');
+  } catch (err) {
+    ws.logger.child({ err, relativePath, abs }).error('Path not accessible');
     throw new Error('Path not accessible');
   }
   return abs;
