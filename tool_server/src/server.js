@@ -27,11 +27,17 @@ const createJsonRpcNotification = (method, params = null) => ({
 });
 
 const server = async function () {
+  const logger = pino();
   const port = 7447;
   const wss = new WebSocketServer({ port });
 
-  const logger = pino();
-  logger.info(`Tool server started in port ${port}`);
+  wss.on('listening', () => {
+    logger.info(`Tool server started in port ${port}`);
+  });
+
+  wss.on('error', (err) => {
+    logger.error(`Tool server WebSocket error: ${err.message}`);
+  });
 
   wss.on('connection', (ws) => {
     ws.state = { id: uuidv4() };
