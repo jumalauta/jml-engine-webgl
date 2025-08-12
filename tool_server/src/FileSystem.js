@@ -165,7 +165,7 @@ FileSystem.prototype.monitorFile = function (relativePath, onChange) {
               return;
             }
 
-            if (content.length == 0) {
+            if (content.length === 0) {
               this.logger.warn({ absolutePath }, 'File content is empty');
             }
 
@@ -210,18 +210,29 @@ FileSystem.prototype.stopFileWatch = function () {
   this.contentCache.clear();
 };
 
-const ensureFileSystem = (ws) => {
-  if (ws.state.fileSystem) return ws.state.fileSystem;
+const ensureFileSystem = async (ws) => {
+  if (ws.state.fileSystem) {
+    return ws.state.fileSystem;
+  }
+
   assert(
     ws.state.settings?.engine?.demoPathPrefix,
     'Settings have not been loaded'
   );
+
   const relativeBaseProjectPath = `public/${ws.state.settings.engine.demoPathPrefix}`;
   const projectAbsolutePath = resolve(relativeBaseProjectPath);
-  if (!access(projectAbsolutePath, constants.R_OK)) {
-    ws.logger.error({ projectAbsolutePath }, 'Project path does not exist');
-    throw new Error('Project path does not exist');
+
+  try {
+    await access(projectAbsolutePath, constants.R_OK);
+  } catch (err) {
+    ws.logger.error(
+      { err, projectAbsolutePath },
+      'Project path does not exist'
+    );
+    throw err;
   }
+
   ws.state.projectAbsolutePath = projectAbsolutePath;
   const fs = new FileSystem(projectAbsolutePath, ws.logger);
   ws.state.fileSystem = fs;
@@ -273,7 +284,7 @@ const handleFileSystemMessage = async (ws, msg) => {
     }
   }
 
-  const fileSystem = ensureFileSystem(ws);
+  const fileSystem = await ensureFileSystem(ws);
 
   const requiresPath = ['fs.monitorFile', 'fs.stat', 'fs.readFile'].includes(
     method
