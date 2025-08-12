@@ -15,7 +15,7 @@ Want to see some examples?
 ## Installing tool
 
 - Use the preconfigured [Development Container](https://containers.dev/) or install [Node.js](https://nodejs.org/en) latest LTS version  
-- Install dependencies: `npm ci && npm --prefix tool_server/ ci`
+- Install dependencies: `npm ci; npm --prefix tool_server ci`
 
 ## Using tool
 
