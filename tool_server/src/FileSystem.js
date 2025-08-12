@@ -8,6 +8,7 @@ import {
 import { watch } from 'node:fs';
 import { resolve, join } from 'node:path';
 import assert from 'node:assert';
+import { createTwoFilesPatch } from 'diff';
 
 const logger = pino();
 
@@ -15,6 +16,30 @@ const FileSystem = function (projectAbsolutePath, wsLogger) {
   this.projectAbsolutePath = projectAbsolutePath;
   this.logger = wsLogger || logger;
   this.watchers = new Map();
+  this.contentCache = new Map();
+};
+
+FileSystem.prototype.isDiffableExtension = function (filePath) {
+  const diffableExtensions = ['.js', '.vs', '.fs', '.txt', '.json'];
+  return diffableExtensions.some((ext) => filePath.toLowerCase().endsWith(ext));
+};
+
+FileSystem.prototype.createDiff = function (oldContent, newContent, filePath) {
+  if (!this.isDiffableExtension(filePath) || !oldContent || !newContent) {
+    return null;
+  }
+
+  const patch = createTwoFilesPatch(
+    filePath, // old file name
+    filePath, // new file name
+    oldContent,
+    newContent,
+    '', // old file header
+    '', // new file header
+    { ignoreWhitespace: true }
+  );
+
+  return patch;
 };
 
 FileSystem.prototype.toAbsolutePath = function (relativePath) {
@@ -39,6 +64,25 @@ FileSystem.prototype.monitorFile = function (relativePath, onChange) {
   if (this.watchers.has(absolutePath)) {
     return true;
   }
+
+  if (this.isDiffableExtension(relativePath)) {
+    try {
+      fsReadFile(absolutePath, { encoding: 'utf8' })
+        .then((content) => {
+          this.contentCache.set(absolutePath, content);
+          return content;
+        })
+        .catch(() => {
+          return null;
+        });
+    } catch (err) {
+      this.logger.warn(
+        { err, absolutePath },
+        'Could not read initial file content'
+      );
+    }
+  }
+
   try {
     const watcher = watch(
       absolutePath,
@@ -47,14 +91,40 @@ FileSystem.prototype.monitorFile = function (relativePath, onChange) {
         try {
           const stats = await stat(absolutePath);
           let content = null;
+          let diffContent = null;
+
           try {
             content = await fsReadFile(absolutePath, { encoding: 'base64' });
-          } catch {}
+
+            if (this.isDiffableExtension(relativePath)) {
+              const textContent = await fsReadFile(absolutePath, {
+                encoding: 'utf8'
+              });
+              const oldContent = this.contentCache.get(absolutePath);
+
+              if (oldContent && oldContent !== textContent) {
+                diffContent = this.createDiff(
+                  oldContent,
+                  textContent,
+                  relativePath
+                );
+              }
+
+              this.contentCache.set(absolutePath, textContent);
+            }
+          } catch (err) {
+            this.logger.warn(
+              { err, absolutePath },
+              'Error reading file content'
+            );
+          }
+
           onChange({
             path: relativePath,
             mtimeMs: stats.mtimeMs,
             eventType,
-            content
+            content,
+            diffContent
           });
         } catch (err) {
           this.logger.warn(
@@ -84,6 +154,7 @@ FileSystem.prototype.stopFileWatch = function () {
     } catch {}
   }
   this.watchers.clear();
+  this.contentCache.clear();
 };
 
 const ensureFileSystem = (ws) => {
@@ -162,15 +233,21 @@ const handleFileSystemMessage = async (ws, msg) => {
   if (msg.type === 'FS_MONITORFILE') {
     const ok = fileSystem.monitorFile(
       msg.path,
-      ({ path, mtimeMs, eventType, content }) => {
+      ({ path, mtimeMs, eventType, content, diffContent }) => {
         ws.logger.child({ path, mtimeMs, eventType }).info('File changed');
-        ws.sendJson({
+        const response = {
           type: 'FS_FILE_CHANGED',
           path,
           mtimeMs,
           eventType,
           content
-        });
+        };
+
+        if (diffContent) {
+          response.diffContent = diffContent;
+        }
+
+        ws.sendJson(response);
       }
     );
     ws.sendJson({

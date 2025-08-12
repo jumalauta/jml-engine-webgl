@@ -75,7 +75,11 @@ ToolClient.prototype.init = function () {
     } else if (event.type === 'FS_FILE_CHANGED') {
       try {
         const fileManager = new FileManager();
-        fileManager.setFileChanged(event.path, event.content);
+        fileManager.setFileChanged(
+          event.path,
+          event.content,
+          event.diffContent
+        );
       } catch (e) {
         loggerWarning('Failed to handle FS_FILE_CHANGED: ' + e);
       }
