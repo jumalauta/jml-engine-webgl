@@ -37,6 +37,7 @@ const server = async function () {
 
   wss.on('error', (err) => {
     logger.error(`Tool server WebSocket error: ${err.message}`);
+    process.exit(1);
   });
 
   wss.on('connection', (ws) => {
