@@ -97,9 +97,9 @@ FileManager.prototype.stopWatchFileChanges = async function () {
   if (!settings.engine.tool) return;
   try {
     const toolClient = new ToolClient();
-    toolClient.send({ type: 'FS_STOP_WATCH' });
+    await toolClient.request('fs.stopWatch');
   } catch (e) {
-    loggerInfo('Failed to send FS_STOP_WATCH: ' + e);
+    loggerInfo('Failed to stop file watching: ' + e);
   }
 };
 
@@ -376,15 +376,9 @@ FileManager.prototype.load = function (filePath, instance, callback) {
     ) {
       try {
         const toolClient = new ToolClient();
-        toolClient.send({
-          type: 'FS_MONITORFILE',
-          path: filePath,
-          instanceName: fileManager.getInstanceName(instance)
-        });
+        toolClient.notify('fs.monitorFile', { path: filePath });
       } catch (err) {
-        loggerDebug(
-          `File changed but no content provided: ${filePath}: ${err}`
-        );
+        loggerDebug(`Failed to start monitoring file: ${filePath}: ${err}`);
       }
     }
 

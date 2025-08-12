@@ -53,6 +53,8 @@ ToolClient.prototype.init = function () {
 
   this.state = STATE.CONNECTING;
   this.buffer = [];
+  this.requestId = 1;
+  this.pendingRequests = new Map();
   this.maxBufferedAmount = settings.tool.client.maxBufferedAmount;
 
   this.client = new WebSocket(
@@ -61,34 +63,34 @@ ToolClient.prototype.init = function () {
 
   this.client.onopen = () => {
     try {
-      this.client.send(JSON.stringify({ type: 'CONNECT' }));
+      const connectMsg = {
+        jsonrpc: '2.0',
+        method: 'connect',
+        id: this.nextRequestId()
+      };
+      this.client.send(JSON.stringify(connectMsg));
     } catch (e) {
-      loggerWarning('Failed to send CONNECT: ' + e);
+      loggerWarning('Failed to send connect: ' + e);
     }
   };
 
   this.client.onmessage = (data) => {
-    const event = JSON.parse(data.data);
-    if (event.type === 'HELLO') {
-      loggerTrace('Received HELLO from server');
-      this.synchronizeSettings();
-    } else if (event.type === 'FS_FILE_CHANGED') {
-      try {
-        const fileManager = new FileManager();
-        fileManager.setFileChanged(
-          event.path,
-          event.content,
-          event.diffContent
+    try {
+      const msg = JSON.parse(data.data);
+
+      if (msg.jsonrpc === '2.0') {
+        if (msg.method) {
+          this.handleNotification(msg);
+        } else if (msg.id !== undefined) {
+          this.handleResponse(msg);
+        }
+      } else {
+        loggerWarning(
+          'Received non JSON-RPC message, ignoring: ' + JSON.stringify(msg)
         );
-      } catch (e) {
-        loggerWarning('Failed to handle FS_FILE_CHANGED: ' + e);
       }
-    } else if (event.type === 'CAPTURE_FRAME_SUCCESS') {
-      setWaitingForFrame(true);
-    } else {
-      if (!event.type.endsWith('_SUCCESS')) {
-        console.log('SERVER MESSAGE', data);
-      }
+    } catch (e) {
+      loggerWarning('Failed to parse server message: ' + e);
     }
   };
 
@@ -96,6 +98,7 @@ ToolClient.prototype.init = function () {
     console.log('SERVER CLOSE', event);
     this.state = STATE.NOT_CONNECTED;
     this.buffer = [];
+    this.pendingRequests.clear();
   };
 
   this.client.onerror = (event) => {
@@ -103,23 +106,82 @@ ToolClient.prototype.init = function () {
   };
 };
 
+ToolClient.prototype.nextRequestId = function () {
+  return this.requestId++;
+};
+
+ToolClient.prototype.handleNotification = function (msg) {
+  const { method, params } = msg;
+
+  if (method === 'hello') {
+    loggerTrace('Received hello notification');
+    this.synchronizeSettings();
+  } else if (method === 'fs.fileChanged') {
+    try {
+      const fileManager = new FileManager();
+      fileManager.setFileChanged(
+        params.path,
+        params.content,
+        params.diffContent
+      );
+    } catch (e) {
+      loggerWarning('Failed to handle fs.fileChanged: ' + e);
+    }
+  } else if (method === 'capture.writeReady') {
+    loggerTrace('Capture write ready');
+  } else if (method === 'capture.success') {
+    loggerInfo('Capture completed successfully');
+  } else if (method === 'capture.error') {
+    loggerWarning('Capture error: ' + (params?.message || 'Unknown error'));
+  } else if (method === 'disconnect') {
+    loggerInfo('Server requested disconnect');
+  } else {
+    loggerTrace(`Unknown notification: ${method}`);
+  }
+};
+
+ToolClient.prototype.handleResponse = function (msg) {
+  const { id, result, error } = msg;
+
+  if (this.pendingRequests.has(id)) {
+    const { resolve, reject } = this.pendingRequests.get(id);
+    this.pendingRequests.delete(id);
+
+    if (error) {
+      reject(new Error(`${error.message} (code: ${error.code})`));
+    } else {
+      resolve(result);
+
+      if (result && result.status === 'written') {
+        setWaitingForFrame(true);
+      }
+    }
+  }
+};
+
 ToolClient.prototype.synchronizeSettings = function () {
   try {
-    if (this.state === STATE.CONNECTED) {
-      this.client.send(
-        JSON.stringify({ type: 'SETTINGS', settings: settings.asObject() })
-      );
-    } else if (this.state === STATE.CONNECTING) {
+    if (this.state === STATE.CONNECTING) {
+      const settingsRequest = {
+        jsonrpc: '2.0',
+        method: 'settings',
+        params: { settings: settings.asObject() },
+        id: this.nextRequestId()
+      };
+
+      this.client.send(JSON.stringify(settingsRequest));
       this.state = STATE.CONNECTED;
-
-      this.client.send(
-        JSON.stringify({ type: 'SETTINGS', settings: settings.asObject() })
-      );
-
       this.flushBufferedMessages();
+    } else if (this.state === STATE.CONNECTED) {
+      const settingsRequest = {
+        jsonrpc: '2.0',
+        method: 'settings',
+        params: { settings: settings.asObject() }
+      };
+      this.client.send(JSON.stringify(settingsRequest));
     }
   } catch (e) {
-    loggerWarning('Failed to send SETTINGS: ' + e);
+    loggerWarning('Failed to send settings: ' + e);
   }
 };
 
@@ -142,6 +204,67 @@ ToolClient.prototype.flushBufferedMessages = function () {
   }
 };
 
+ToolClient.prototype.request = function (method, params = null) {
+  return new Promise((resolve, reject) => {
+    if (this.state === STATE.NOT_CONNECTED) {
+      reject(new Error('Client not connected'));
+      return;
+    }
+
+    const id = this.nextRequestId();
+    const request = {
+      jsonrpc: '2.0',
+      method,
+      id
+    };
+
+    if (params) {
+      request.params = params;
+    }
+
+    this.pendingRequests.set(id, { resolve, reject });
+
+    if (this.state === STATE.CONNECTED) {
+      try {
+        this.client.send(JSON.stringify(request));
+      } catch (e) {
+        this.pendingRequests.delete(id);
+        reject(new Error(`Failed to send request: ${e.message}`));
+      }
+    } else if (this.state === STATE.CONNECTING) {
+      this.buffer.push(request);
+    }
+  });
+};
+
+ToolClient.prototype.notify = function (method, params = null) {
+  if (this.state === STATE.NOT_CONNECTED) {
+    throw new Error('Client not connected');
+  }
+
+  const notification = {
+    jsonrpc: '2.0',
+    method
+  };
+
+  if (params) {
+    notification.params = params;
+  }
+
+  if (this.state === STATE.CONNECTED) {
+    try {
+      this.client.send(JSON.stringify(notification));
+      return true;
+    } catch (e) {
+      loggerWarning(`Failed to send notification: ${e.message}`);
+      return false;
+    }
+  } else if (this.state === STATE.CONNECTING) {
+    this.buffer.push(notification);
+    return true;
+  }
+};
+
 ToolClient.prototype.send = function (message) {
   if (this.state === STATE.NOT_CONNECTED || !this.client) {
     throw new Error(
@@ -151,17 +274,8 @@ ToolClient.prototype.send = function (message) {
 
   if (this.state === STATE.CONNECTED) {
     if (!this.canQueueMessage()) {
-      loggerInfo(
-        `Cannot queue message, client not ready or queue full: ${message.type}`
-      );
+      loggerInfo(`Cannot queue message, client not ready or queue full`);
       return false;
-    }
-    if (
-      message.type !== 'CAPTURE_FRAME' &&
-      message.type !== 'SETTINGS' &&
-      !message.type.startsWith('FS_')
-    ) {
-      loggerTrace(`Sending message to server: ${JSON.stringify(message)}`);
     }
     try {
       this.client.send(JSON.stringify(message));

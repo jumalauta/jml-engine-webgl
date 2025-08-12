@@ -106,23 +106,27 @@ const handleCaptureMessage = async (ws, msg) => {
   assert(ws, 'WebSocket is required');
   assert(msg, 'Message is required');
 
-  if (msg.type === 'CAPTURE_START') {
-    ws.logger.child({ clientMessage: msg }).info('Capture start');
+  const { method, params, id } = msg;
+
+  if (method === 'capture.start') {
+    ws.logger.child({ params }).info('Capture start');
     ws.state.capture = {
-      fps: msg.fps || 60,
-      width: msg.width || 1920,
-      height: msg.height || 1080,
+      fps: params?.fps || 60,
+      width: params?.width || 1920,
+      height: params?.height || 1080,
       frame: undefined,
       time: undefined
     };
     ws.state.videoExporter = new VideoExporter();
-    ws.state.videoExporter.setMusicPath(
-      `../public/${ws.state.settings.engine.demoPathPrefix}/${ws.state.settings.demo.music.musicFile}`
-    );
+    if (ws.state.settings.demo.music.musicFile) {
+      ws.state.videoExporter.setMusicPath(
+        `../public/${ws.state.settings.engine.demoPathPrefix}/${ws.state.settings.demo.music.musicFile}`
+      );
+    }
     ws.state.videoExporter.spawn(
       () => {
         ws.logger.info('ffmpeg spawned');
-        ws.sendJson({ type: 'CAPTURE_WRITE_READY' });
+        ws.sendNotification('capture.writeReady');
       },
       (code) => {
         if (ws.state.capture) {
@@ -134,69 +138,82 @@ const handleCaptureMessage = async (ws, msg) => {
 
         if (code === 0) {
           ws.logger.info('ffmpeg closed successfully');
-          ws.sendJson({ type: 'CAPTURE_SUCCESS', capture: ws.state.capture });
+          ws.sendNotification('capture.success', { capture: ws.state.capture });
         } else {
           ws.logger.warn('ffmpeg closed with error code: ' + code);
-          ws.sendJson({
-            type: 'CAPTURE_ERROR',
+          ws.sendNotification('capture.error', {
             capture: ws.state.capture,
             message: 'ffmpeg closed with error code: ' + code
           });
         }
       }
     );
-  } else if (msg.type === 'CAPTURE_STOP') {
+    if (id !== undefined) {
+      ws.sendResponse(id, { status: 'started' });
+    }
+  } else if (method === 'capture.stop') {
     if (
       !ws.state.capture ||
       !ws.state.videoExporter ||
       !ws.state.videoExporter.ready
     ) {
-      throw Error('Invalid stop state. Capture not started');
+      if (id !== undefined) {
+        ws.sendError(id, -32603, 'Internal error', 'Capture not started');
+      }
+      return;
     }
 
     ws.state.videoExporter.writeEnd();
 
     ws.logger
-      .child({ clientMessage: msg, captureState: ws.state.capture })
+      .child({ params, captureState: ws.state.capture })
       .info('Capture stop');
     ws.state.capture = undefined;
-  } else if (msg.type === 'CAPTURE_FRAME') {
+    if (id !== undefined) {
+      ws.sendResponse(id, { status: 'stopped' });
+    }
+  } else if (method === 'capture.frame') {
     if (
       !ws.state.capture ||
       !ws.state.videoExporter ||
       !ws.state.videoExporter.ready
     ) {
-      throw Error('Invalid capture frame state. Capture not started');
+      if (id !== undefined) {
+        ws.sendError(id, -32603, 'Internal error', 'Capture not started');
+      }
+      return;
     }
 
-    const logMsg = {
-      ...msg,
+    const logParams = {
+      ...params,
       dataUrl:
-        msg.dataUrl !== undefined
-          ? msg.dataUrl.split(',')[0] + ',<data>'
+        params?.dataUrl !== undefined
+          ? params.dataUrl.split(',')[0] + ',<data>'
           : undefined
     };
 
     if (
-      msg.dataUrl === undefined ||
-      msg.frame === undefined ||
-      msg.time === undefined
+      !params?.dataUrl ||
+      params.frame === undefined ||
+      params.time === undefined
     ) {
       ws.logger
-        .child({ clientMessage: logMsg })
+        .child({ params: logParams })
         .warn('Invalid frame data received');
-      throw new Error('Invalid frame data');
+      if (id !== undefined) {
+        ws.sendError(id, -32602, 'Invalid params', 'Missing frame data');
+      }
+      return;
     }
 
     if (ws.state.capture.frame === undefined) {
-      if (msg.frame !== 0 && msg.time !== 0) {
+      if (params.frame !== 0 && params.time !== 0) {
         ws.logger
           .child({
-            clientMessage: logMsg,
+            params: logParams,
             captureState: ws.state.capture
           })
           .warn('Invalid first frame received');
-        // throw new Error('Invalid first frame');
       }
 
       ws.state.capture.start = Date.now();
@@ -204,38 +221,36 @@ const handleCaptureMessage = async (ws, msg) => {
 
     if (
       ws.state.capture.frame !== undefined &&
-      ws.state.capture.frame + 1 !== msg.frame
+      ws.state.capture.frame + 1 !== params.frame
     ) {
       ws.logger
         .child({
-          clientMessage: logMsg,
+          params: logParams,
           captureState: ws.state.capture
         })
         .warn('Invalid frame number received');
-      // throw new Error('Invalid frame number');
     }
 
     if (
       ws.state.capture.time !== undefined &&
-      ws.state.capture.time >= msg.time
+      ws.state.capture.time >= params.time
     ) {
       ws.logger
         .child({
-          clientMessage: logMsg,
+          params: logParams,
           captureState: ws.state.capture
         })
         .warn('Invalid frame time received');
-      // throw new Error('Invalid frame time');
     }
 
-    ws.state.capture.frame = msg.frame;
-    ws.state.capture.time = msg.time;
+    ws.state.capture.frame = params.frame;
+    ws.state.capture.time = params.time;
 
-    if (msg.dataUrl) {
+    try {
       const regex = /^data:(.+);base64,(.*)$/;
-      const matches = msg.dataUrl.match(regex);
+      const matches = params.dataUrl.match(regex);
       if (!matches) {
-        throw new Error('Invalid dataUrl');
+        throw new Error('Invalid dataUrl format');
       }
       const type = matches[1].split('/')[0];
       if (type !== 'image') {
@@ -243,15 +258,20 @@ const handleCaptureMessage = async (ws, msg) => {
       }
       const data = Buffer.from(matches[2], 'base64');
       ws.state.videoExporter.writeFrame(data);
-      ws.sendJson({ type: 'CAPTURE_FRAME_SUCCESS', frame: msg.frame });
-    } else {
-      throw new Error('dataUrl missing');
+
+      if (id !== undefined) {
+        ws.sendResponse(id, { frame: params.frame, status: 'written' });
+      }
+    } catch (err) {
+      if (id !== undefined) {
+        ws.sendError(id, -32602, 'Invalid params', err.message);
+      }
     }
   } else {
-    ws.logger
-      .child({ clientMessage: msg })
-      .info('Invalid capture client data received');
-    throw new Error('Invalid capture message: ' + msg.type);
+    ws.logger.child({ method, params }).info('Unknown capture method received');
+    if (id !== undefined) {
+      ws.sendError(id, -32601, 'Method not found', `Unknown method: ${method}`);
+    }
   }
 };
 
