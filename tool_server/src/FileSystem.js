@@ -198,45 +198,59 @@ const handleFileSystemMessage = async (ws, msg) => {
   assert(ws, 'WebSocket is required');
   assert(msg, 'Message is required');
 
-  if (msg.type === 'FS_STOP_WATCH') {
+  const { method, params, id } = msg;
+
+  if (method === 'fs.stopWatch') {
     try {
       if (ws.state.fileSystem) {
         ws.state.fileSystem.stopFileWatch();
-        ws.sendJson({ type: 'FS_STOP_WATCH_SUCCESS' });
+        if (id !== undefined) {
+          ws.sendResponse(id, { status: 'stopped' });
+        }
       } else {
         throw new Error('File system not initialized');
       }
       return;
     } catch (err) {
       ws.logger.child({ err }).error('Failed to stop file watch');
-      ws.sendJson({ type: 'FS_STOP_WATCH_ERROR', error: err.message });
+      if (id !== undefined) {
+        ws.sendError(id, -32603, 'Internal error', err.message);
+      }
       return;
     }
   }
 
   const fileSystem = ensureFileSystem(ws);
 
-  const requiresPath =
-    msg.type === 'FS_MONITORFILE' ||
-    msg.type === 'FS_STAT' ||
-    msg.type === 'FS_READFILE';
+  const requiresPath = ['fs.monitorFile', 'fs.stat', 'fs.readFile'].includes(
+    method
+  );
 
-  if (requiresPath && !msg.path) {
-    ws.logger.child({ clientMessage: msg }).error('Path not provided');
-    throw new Error('Path not provided');
+  if (requiresPath && (!params || !params.path)) {
+    ws.logger.child({ method, params }).error('Path not provided');
+    if (id !== undefined) {
+      ws.sendError(id, -32602, 'Invalid params', 'Path required');
+    }
+    return;
   }
 
   if (requiresPath) {
-    await validatePath(ws, msg.path);
+    try {
+      await validatePath(ws, params.path);
+    } catch (err) {
+      if (id !== undefined) {
+        ws.sendError(id, -32602, 'Invalid params', err.message);
+      }
+      return;
+    }
   }
 
-  if (msg.type === 'FS_MONITORFILE') {
+  if (method === 'fs.monitorFile') {
     const ok = fileSystem.monitorFile(
-      msg.path,
+      params.path,
       ({ path, mtimeMs, eventType, content, diffContent }) => {
         ws.logger.child({ path, mtimeMs, eventType }).info('File changed');
-        const response = {
-          type: 'FS_FILE_CHANGED',
+        const notificationParams = {
           path,
           mtimeMs,
           eventType,
@@ -244,43 +258,46 @@ const handleFileSystemMessage = async (ws, msg) => {
         };
 
         if (diffContent) {
-          response.diffContent = diffContent;
+          notificationParams.diffContent = diffContent;
         }
 
-        ws.sendJson(response);
+        ws.sendNotification('fs.fileChanged', notificationParams);
       }
     );
-    ws.sendJson({
-      type: ok ? 'FS_MONITOR_SUCCESS' : 'FS_MONITOR_ERROR',
-      path: msg.path
-    });
-  } else if (msg.type === 'FS_STAT') {
-    fileSystem
-      .stat(msg.path)
-      .then((stats) => {
-        ws.sendJson({ type: 'FS_STAT_SUCCESS', stats });
-        return true;
-      })
-      .catch((err) => {
-        ws.sendJson({ type: 'FS_STAT_ERROR', error: err.message });
-        return false;
+
+    if (id !== undefined) {
+      ws.sendResponse(id, {
+        status: ok ? 'monitoring' : 'failed',
+        path: params.path
       });
-  } else if (msg.type === 'FS_READFILE') {
-    fileSystem
-      .readFile(msg.path)
-      .then((content) => {
-        ws.sendJson({ type: 'FS_READFILE_SUCCESS', content });
-        return true;
-      })
-      .catch((err) => {
-        ws.sendJson({ type: 'FS_READFILE_ERROR', error: err.message });
-        return false;
-      });
+    }
+  } else if (method === 'fs.stat') {
+    try {
+      const stats = await fileSystem.stat(params.path);
+      if (id !== undefined) {
+        ws.sendResponse(id, { stats });
+      }
+    } catch (err) {
+      if (id !== undefined) {
+        ws.sendError(id, -32603, 'Internal error', err.message);
+      }
+    }
+  } else if (method === 'fs.readFile') {
+    try {
+      const content = await fileSystem.readFile(params.path);
+      if (id !== undefined) {
+        ws.sendResponse(id, { content });
+      }
+    } catch (err) {
+      if (id !== undefined) {
+        ws.sendError(id, -32603, 'Internal error', err.message);
+      }
+    }
   } else {
-    ws.logger
-      .child({ clientMessage: msg })
-      .info('Invalid file system client data received');
-    throw new Error('Invalid file system message: ' + msg.type);
+    ws.logger.child({ method, params }).info('Unknown file system method');
+    if (id !== undefined) {
+      ws.sendError(id, -32601, 'Method not found', `Unknown method: ${method}`);
+    }
   }
 };
 

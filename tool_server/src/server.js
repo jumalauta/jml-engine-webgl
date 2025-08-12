@@ -4,6 +4,28 @@ import { v4 as uuidv4 } from 'uuid';
 import { handleCaptureMessage } from './VideoExporter.js';
 import { handleFileSystemMessage } from './FileSystem.js';
 
+const createJsonRpcResponse = (id, result) => ({
+  jsonrpc: '2.0',
+  id,
+  result
+});
+
+const createJsonRpcError = (id, code, message, data = null) => ({
+  jsonrpc: '2.0',
+  id,
+  error: {
+    code,
+    message,
+    ...(data && { data })
+  }
+});
+
+const createJsonRpcNotification = (method, params = null) => ({
+  jsonrpc: '2.0',
+  method,
+  ...(params && { params })
+});
+
 const server = async function () {
   const port = 7447;
   const wss = new WebSocketServer({ port });
@@ -18,46 +40,96 @@ const server = async function () {
 
     ws.logger.info('Tool client connected');
 
-    ws.sendJson = (msg) => {
+    ws.sendJsonRpc = (msg) => {
       ws.send(JSON.stringify(msg));
+    };
+
+    ws.sendResponse = (id, result) => {
+      ws.sendJsonRpc(createJsonRpcResponse(id, result));
+    };
+
+    ws.sendError = (id, code, message, data = null) => {
+      ws.sendJsonRpc(createJsonRpcError(id, code, message, data));
+    };
+
+    ws.sendNotification = (method, params = null) => {
+      ws.sendJsonRpc(createJsonRpcNotification(method, params));
     };
 
     ws.on('close', () => ws.logger.info('Tool client disconnected'));
     ws.on('message', async (data) => {
+      let msg;
       try {
-        const msg = JSON.parse(data);
-        const type = msg.type || '';
+        msg = JSON.parse(data);
 
-        if (ws.state.connected) {
-          if (type === 'INIT') {
-            ws.logger.child({ clientMessage: msg }).info('Init message');
-            ws.state.init = msg;
-          } else if (type === 'SETTINGS') {
-            ws.logger.info('Received settings');
-            if (msg.settings === undefined) {
-              throw new Error('Settings missing');
-            }
-            ws.state.settings = msg.settings;
-          } else if (type.startsWith('FS_')) {
-            await handleFileSystemMessage(ws, msg);
-          } else if (type.startsWith('CAPTURE_')) {
-            await handleCaptureMessage(ws, msg);
-          } else {
-            ws.logger
-              .child({ clientMessage: msg })
-              .info('Invalid client data received');
-            throw new Error('Invalid message: ' + msg.type);
-          }
-        } else if (msg.type === 'CONNECT') {
-          ws.sendJson({ type: 'HELLO' });
+        if (msg.jsonrpc !== '2.0') {
+          ws.sendError(
+            msg.id || null,
+            -32600,
+            'Invalid Request',
+            'Missing or invalid jsonrpc version'
+          );
+          return;
+        }
+
+        const { method, params, id } = msg;
+
+        if (!method) {
+          ws.sendError(id || null, -32600, 'Invalid Request', 'Missing method');
+          return;
+        }
+
+        if (method === 'connect' && !ws.state.connected) {
+          ws.sendNotification('hello');
           ws.state.connected = true;
+          return;
+        }
+
+        if (!ws.state.connected && method !== 'connect') {
+          ws.sendError(id || null, -32002, 'Server Error', 'Not connected');
+          return;
+        }
+
+        if (method === 'init') {
+          ws.logger.child({ params }).info('Init message');
+          ws.state.init = params;
+          if (id !== undefined) {
+            ws.sendResponse(id, { status: 'initialized' });
+          }
+        } else if (method === 'settings') {
+          ws.logger.info('Received settings');
+          if (!params || !params.settings) {
+            ws.sendError(
+              id || null,
+              -32602,
+              'Invalid params',
+              'Settings missing'
+            );
+            return;
+          }
+          ws.state.settings = params.settings;
+          if (id !== undefined) {
+            ws.sendResponse(id, { status: 'settings updated' });
+          }
+        } else if (method.startsWith('fs.')) {
+          await handleFileSystemMessage(ws, { method, params, id });
+        } else if (method.startsWith('capture.')) {
+          await handleCaptureMessage(ws, { method, params, id });
         } else {
-          throw new Error('Invalid pre-connection message: ' + msg.type);
+          ws.logger.child({ method, params }).info('Unknown method received');
+          if (id !== undefined) {
+            ws.sendError(
+              id,
+              -32601,
+              'Method not found',
+              `Unknown method: ${method}`
+            );
+          }
         }
       } catch (e) {
         ws.logger.warn(e);
-        const msg = e.message || 'Unknown error';
-        ws.sendJson({ type: 'ERROR', message: msg });
+        const errorMsg = e.message || 'Unknown error';
+        ws.sendError(msg?.id || null, -32603, 'Internal error', errorMsg);
       }
     });
     ws.onerror = function () {
@@ -68,7 +140,7 @@ const server = async function () {
   process.on('SIGINT', function () {
     wss.clients.forEach((client) => {
       client.logger.info('Sending disconnect to client');
-      client.send(JSON.stringify({ type: 'DISCONNECT' }));
+      client.sendNotification('disconnect');
       client.close();
     });
 

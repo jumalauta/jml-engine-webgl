@@ -178,9 +178,12 @@ export function setWaitingForFrame(wait) {
 function captureStop() {
   if (capture) {
     capture = false;
-    toolClient.send({ type: 'CAPTURE_STOP' });
+    toolClient.request('capture.stop').catch((err) => {
+      loggerWarning('Failed to stop capture: ' + err.message);
+    });
+    const captureSeconds = (Date.now() - captureStartTime) / 1000;
     loggerInfo(
-      `Capture ending. Captured ${frame} frames in ${((Date.now() - captureStartTime) / 1000 / 60).toFixed(2)} m`
+      `Capture ending. Captured ${frame} frames in ${(captureSeconds / 60).toFixed(2)} m, capture fps: ${(frame / captureSeconds).toFixed(2)}`
     );
 
     alert('Capture ended');
@@ -203,20 +206,26 @@ function captureFrame() {
     frame = newFrame;
     // setWaitingForFrame(false);
 
-    const sendResult = toolClient.send({
-      type: 'CAPTURE_FRAME',
-      dataUrl: canvasToDataUrl(),
-      frame,
-      time: timer.getTime()
-    });
-
-    if (!sendResult) {
-      frame = oldFrame;
-      loggerTrace(
-        `Failed to queue frame ${newFrame}, will retry frame ${frame}`
-      );
-      return false;
-    }
+    toolClient
+      .request('capture.frame', {
+        dataUrl: canvasToDataUrl(),
+        frame,
+        time: timer.getTime()
+      })
+      .then((result) => {
+        if (result && result.status === 'written') {
+          setWaitingForFrame(true);
+          return true;
+        } else {
+          loggerInfo(`Frame ${frame} not written properly`);
+          return false;
+        }
+      })
+      .catch((err) => {
+        loggerInfo(`Failed to send frame ${frame}: ${err.message}`);
+        frame = oldFrame; // reset frame on error
+        return false;
+      });
 
     /* console.log(
       `Frame ${frame} captured at time ${(timer.getTime() / 1000).toFixed(4)} s`
@@ -234,17 +243,24 @@ function captureFrame() {
           `Timer inaccuracy detected. Adding frame ${frame - 1} as frames ${frame} to ${checkFrame}`
         );
         for (let i = frame + 1; i < checkFrame; i++) {
-          const sendResult = toolClient.send({
-            type: 'CAPTURE_FRAME',
-            dataUrl: canvasToDataUrl(),
-            frame: i,
-            time: timer.getTime()
-          });
-
-          if (!sendResult) {
-            loggerWarning(`Failed to queue additional frame ${i}, stopping`);
-            break;
-          }
+          toolClient
+            .request('capture.frame', {
+              dataUrl: canvasToDataUrl(),
+              frame: i,
+              time: timer.getTime()
+            })
+            .then((result) => {
+              if (!(result && result.status === 'written')) {
+                loggerWarning(`Additional frame ${i} not written properly`);
+              }
+              return result && result.status === 'written';
+            })
+            .catch((err) => {
+              loggerWarning(
+                `Failed to send additional frame ${i}: ${err.message}`
+              );
+              return false;
+            });
         }
       } else {
         loggerWarning('Timer too inaccurate, ending recording');
@@ -606,10 +622,13 @@ document.addEventListener('keydown', (event) => {
     } else if (event.key === 'Home') {
       timer.setTimePercent(0.0);
     } else if (event.key === 'p' && isStarted()) {
-      if (!toolClient.isEnabled()) {
-        alert('Tool server not enabled, cannot capture');
+      if (!toolClient.isConnected()) {
+        alert('Tool server not connected, cannot capture');
         return;
       }
+
+      // Re-synchronize settings to ensure demo changes are known by server
+      toolClient.synchronizeSettings();
 
       if (!confirm('Want to start video capture?')) {
         return;
@@ -618,14 +637,29 @@ document.addEventListener('keydown', (event) => {
       timer.pause(true);
       timer.setTime(0);
       captureStartTime = Date.now();
-      toolClient.send({ type: 'CAPTURE_START' });
+      toolClient
+        .request('capture.start', {
+          fps: settings.engine.fps,
+          width: 1920,
+          height: 1080
+        })
+        .then((result) => {
+          loggerInfo('Capture started successfully');
 
-      setTimeout(() => {
-        frame = -1;
-        capture = true;
-        setWaitingForFrame(true);
-        captureFrame();
-      }, 1000);
+          setTimeout(() => {
+            frame = -1;
+            capture = true;
+            setWaitingForFrame(true);
+            captureFrame();
+          }, 1000);
+
+          return result;
+        })
+        .catch((err) => {
+          loggerError('Failed to start capture: ' + err.message);
+          alert('Failed to start video capture');
+          throw err;
+        });
     }
   }
 });
