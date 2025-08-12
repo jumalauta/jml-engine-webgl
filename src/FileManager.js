@@ -46,7 +46,6 @@ FileManager.prototype.getInstance = function () {
 FileManager.prototype.clearCache = function () {
   this.files = {};
   this.fileReferences = {};
-  this.refreshFiles = {};
   this.promises = [];
   Text.clearCache();
 };
@@ -135,7 +134,7 @@ FileManager.prototype.setReference = function (filePath, reference) {
     );
   }
 
-  const path = this.getDiskPath(filePath);
+  const path = filePath;
 
   if (this.fileReferences[path]) {
     let newReference = true;
@@ -156,7 +155,7 @@ FileManager.prototype.setReference = function (filePath, reference) {
 FileManager.prototype.updateReferences = function (filePath) {
   let updated = false;
 
-  const path = this.getDiskPath(filePath);
+  const path = filePath;
 
   if (this.fileReferences[path]) {
     this.fileReferences[path].forEach((ref) => {
@@ -185,9 +184,10 @@ FileManager.prototype.setFileChanged = function (filePath, content) {
   }
   loggerInfo(`File changed: ${filePath}`);
 
-  THREE.Cache.add(this.getUrl(filePath), content);
-  this.setRefreshFileFromCache(filePath, content);
-  this.setFileFromCache(filePath, content);
+  const data = atob(content);
+
+  THREE.Cache.add(this.getUrl(filePath), data);
+  this.setFileFromCache(filePath, data);
 
   this.setFileNeedsUpdate(filePath);
 
@@ -274,8 +274,6 @@ FileManager.prototype.processPromise = function (
       `${this.getInstanceName(instance)} file(s) could not be loaded: ${filePathString}`
     );
 
-    this.removeRefreshFileTimestamp(filePath);
-
     if (instance) {
       instance.error = true;
     }
@@ -301,17 +299,6 @@ FileManager.prototype.getPathDirectory = function (filePath) {
     return '';
   }
   return path.substring(0, lastSlash + 1);
-};
-
-FileManager.prototype.getDiskPath = function (filePath) {
-  if (filePath.startsWith('src/') || filePath.startsWith('public/')) {
-    return filePath;
-  }
-
-  if (filePath.startsWith('_embedded/')) {
-    return 'src/' + filePath;
-  }
-  return 'public/' + settings.engine.demoPathPrefix + filePath;
 };
 
 FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
@@ -352,24 +339,6 @@ FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
   });
 };
 
-FileManager.prototype.removeRefreshFileTimestamp = function (filePath) {
-  const path = filePath;
-  if (this.getRefreshFileFromCache(path)) {
-    loggerDebug('Removing file from refresh checking: ' + path);
-    this.setRefreshFileFromCache(filePath, null);
-  }
-};
-
-FileManager.prototype.setRefreshFileTimestamp = function (filePath) {
-  if (this.getRefreshFileFromCache(filePath)) {
-    return;
-  }
-
-  if (settings.engine.tool) {
-    this.setRefreshFileFromCache(filePath, null);
-  }
-};
-
 FileManager.prototype.getUrl = function (filePath) {
   if (this.staticUrls[filePath]) {
     return this.staticUrls[filePath];
@@ -386,18 +355,6 @@ FileManager.prototype.setFileFromCache = function (filePath, data) {
   this.files[this.getPath(filePath)] = data;
 };
 
-FileManager.prototype.getRefreshFileFromCache = function (filePath) {
-  return this.refreshFiles[this.getDiskPath(filePath)];
-};
-
-FileManager.prototype.setRefreshFileFromCache = function (filePath, data) {
-  if (data === null) {
-    delete this.refreshFiles[this.getDiskPath(filePath)];
-  } else {
-    this.refreshFiles[this.getDiskPath(filePath)] = data;
-  }
-};
-
 FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
@@ -410,7 +367,6 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       filePath !== './playlist.js'
     ) {
       try {
-        fileManager.setRefreshFileTimestamp(filePath);
         const toolClient = new ToolClient();
         toolClient.send({
           type: 'FS_MONITORFILE',
