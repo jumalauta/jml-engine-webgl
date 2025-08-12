@@ -11,7 +11,7 @@ import Stats from 'stats.js';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { Spectogram } from './Spectogram';
-import { loggerWarning } from './Bindings';
+import { loggerInfo, loggerWarning } from './Bindings';
 // import { FileManager } from './FileManager'
 // import { Settings } from './Settings'
 import { Utils } from './Utils';
@@ -133,7 +133,9 @@ ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
 
   const endTime = (new Timer().endTime || 0) / 1000;
   if (!endTime) {
-    loggerWarning(`Not adding scene ${sceneName} because there is no end time`);
+    loggerInfo(
+      `Not adding scene ${sceneName} to timeline because there is no end time`
+    );
     return;
   }
 
