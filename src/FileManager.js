@@ -187,6 +187,7 @@ FileManager.prototype.setFileChanged = function (
     loggerTrace(`File changed but no content provided: ${filePath}`);
     return;
   }
+
   loggerInfo(`File changed: ${filePath}`);
 
   if (diffContent) {
@@ -195,9 +196,11 @@ FileManager.prototype.setFileChanged = function (
 
   const data = atob(content);
 
-  THREE.Cache.add(this.getUrl(filePath), data);
-  this.setFileFromCache(filePath, data);
+  const loaderPath = this.getUrl(filePath);
+  THREE.Cache.remove('file:' + loaderPath);
+  THREE.Cache.remove('image:' + loaderPath);
 
+  this.setFileFromCache(filePath, data);
   this.setFileNeedsUpdate(filePath);
 
   if (!this.updateReferences(filePath)) {
@@ -368,6 +371,7 @@ FileManager.prototype.monitorFile = function (filePath) {
   if (
     settings.engine.tool &&
     !filePath.startsWith('_embedded/') &&
+    !filePath.endsWith('.fbo') &&
     filePath !== 'spectogram.png' &&
     filePath !== './playlist.js'
   ) {
@@ -384,21 +388,7 @@ FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
     const path = fileManager.getPath(filePath);
-
     fileManager.monitorFile(filePath);
-
-    const cacheData = this.getFileFromCache(filePath);
-    if (cacheData) {
-      fileManager.processPromise(
-        resolve,
-        reject,
-        filePath,
-        instance,
-        cacheData,
-        callback
-      );
-      return;
-    }
 
     let Loader = THREE.FileLoader;
     if (instance instanceof Image) {
@@ -413,6 +403,19 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       } else {
         throw new Error('3D Model fileformat not supported: ' + filePath);
       }
+    }
+
+    const cacheData = this.getFileFromCache(filePath);
+    if (cacheData && Loader === THREE.FileLoader) {
+      fileManager.processPromise(
+        resolve,
+        reject,
+        filePath,
+        instance,
+        cacheData,
+        callback
+      );
+      return;
     }
 
     new Loader().load(
