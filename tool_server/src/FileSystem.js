@@ -28,44 +28,51 @@ FileSystem.prototype.stat = async function (relativePath) {
 
 FileSystem.prototype.readFile = async function (
   relativePath,
-  encoding = 'utf8'
+  encoding = 'base64'
 ) {
   const abs = this.toAbsolutePath(relativePath);
   return await fsReadFile(abs, { encoding: encoding });
 };
 
 FileSystem.prototype.monitorFile = function (relativePath, onChange) {
-  const abs = this.toAbsolutePath(relativePath);
-  if (this.watchers.has(abs)) {
+  const absolutePath = this.toAbsolutePath(relativePath);
+  if (this.watchers.has(absolutePath)) {
     return true;
   }
   try {
-    const watcher = watch(abs, { persistent: true }, async (eventType) => {
-      try {
-        const stats = await stat(abs);
-        let content = null;
+    const watcher = watch(
+      absolutePath,
+      { persistent: true },
+      async (eventType) => {
         try {
-          content = await fsReadFile(abs, { encoding: 'utf8' });
-        } catch {}
-        onChange({
-          path: relativePath,
-          mtimeMs: stats.mtimeMs,
-          eventType,
-          content
-        });
-      } catch (err) {
-        this.logger.warn({ err, abs }, 'Error reading stats on change');
+          const stats = await stat(absolutePath);
+          let content = null;
+          try {
+            content = await fsReadFile(absolutePath, { encoding: 'base64' });
+          } catch {}
+          onChange({
+            path: relativePath,
+            mtimeMs: stats.mtimeMs,
+            eventType,
+            content
+          });
+        } catch (err) {
+          this.logger.warn(
+            { err, absolutePath },
+            'Error reading stats on change'
+          );
+        }
       }
-    });
+    );
     const close = () => {
       try {
         watcher.close();
       } catch {}
     };
-    this.watchers.set(abs, close);
+    this.watchers.set(absolutePath, close);
     return true;
   } catch (err) {
-    this.logger.error({ err, abs }, 'Failed to watch file');
+    this.logger.error({ err, absolutePath }, 'Failed to watch file');
     return false;
   }
 };
