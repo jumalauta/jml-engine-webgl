@@ -44,7 +44,7 @@ function toolServerPlugin() {
               else child.kill('SIGKILL');
             } catch {}
           }, 3000);
-          guard.unref?.();
+          guard.unref();
 
           child = undefined;
         };
@@ -55,9 +55,26 @@ function toolServerPlugin() {
           reject(new Error('Tool server failed to start within timeout'));
         }, 10000);
 
+        const startupExitHandler = (code, signal) => {
+          clearTimeout(startupTimeout);
+          console.log(
+            `[tool_server] exited during startup with code ${code} ${signal ? `(signal ${signal})` : ''}`
+          );
+
+          if (code !== 0 && code !== null) {
+            reject(
+              new Error(`Tool server failed to start: exited with code ${code}`)
+            );
+          }
+        };
+
+        child.once('exit', startupExitHandler);
+
         child.on('spawn', () => {
           console.log('[tool_server] started successfully');
           clearTimeout(startupTimeout);
+
+          child.removeListener('exit', startupExitHandler);
 
           child.on('exit', (code, signal) => {
             console.log(
@@ -77,23 +94,6 @@ function toolServerPlugin() {
           });
 
           resolve();
-        });
-
-        child.on('exit', (code, signal) => {
-          clearTimeout(startupTimeout);
-          console.log(
-            `[tool_server] exited with code ${code} ${signal ? `(signal ${signal})` : ''}`
-          );
-
-          if (code !== 0 && code !== null) {
-            reject(new Error(`Tool server exited with code ${code}`));
-          }
-        });
-
-        child.on('error', (err) => {
-          clearTimeout(startupTimeout);
-          console.error('[tool_server] failed to start:', err);
-          reject(new Error(`Tool server failed to start: ${err.message}`));
         });
 
         server.httpServer?.once('close', () => stop('SIGINT'));
