@@ -65,86 +65,139 @@ FileSystem.prototype.monitorFile = function (relativePath, onChange) {
     return true;
   }
 
-  if (this.isDiffableExtension(relativePath)) {
-    try {
-      fsReadFile(absolutePath, { encoding: 'utf8' })
-        .then((content) => {
-          this.contentCache.set(absolutePath, content);
-          return content;
-        })
-        .catch(() => {
-          return null;
-        });
-    } catch (err) {
-      this.logger.warn(
-        { err, absolutePath },
-        'Could not read initial file content'
-      );
+  const setupWatch = () => {
+    if (this.isDiffableExtension(relativePath)) {
+      try {
+        fsReadFile(absolutePath, { encoding: 'utf8' })
+          .then((content) => {
+            this.contentCache.set(absolutePath, content);
+            return content;
+          })
+          .catch(() => {
+            return null;
+          });
+      } catch (err) {
+        this.logger.warn(
+          { err, absolutePath },
+          'Could not read initial file content'
+        );
+      }
     }
-  }
 
-  try {
-    const watcher = watch(
-      absolutePath,
-      { persistent: true },
-      async (eventType) => {
-        try {
-          const stats = await stat(absolutePath);
-          let content = null;
-          let diffContent = null;
-
+    try {
+      const watcher = watch(
+        absolutePath,
+        { persistent: true },
+        async (eventType) => {
           try {
-            content = await fsReadFile(absolutePath, { encoding: 'base64' });
+            let stats;
+            let content = null;
+            let diffContent = null;
 
-            if (this.isDiffableExtension(relativePath)) {
-              const textContent = await fsReadFile(absolutePath, {
-                encoding: 'utf8'
-              });
-              const oldContent = this.contentCache.get(absolutePath);
+            try {
+              stats = await stat(absolutePath);
+            } catch (statErr) {
+              if (statErr.code === 'ENOENT') {
+                // file might be temporarily missing, e.g., during copy operation
+                const fileWaitGrace = 250;
+                await new Promise((resolve) =>
+                  setTimeout(resolve, fileWaitGrace)
+                );
+                try {
+                  stats = await stat(absolutePath);
+                } catch (retryErr) {
+                  if (retryErr.code === 'ENOENT') {
+                    this.logger.warn(
+                      { absolutePath, eventType },
+                      'File no longer exists after copy operation'
+                    );
 
-              if (oldContent && oldContent !== textContent) {
-                diffContent = this.createDiff(
-                  oldContent,
-                  textContent,
-                  relativePath
+                    this.watchers.delete(absolutePath);
+                    this.contentCache.delete(absolutePath);
+                    try {
+                      watcher.close();
+                    } catch (err) {
+                      this.logger.warn(
+                        { err, absolutePath },
+                        'Error closing file watcher'
+                      );
+                    }
+                    return;
+                  }
+                  throw retryErr;
+                }
+              } else {
+                throw statErr;
+              }
+            }
+
+            try {
+              content = await fsReadFile(absolutePath, { encoding: 'base64' });
+
+              if (this.isDiffableExtension(relativePath)) {
+                const textContent = await fsReadFile(absolutePath, {
+                  encoding: 'utf8'
+                });
+                const oldContent = this.contentCache.get(absolutePath);
+
+                if (oldContent && oldContent !== textContent) {
+                  diffContent = this.createDiff(
+                    oldContent,
+                    textContent,
+                    relativePath
+                  );
+                }
+
+                this.contentCache.set(absolutePath, textContent);
+              }
+            } catch (err) {
+              if (err.code === 'ENOENT') {
+                this.logger.warn(
+                  { err, absolutePath },
+                  'File disappeared during processing'
+                );
+              } else {
+                this.logger.error(
+                  { err, absolutePath },
+                  'Error reading file content'
                 );
               }
-
-              this.contentCache.set(absolutePath, textContent);
+              return;
             }
+
+            if (content.length == 0) {
+              this.logger.warn({ absolutePath }, 'File content is empty');
+            }
+
+            onChange({
+              path: relativePath,
+              mtimeMs: stats.mtimeMs,
+              eventType,
+              content,
+              diffContent
+            });
           } catch (err) {
             this.logger.warn(
               { err, absolutePath },
-              'Error reading file content'
+              'Error processing file change'
             );
           }
-
-          onChange({
-            path: relativePath,
-            mtimeMs: stats.mtimeMs,
-            eventType,
-            content,
-            diffContent
-          });
-        } catch (err) {
-          this.logger.warn(
-            { err, absolutePath },
-            'Error reading stats on change'
-          );
         }
-      }
-    );
-    const close = () => {
-      try {
-        watcher.close();
-      } catch {}
-    };
-    this.watchers.set(absolutePath, close);
-    return true;
-  } catch (err) {
-    this.logger.error({ err, absolutePath }, 'Failed to watch file');
-    return false;
-  }
+      );
+      const close = () => {
+        try {
+          watcher.close();
+        } catch {}
+      };
+      this.watchers.set(absolutePath, close);
+      return true;
+    } catch (err) {
+      this.logger.error({ err, absolutePath }, 'Failed to watch file');
+      return false;
+    }
+  };
+
+  return setupWatch();
 };
 
 FileSystem.prototype.stopFileWatch = function () {
