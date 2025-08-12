@@ -135,6 +135,7 @@ FileManager.prototype.setReference = function (filePath, reference) {
   }
 
   const path = filePath;
+  this.monitorFile(path);
 
   if (this.fileReferences[path]) {
     let newReference = true;
@@ -183,7 +184,7 @@ FileManager.prototype.setFileChanged = function (
   diffContent
 ) {
   if (!content) {
-    loggerWarning(`File changed but no content provided: ${filePath}`);
+    loggerTrace(`File changed but no content provided: ${filePath}`);
     return;
   }
   loggerInfo(`File changed: ${filePath}`);
@@ -363,24 +364,28 @@ FileManager.prototype.setFileFromCache = function (filePath, data) {
   this.files[this.getPath(filePath)] = data;
 };
 
+FileManager.prototype.monitorFile = function (filePath) {
+  if (
+    settings.engine.tool &&
+    !filePath.startsWith('_embedded/') &&
+    filePath !== 'spectogram.png' &&
+    filePath !== './playlist.js'
+  ) {
+    try {
+      const toolClient = new ToolClient();
+      toolClient.notify('fs.monitorFile', { path: filePath });
+    } catch (err) {
+      loggerDebug(`Failed to start monitoring file: ${filePath}: ${err}`);
+    }
+  }
+};
+
 FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
   return new Promise((resolve, reject) => {
     const path = fileManager.getPath(filePath);
 
-    if (
-      settings.engine.tool &&
-      !filePath.startsWith('_embedded/') &&
-      filePath !== 'spectogram.png' &&
-      filePath !== './playlist.js'
-    ) {
-      try {
-        const toolClient = new ToolClient();
-        toolClient.notify('fs.monitorFile', { path: filePath });
-      } catch (err) {
-        loggerDebug(`Failed to start monitoring file: ${filePath}: ${err}`);
-      }
-    }
+    fileManager.monitorFile(filePath);
 
     const cacheData = this.getFileFromCache(filePath);
     if (cacheData) {
