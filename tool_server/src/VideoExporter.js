@@ -33,16 +33,24 @@ VideoExporter.prototype.spawn = function (onSpawn, onClose) {
     '-framerate',
     '60',
     '-i',
-    '-',
-    // input audio
-    '-i',
-    this.musicPath,
-    '-c:a',
-    'aac',
-    '-b:a',
-    '512k',
-    '-strict',
-    '-2',
+    '-'
+  ];
+
+  if (this.musicPath !== undefined) {
+    ffmpegArgs.push(
+      // input audio
+      '-i',
+      this.musicPath,
+      '-c:a',
+      'aac',
+      '-b:a',
+      '512k',
+      '-strict',
+      '-2'
+    );
+  }
+
+  ffmpegArgs.push(
     // output video
     '-framerate',
     '60',
@@ -54,7 +62,7 @@ VideoExporter.prototype.spawn = function (onSpawn, onClose) {
     '-filter:v',
     'scale=1920:-1',
     outputPath
-  ];
+  );
 
   const ffmpeg = spawn('ffmpeg', ffmpegArgs);
 
