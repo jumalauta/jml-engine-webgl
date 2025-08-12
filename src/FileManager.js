@@ -177,12 +177,20 @@ FileManager.prototype.updateReferences = function (filePath) {
   return updated;
 };
 
-FileManager.prototype.setFileChanged = function (filePath, content) {
+FileManager.prototype.setFileChanged = function (
+  filePath,
+  content,
+  diffContent
+) {
   if (!content) {
     loggerWarning(`File changed but no content provided: ${filePath}`);
     return;
   }
   loggerInfo(`File changed: ${filePath}`);
+
+  if (diffContent) {
+    loggerInfo(`File change diff: ${filePath}\n${diffContent}`);
+  }
 
   const data = atob(content);
 
