@@ -1,6 +1,7 @@
 import { loggerTrace, loggerInfo, loggerWarning } from './Bindings';
 import { setWaitingForFrame } from './main';
 import { Settings } from './Settings';
+import { FileManager } from './FileManager';
 
 const settings = new Settings();
 
@@ -46,6 +47,13 @@ ToolClient.prototype.init = function () {
     if (event.type === 'HELLO') {
       loggerTrace('Connected to server');
       this.synchronizeSettings();
+    } else if (event.type === 'FS_FILE_CHANGED') {
+      try {
+        const fileManager = new FileManager();
+        fileManager.setFileChanged(event.path, event.content);
+      } catch (e) {
+        loggerWarning('Failed to handle FS_FILE_CHANGED: ' + e);
+      }
     } else if (event.type === 'CAPTURE_FRAME_SUCCESS') {
       setWaitingForFrame(true);
     } else {
