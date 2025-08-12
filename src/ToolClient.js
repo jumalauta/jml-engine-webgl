@@ -1,9 +1,20 @@
-import { loggerTrace, loggerInfo, loggerWarning } from './Bindings';
+import {
+  loggerTrace,
+  loggerInfo,
+  loggerWarning,
+  loggerDebug
+} from './Bindings';
 import { setWaitingForFrame } from './main';
 import { Settings } from './Settings';
 import { FileManager } from './FileManager';
 
 const settings = new Settings();
+
+const STATE = {
+  NOT_CONNECTED: 0,
+  CONNECTING: 1,
+  CONNECTED: 2
+};
 
 const ToolClient = function () {
   return this.getInstance();
@@ -25,12 +36,23 @@ ToolClient.prototype.isEnabled = function () {
   return false;
 };
 
+ToolClient.prototype.isConnected = function () {
+  return this.state === STATE.CONNECTED;
+};
+
 ToolClient.prototype.init = function () {
   if (!this.isEnabled()) {
     return;
   }
+  if (this.state && this.state !== STATE.NOT_CONNECTED) {
+    loggerDebug(
+      'ToolClient already initialized or connecting, not initializing again'
+    );
+    return;
+  }
 
-  this.connected = false;
+  this.state = STATE.CONNECTING;
+  this.buffer = [];
   this.maxBufferedAmount = settings.tool.client.maxBufferedAmount;
 
   this.client = new WebSocket(
@@ -38,14 +60,17 @@ ToolClient.prototype.init = function () {
   );
 
   this.client.onopen = () => {
-    this.client.send(JSON.stringify({ type: 'CONNECT' }));
-    this.connected = true;
+    try {
+      this.client.send(JSON.stringify({ type: 'CONNECT' }));
+    } catch (e) {
+      loggerWarning('Failed to send CONNECT: ' + e);
+    }
   };
 
   this.client.onmessage = (data) => {
     const event = JSON.parse(data.data);
     if (event.type === 'HELLO') {
-      loggerTrace('Connected to server');
+      loggerTrace('Received HELLO from server');
       this.synchronizeSettings();
     } else if (event.type === 'FS_FILE_CHANGED') {
       try {
@@ -57,13 +82,16 @@ ToolClient.prototype.init = function () {
     } else if (event.type === 'CAPTURE_FRAME_SUCCESS') {
       setWaitingForFrame(true);
     } else {
-      console.log('SERVER MESSAGE', data);
+      if (!event.type.endsWith('_SUCCESS')) {
+        console.log('SERVER MESSAGE', data);
+      }
     }
   };
 
   this.client.onclose = (event) => {
     console.log('SERVER CLOSE', event);
-    this.connected = false;
+    this.state = STATE.NOT_CONNECTED;
+    this.buffer = [];
   };
 
   this.client.onerror = (event) => {
@@ -72,48 +100,88 @@ ToolClient.prototype.init = function () {
 };
 
 ToolClient.prototype.synchronizeSettings = function () {
-  if (this.connected) {
-    this.send({ type: 'SETTINGS', settings: settings.asObject() });
+  try {
+    if (this.state === STATE.CONNECTED) {
+      this.client.send(
+        JSON.stringify({ type: 'SETTINGS', settings: settings.asObject() })
+      );
+    } else if (this.state === STATE.CONNECTING) {
+      this.state = STATE.CONNECTED;
+
+      this.client.send(
+        JSON.stringify({ type: 'SETTINGS', settings: settings.asObject() })
+      );
+
+      this.flushBufferedMessages();
+    }
+  } catch (e) {
+    loggerWarning('Failed to send SETTINGS: ' + e);
+  }
+};
+
+ToolClient.prototype.flushBufferedMessages = function () {
+  if (this.state !== STATE.CONNECTED) {
+    throw new Error(
+      `Client not connected. Invalid state to flush buffered messages: ${this.state}`
+    );
+  }
+
+  loggerTrace(`Sending buffered ${this.buffer.length} messages to server`);
+  while (this.buffer.length > 0) {
+    const msg = this.buffer.shift();
+    try {
+      this.client.send(JSON.stringify(msg));
+    } catch (e) {
+      loggerWarning('Failed to flush buffered message: ' + e);
+      break;
+    }
   }
 };
 
 ToolClient.prototype.send = function (message) {
-  if (!this.connected) {
+  if (this.state === STATE.NOT_CONNECTED || !this.client) {
     throw new Error(
       `Client is not connected, cannot send message to server: ${JSON.stringify(message)}`
     );
   }
-  if (!this.canQueueMessage()) {
-    loggerInfo(
-      `Cannot queue message, client not ready or queue full: ${message.type}`
-    );
-    return false;
+
+  if (this.state === STATE.CONNECTED) {
+    if (!this.canQueueMessage()) {
+      loggerInfo(
+        `Cannot queue message, client not ready or queue full: ${message.type}`
+      );
+      return false;
+    }
+    if (
+      message.type !== 'CAPTURE_FRAME' &&
+      message.type !== 'SETTINGS' &&
+      !message.type.startsWith('FS_')
+    ) {
+      loggerTrace(`Sending message to server: ${JSON.stringify(message)}`);
+    }
+    try {
+      this.client.send(JSON.stringify(message));
+    } catch (e) {
+      loggerWarning(`Failed to send message to server: ${e}`);
+      return false;
+    }
+  } else if (this.state === STATE.CONNECTING) {
+    if (!this.buffer) {
+      this.buffer = [];
+    }
+    this.buffer.push(message);
   }
 
-  if (message.type !== 'CAPTURE_FRAME' && message.type !== 'SETTINGS') {
-    loggerTrace(`Sending message to server: ${JSON.stringify(message)}`);
-  }
-
-  try {
-    this.client.send(JSON.stringify(message));
-
-    return true;
-  } catch (e) {
-    loggerWarning(`Failed to send message to server: ${e}`);
-
-    return false;
-  }
+  return true;
 };
 
 ToolClient.prototype.canQueueMessage = function () {
-  if (!this.connected || !this.client) {
+  if (this.state !== STATE.CONNECTED || !this.client) {
     return false;
   }
-
   if (this.client.bufferedAmount > this.maxBufferedAmount) {
     return false;
   }
-
   return true;
 };
 

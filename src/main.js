@@ -37,7 +37,7 @@ const quality = document.getElementById('qualityList');
 
 function setDemoPathPrefix(prefix) {
   settings.engine.demoPathPrefix = prefix;
-  if (toolClient.isEnabled()) {
+  if (toolClient.isConnected()) {
     toolClient.synchronizeSettings();
   }
 }
