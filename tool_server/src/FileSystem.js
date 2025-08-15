@@ -256,7 +256,6 @@ const ensureFileSystem = async (ws) => {
   ws.state.projectAbsolutePath = projectAbsolutePath;
   const fs = new FileSystem(projectAbsolutePath, ws.logger);
   ws.state.fileSystem = fs;
-  ws.once('close', () => fs.stopFileWatch());
   return fs;
 };
 
@@ -286,7 +285,7 @@ const stopFileWatch = (ws, msg) => {
     ws.state.fileSystem.stopFileWatch();
     ws.state.fileSystem = null;
     if (msg?.id !== undefined) {
-      ws.sendResponse(id, { status: 'stopped' });
+      ws.sendResponse(msg.id, { status: 'stopped' });
     }
   }
 };
