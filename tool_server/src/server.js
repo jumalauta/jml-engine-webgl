@@ -63,7 +63,10 @@ const server = async function () {
       ws.sendJsonRpc(createJsonRpcNotification(method, params));
     };
 
-    ws.on('close', () => ws.logger.info('Tool client disconnected'));
+    ws.on('close', () => {
+      ws.logger.info('Tool client disconnected');
+      stopFileWatch(ws);
+    });
     ws.on('message', async (data) => {
       let msg;
       try {
