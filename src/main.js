@@ -18,6 +18,7 @@ import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { Music } from './Music';
 import { Fullscreen } from './Fullscreen';
+import { Utils } from './Utils';
 import { ToolClient } from './ToolClient';
 import { MidiManager } from './MidiManager';
 import { Video } from './Video';
@@ -159,7 +160,8 @@ function canvasToDataUrl() {
 }
 
 function screenshot() {
-  window.open(canvasToDataUrl(), '_blank');
+  const canvas = document.getElementById('canvas');
+  Utils.takeCanvasScreenshot(canvas);
 }
 
 let animationFrameId;
@@ -310,6 +312,10 @@ function animate() {
 
   if (demoRenderer.isRenderNeedsUpdate()) {
     demoRenderer.render();
+
+    if (settings.engine.tool) {
+      toolUi.updateFboPreviews();
+    }
   }
 
   if (capture && settings.engine.tool) {
@@ -570,6 +576,16 @@ if (settings.engine.pauseOnInvisibility) {
 
 document.addEventListener('keydown', (event) => {
   if (event.repeat) {
+    return;
+  }
+
+  if (toolUi.isDialogOpen()) {
+    if (event.key === 'Escape') {
+      toolUi.defaultModalDialogAction();
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      toolUi.defaultModalDialogAction();
+    }
+
     return;
   }
 

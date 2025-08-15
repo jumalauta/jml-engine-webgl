@@ -22,6 +22,15 @@ Utils.setSeed = function (seed) {
   Utils.random = random.value;
 };
 
+Utils.takeCanvasScreenshot = function (canvas) {
+  const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+  window
+    .open('', '_blank')
+    .document.write(
+      `<img style="max-width: 100%; height: auto;" src="${dataUrl}"/>`
+    );
+};
+
 Utils.updateProperties = function (animation) {
   const object = animation.light || animation.object;
   if (!object) {

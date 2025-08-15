@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerWarning } from './Bindings';
+import { loggerInfo, loggerWarning } from './Bindings';
 import { Utils } from './Utils';
 
 const Settings = function () {
