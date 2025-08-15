@@ -1029,20 +1029,15 @@ ToolUi.prototype.isDialogOpen = function () {
 };
 
 ToolUi.prototype.defaultModalDialogAction = function (text) {
-  let called = false;
   if (this.activeDialog) {
     this.activeDialog.config?.buttons.forEach((buttonConfig) => {
       if (
         buttonConfig.callback &&
-        (buttonConfig.textContent === text || text === undefined)
+        (buttonConfig.text === text || text === undefined)
       ) {
         buttonConfig.callback();
       }
     });
-
-    if (called) {
-      return;
-    }
   }
 
   this.closeModalDialog();
