@@ -309,7 +309,6 @@ Model.prototype.load = function (filename) {
   }
 
   const fileManager = new FileManager();
-  fileManager.setRefreshFileTimestamp(this.filename);
   const path = fileManager.getPath(this.filename);
 
   if (this.loadFromCache(path)) {
@@ -325,7 +324,6 @@ Model.prototype.load = function (filename) {
     const materialFilename = this.filename
       .replace('.obj', '.mtl')
       .replace('.OBJ', '.MTL');
-    fileManager.setRefreshFileTimestamp(materialFilename);
 
     return new Promise((resolve, reject) => {
       const mtlLoader = new MTLLoader();
