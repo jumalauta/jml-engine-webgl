@@ -4,7 +4,7 @@ Tool server contains additional features for demo development. Tool server is us
 
 ## Running
 
-Should run automatically via Vite dev server. To run manually: `node src/server.js | npx pino-pretty`
+Should run automatically via Vite dev server. To run manually: `node tool_server/src/server.js | npx pino-pretty`
 
 ## Features
 

@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws';
 import { pino } from 'pino';
 import { v4 as uuidv4 } from 'uuid';
 import { handleCaptureMessage } from './VideoExporter.js';
-import { handleFileSystemMessage } from './FileSystem.js';
+import { stopFileWatch, handleFileSystemMessage } from './FileSystem.js';
 
 const createJsonRpcResponse = (id, result) => ({
   jsonrpc: '2.0',
@@ -114,6 +114,16 @@ const server = async function () {
             );
             return;
           }
+
+          const oldDemoPathPrefix = ws.state.settings?.engine?.demoPathPrefix;
+          const newDemoPathPrefix = params.settings?.engine?.demoPathPrefix;
+          if (oldDemoPathPrefix != newDemoPathPrefix) {
+            ws.logger
+              .child({ oldDemoPathPrefix, newDemoPathPrefix })
+              .info(`Demo path prefix changed`);
+            stopFileWatch(ws);
+          }
+
           ws.state.settings = params.settings;
           if (id !== undefined) {
             ws.sendResponse(id, { status: 'settings updated' });

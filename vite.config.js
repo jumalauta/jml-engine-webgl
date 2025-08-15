@@ -27,7 +27,9 @@ function toolServerPlugin() {
         });
 
         const stop = (signal = 'SIGINT') => {
-          if (!child) return;
+          if (!child) {
+            return;
+          }
           const pid = child.pid;
           try {
             if (process.platform !== 'win32' && pid) {
@@ -41,9 +43,11 @@ function toolServerPlugin() {
 
           const guard = setTimeout(() => {
             try {
-              if (process.platform !== 'win32' && pid)
+              if (process.platform !== 'win32' && pid) {
                 process.kill(-pid, 'SIGKILL');
-              else child.kill('SIGKILL');
+              } else {
+                child.kill('SIGKILL');
+              }
             } catch (err) {
               console.error('[tool_server] error killing process:', err);
             }
