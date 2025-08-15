@@ -18,6 +18,7 @@ import { Spectogram } from './Spectogram';
 import { Settings } from './Settings';
 import { isStarted, stopDemo, startAnimate } from './main';
 import { ToolUi } from './ToolUi';
+import { ToolClient } from './ToolClient';
 
 const settings = new Settings();
 
@@ -65,6 +66,8 @@ async function processPromises(promises, startPercent, endPercent) {
 Effect.init = function (effectName) {
   (async () => {
     loggerDebug('Starting loading');
+    const toolClient = new ToolClient();
+
     const loadingBar = new LoadingBar();
     try {
       if (Effect.loading === true) {
@@ -89,6 +92,9 @@ Effect.init = function (effectName) {
       await fileManager.loadUpdatedFiles();
 
       const effect = eval('new ' + effectName);
+      if (toolClient.isConnected()) {
+        toolClient.synchronizeSettings();
+      }
 
       effect.loader = new Loader();
       effect.loader.clear();
@@ -100,6 +106,9 @@ Effect.init = function (effectName) {
 
       if (effect.init !== undefined) {
         effect.init();
+        if (toolClient.isConnected()) {
+          toolClient.synchronizeSettings();
+        }
       }
 
       if (effect.postInit !== undefined) {

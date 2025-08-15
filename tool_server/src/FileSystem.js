@@ -217,21 +217,25 @@ FileSystem.prototype.stopFileWatch = function () {
   this.contentCache.clear();
 };
 
-const ensureFileSystem = async (ws) => {
-  if (ws.state.fileSystem) {
-    return ws.state.fileSystem;
-  }
-
+const getProjectPath = async (ws) => {
   assert(
     ws.state.settings?.engine?.demoPathPrefix,
     'Settings have not been loaded'
   );
 
-  const relativeBaseProjectPath = `public/${ws.state.settings.engine.demoPathPrefix}`;
+  const rootPath = 'public';
+  const relativeBaseProjectPath = `${rootPath}/${ws.state.settings.engine.demoPathPrefix}`;
   const projectAbsolutePath = resolve(relativeBaseProjectPath);
 
   try {
+    if (projectAbsolutePath === resolve(rootPath)) {
+      throw new Error('Project path is not valid');
+    }
     await access(projectAbsolutePath, constants.R_OK);
+    const stats = await stat(projectAbsolutePath);
+    if (!stats.isDirectory()) {
+      throw new Error('Project path is not a directory');
+    }
   } catch (err) {
     ws.logger.error(
       { err, projectAbsolutePath },
@@ -240,6 +244,15 @@ const ensureFileSystem = async (ws) => {
     throw err;
   }
 
+  return projectAbsolutePath;
+};
+
+const ensureFileSystem = async (ws) => {
+  if (ws.state.fileSystem) {
+    return ws.state.fileSystem;
+  }
+
+  const projectAbsolutePath = await getProjectPath(ws);
   ws.state.projectAbsolutePath = projectAbsolutePath;
   const fs = new FileSystem(projectAbsolutePath, ws.logger);
   ws.state.fileSystem = fs;
@@ -257,12 +270,25 @@ const validatePath = async (ws, relativePath) => {
   }
   try {
     await access(abs, constants.R_OK);
-    await stat(abs);
+    const stats = await stat(abs);
+    if (!stats.isFile()) {
+      throw new Error('Path is not a file');
+    }
   } catch (err) {
     ws.logger.child({ err, relativePath, abs }).error('Path not accessible');
     throw new Error('Path not accessible');
   }
   return abs;
+};
+
+const stopFileWatch = (ws, msg) => {
+  if (ws.state.fileSystem) {
+    ws.state.fileSystem.stopFileWatch();
+    ws.state.fileSystem = null;
+    if (msg?.id !== undefined) {
+      ws.sendResponse(id, { status: 'stopped' });
+    }
+  }
 };
 
 const handleFileSystemMessage = async (ws, msg) => {
@@ -273,14 +299,10 @@ const handleFileSystemMessage = async (ws, msg) => {
 
   if (method === 'fs.stopWatch') {
     try {
-      if (ws.state.fileSystem) {
-        ws.state.fileSystem.stopFileWatch();
-        if (id !== undefined) {
-          ws.sendResponse(id, { status: 'stopped' });
-        }
-      } else {
+      if (!ws.state.fileSystem) {
         throw new Error('File system not initialized');
       }
+      stopFileWatch(ws, msg);
       return;
     } catch (err) {
       ws.logger.child({ err }).error('Failed to stop file watch');
@@ -372,4 +394,4 @@ const handleFileSystemMessage = async (ws, msg) => {
   }
 };
 
-export { FileSystem, handleFileSystemMessage };
+export { FileSystem, stopFileWatch, handleFileSystemMessage };

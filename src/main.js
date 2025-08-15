@@ -627,9 +627,6 @@ document.addEventListener('keydown', (event) => {
         return;
       }
 
-      // Re-synchronize settings to ensure demo changes are known by server
-      toolClient.synchronizeSettings();
-
       if (!confirm('Want to start video capture?')) {
         return;
       }
