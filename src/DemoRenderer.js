@@ -216,7 +216,12 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
     return;
   }
 
-  this.controls = new OrbitControls(camera, document.getElementById('canvas'));
+  const canvas = document.getElementById('canvas');
+  if (!canvas) {
+    return;
+  }
+
+  this.controls = new OrbitControls(camera, canvas);
   this.controls.target.set(0, 0, -10);
   this.controls.update();
   this.controls.enablePan = false;
