@@ -1093,6 +1093,9 @@ Scene.prototype.processAnimation = function () {
           animationDefinition.type = 'light';
           animationDefinition.ref = new Light(animationDefinition);
           parentObject.add(animationDefinition.ref.mesh);
+          if (animationDefinition.ref.mesh2) {
+            parentObject.add(animationDefinition.ref.mesh2);
+          }
         } else if (animationDefinition.camera !== undefined) {
           animationDefinition.type = 'camera';
           animationDefinition.ref = new Camera();

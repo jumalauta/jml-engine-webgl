@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { Image } from './Image';
 import { loggerWarning } from './Bindings';
 import { Settings } from './Settings';
@@ -100,6 +102,18 @@ const Light = function (animationDefinition) {
     } else {
       loggerWarning(`Unsupported image format ${filename}`);
     }
+  }
+
+  if (lightDefinition.width) {
+    light.width = lightDefinition.width;
+  }
+  if (lightDefinition.height) {
+    light.height = lightDefinition.height;
+  }
+
+  if (LightType.prototype instanceof THREE.RectAreaLight) {
+    RectAreaLightUniformsLib.init();
+    this.mesh2 = new RectAreaLightHelper(light);
   }
 
   this.mesh = light;
