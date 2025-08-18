@@ -483,6 +483,16 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
   ) {
     const animationDefinition = animationDefinitions[animationI];
 
+    if (settings.engine.tool) {
+      const debugSrc = Utils.getTraceInfo();
+      if (debugSrc) {
+        if (!animationDefinition._debug) {
+          animationDefinition._debug = {};
+        }
+        animationDefinition._debug.src = debugSrc;
+      }
+    }
+
     const promises = [];
     this.preloadMaterialProperties(animationDefinition, promises);
 

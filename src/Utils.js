@@ -4,6 +4,9 @@ import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 import { Random } from './Random';
 import { Shader } from './Shader';
+import { Settings } from './Settings';
+
+const settings = new Settings();
 
 window.Sync = Sync;
 
@@ -392,6 +395,45 @@ Utils.wrapAsync = function (func) {
         .catch(reject);
     });
   };
+};
+
+Utils.getTraceInfo = function () {
+  const err = new Error();
+  if (!err.stack) {
+    return undefined;
+  }
+  const stackLines = err.stack.split('\n');
+  if (stackLines.length > 0) {
+    for (let i = 0; i < stackLines.length; i++) {
+      // normalize stack trace to look like Firefox's trace:
+      // Firefox example:
+      // Demo.prototype.sceneAbstract@data/demo-jml-jml25/sceneAbstract/abstract.js?t=1755531505515:4:15
+      // Chrome example:
+      //      at Demo.sceneAbstract (data/demo-jml-jml25/sceneAbstract/abstract.js?t=1755531395992:4:15)
+      const line = stackLines[i]
+        .trim()
+        .replace(/^(\s*)at\s+/gm, '')
+        .replace(/\s+\(/gm, '@')
+        .replace(/\)$/, '');
+
+      if (line.includes(settings.engine.demoPathPrefix)) {
+        const [func, location] = line.split('@');
+        const [file, parameters] = location.split('?');
+        const [queryParameters, lineNumber, columnNumber] =
+          parameters.split(':');
+        return {
+          function: func,
+          file: file,
+          location: location,
+          queryParameters: queryParameters,
+          lineNumber: parseInt(lineNumber, 10),
+          columnNumber: parseInt(columnNumber, 10)
+        };
+      }
+    }
+  }
+
+  return undefined;
 };
 
 const Constants = function () {};
