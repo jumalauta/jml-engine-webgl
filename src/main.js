@@ -290,7 +290,7 @@ function animate() {
     return;
   }
 
-  if (fileManager.isNeedsUpdate() && isStarted()) {
+  if (fileManager.isNeedsUpdate() && isStarted() && Effect.loading === false) {
     if (fileManager.isNeedsDeepUpdate()) {
       deepReloadDemo();
     } else {
@@ -409,6 +409,7 @@ function startDemoAnimation() {
   windowResize();
   reloadDemo();
   startAnimate();
+  started = true;
 }
 
 function startDemo() {
@@ -450,7 +451,6 @@ function restartDemo() {
   if (started) {
     stopDemo();
   }
-  started = true;
 
   demoRenderer.init();
 

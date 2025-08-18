@@ -1,12 +1,24 @@
 import * as THREE from 'three';
 import { Utils } from './Utils';
-import { loggerDebug, loggerWarning, loggerError } from './Bindings';
+import {
+  loggerDebug,
+  loggerInfo,
+  loggerWarning,
+  loggerError,
+  loggerTrace
+} from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
 
 /** @constructor */
 const Shader = function (animationDefinition) {
   this.shaderDefinition = animationDefinition.shader;
+
+  let vsPrefix = this.shaderDefinition.vertexShaderPrefix;
+  let fsPrefix = this.shaderDefinition.fragmentShaderPrefix;
+  let vsSuffix = this.shaderDefinition.vertexShaderSuffix;
+  let fsSuffix = this.shaderDefinition.fragmentShaderSuffix;
+  this.inlineShader = vsPrefix || fsPrefix || vsSuffix || fsSuffix;
 
   if (this.shaderDefinition.name) {
     this.vertexShaderUrl = '_embedded/default.vs';
@@ -130,25 +142,51 @@ Shader.prototype.createMaterial = function (
   const vertexData = fileManager.getFileData(vertexShaderUrl);
   const fragmentData = fileManager.getFileData(fragmentShaderUrl);
 
-  this.extendVariables(vertexData);
-  this.extendVariables(fragmentData);
+  if (this.inlineShader) {
+    const vsPrefix = this.shaderDefinition.vertexShaderPrefix;
+    const fsPrefix = this.shaderDefinition.fragmentShaderPrefix;
+    const vsSuffix = this.shaderDefinition.vertexShaderSuffix;
+    const fsSuffix = this.shaderDefinition.fragmentShaderSuffix;
 
-  const uniforms = {};
-  this.material = new THREE.ShaderMaterial({
-    name: fragmentShaderUrl,
-    glslVersion: THREE.GLSL3,
-    uniforms: this.createThreeJsUniforms(uniforms),
-    vertexShader: vertexData,
-    fragmentShader: fragmentData
-  });
-  this.ptr = this.material;
+    let logData = '';
+    if (!vertexShaderUrl.startsWith('_embedded/')) {
+      this.extendVariables(vertexData);
+      this.shaderDefinition.vertexShaderPrefix = vertexData;
+      logData = 'vertexShaderPrefix: ' + vertexShaderUrl;
+      fileManager.setReference(vertexShaderUrl, this);
+    }
 
-  fileManager.setReference(vertexShaderUrl, this.material);
-  fileManager.setReference(fragmentShaderUrl, this.material);
+    if (!fragmentShaderUrl.startsWith('_embedded/')) {
+      this.extendVariables(fragmentData);
+      this.shaderDefinition.fragmentShaderPrefix = fragmentData;
+      logData = 'fragmentShaderPrefix: ' + fragmentShaderUrl;
+      fileManager.setReference(fragmentShaderUrl, this);
+    }
 
-  loggerDebug(
-    'Created shader ' + this.vertexShaderUrl + ' and ' + this.fragmentShaderUrl
-  );
+    loggerDebug(
+      `Created inline shader, vsPrefix: ${!!vsPrefix}, vsSuffix: ${!!vsSuffix}, fsPrefix: ${!!fsPrefix}, fsSuffix: ${!!fsSuffix} - ${logData}`
+    );
+  } else {
+    this.extendVariables(vertexData);
+    this.extendVariables(fragmentData);
+
+    const uniforms = {};
+    this.material = new THREE.ShaderMaterial({
+      name: fragmentShaderUrl,
+      glslVersion: THREE.GLSL3,
+      uniforms: this.createThreeJsUniforms(uniforms),
+      vertexShader: vertexData,
+      fragmentShader: fragmentData
+    });
+    this.ptr = this.material;
+
+    fileManager.setReference(vertexShaderUrl, this);
+    fileManager.setReference(fragmentShaderUrl, this);
+
+    loggerDebug(
+      `Created shader ${this.vertexShaderUrl} and ${this.fragmentShaderUrl}`
+    );
+  }
 };
 
 Shader.prototype.load = function () {
@@ -365,20 +403,55 @@ Shader.setSourceMaterialPropertiesToShader = function (animationDefinition) {
   }
 };
 
+Shader.prototype.hotreload = function (path) {
+  if (path && this.material && this.material.isMaterial) {
+    const fileManager = new FileManager();
+    loggerDebug('Updating material reference for: ' + path);
+    if (this.material.fragmentShader && path.toUpperCase().endsWith('.FS')) {
+      loggerInfo(`Updating material with fragment shader: ${path}`);
+      this.material.fragmentShader = fileManager.getFileFromCache(path);
+    } else if (
+      this.material.vertexShader &&
+      path.toUpperCase().endsWith('.VS')
+    ) {
+      loggerInfo(`Updating material with vertex shader: ${path}`);
+      this.material.vertexShader = fileManager.getFileFromCache(path);
+    } else if (this.inlineShader) {
+      this.createMaterial(this.vertexShaderUrl, this.fragmentShaderUrl);
+      loggerDebug(`Refreshing inline shader: ${this.name}`);
+    } else {
+      loggerInfo(`Shader path not recognized, will not hotreload - ${path}`);
+      return false;
+    }
+
+    this.material.needsUpdate = true;
+
+    return true;
+  } else {
+    loggerDebug(`Shader not found for hotreload - ${path || this.name}`);
+  }
+
+  return false;
+};
 Shader.assignToMaterial = function (obj, animation) {
   if (obj && animation && animation.shader && animation.shader.ref) {
-    const vsPrefix = animation.shader.vertexShaderPrefix;
-    const fsPrefix = animation.shader.fragmentShaderPrefix;
-    const vsSuffix = animation.shader.vertexShaderSuffix;
-    const fsSuffix = animation.shader.fragmentShaderSuffix;
-
-    if (vsPrefix || vsSuffix || fsPrefix || fsSuffix) {
+    if (animation.shader.ref.inlineShader) {
       // Ensure recompiling of shader on custom changes
       obj.material.customProgramCacheKey = function () {
-        return btoa(`${vsPrefix}${vsSuffix}${fsPrefix}${fsSuffix}`);
+        return btoa(
+          `${animation.shader.ref.shaderDefinition.vertexShaderPrefix}${animation.shader.ref.shaderDefinition.vertexShaderSuffix}${animation.shader.ref.shaderDefinition.fragmentShaderPrefix}${animation.shader.ref.shaderDefinition.fragmentShaderSuffix}`
+        );
       };
 
       obj.material.onBeforeCompile = function (shader) {
+        const vsPrefix =
+          animation.shader.ref.shaderDefinition.vertexShaderPrefix;
+        const vsSuffix =
+          animation.shader.ref.shaderDefinition.vertexShaderSuffix;
+        const fsPrefix =
+          animation.shader.ref.shaderDefinition.fragmentShaderPrefix;
+        const fsSuffix =
+          animation.shader.ref.shaderDefinition.fragmentShaderSuffix;
         if (vsPrefix) {
           animation.shader.ref.extendVariables(vsPrefix);
           shader.vertexShader = insertBeforeLastOccurrence(
@@ -420,6 +493,10 @@ Shader.assignToMaterial = function (obj, animation) {
 
         animation.shader.ref.material = obj.material;
         obj.material.userData.shader = shader;
+
+        loggerDebug(
+          `Material before compile inline shader: ${animation.shader.name}, vsPrefix: ${!!vsPrefix}, vsSuffix: ${!!vsSuffix}, fsPrefix: ${!!fsPrefix}, fsSuffix: ${!!fsSuffix}`
+        );
       };
     }
   }

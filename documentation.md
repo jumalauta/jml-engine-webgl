@@ -31,23 +31,35 @@ Following uniforms will be attempted to be auto-binded, if uniform is available 
 uniform float      time;                    // Current time in seconds
 uniform float      timePercent;             // Current time in percent of the total duration from 0.0 to 1.0
 uniform vec4       color;                   // Main color of the vertex
-uniform sampler2D  texture0;                // Samplers for input textures i
+uniform sampler2D  texture0;                // Samplers for input textures
+uniform sampler2D  texture1;                // Samplers for input textures
+uniform sampler2D  texture2;                // Samplers for input textures
+uniform sampler2D  texture3;                // Samplers for input textures
 ```
 
 ## Supported file formats
 
-| File format | Description               |
-|-------------|---------------------------|
-| .OBJ & .MTL | 3D Object                 |
-| .GLB        | 3D Object (/w animations) |
-| .GLTF       | 3D Object (/w animations) |
-| .MP3        | Music                     |
-| .PNG        | 2D graphics media         |
-| .MP4        | Video media               |
-| .TTF        | Font file                 |
-| .VS         | Vertex shader             |
-| .FS         | Fragment shader           |
-| .ROCKET     | GNU Rocket syncs          |
+| File format | Description               | Hot reloadable |
+|-------------|---------------------------|----------------|
+| .JS         | JavaScript file           | Yes            |
+| .OBJ & .MTL | 3D Object                 | No             |
+| .GLB        | 3D Object (/w animations) | No             |
+| .GLTF       | 3D Object (/w animations) | No             |
+| .MP3        | Music                     | No             |
+| .PNG        | 2D graphics media         | Yes            |
+| .MP4        | Video media               | No             |
+| .TTF        | Font file                 | No             |
+| .VS         | Vertex shader             | Yes            |
+| .FS         | Fragment shader           | Yes            |
+| .ROCKET     | GNU Rocket syncs          | No             |
+
+## Hot reloading
+
+When you save a file that has been previously loaded the engine attempts to hot reload the changes.
+
+Shader file reloading is very efficient and fast. JavaScript and other assets may cause larger reload.
+
+Refresh cache (e.g., ctrl+F5) and restart the engine if you encounter issues.
 
 ## Assets processing tips and tricks
 
@@ -679,6 +691,40 @@ this.loader.addAnimation({
   }
 });
 ```
+
+You can also put material override's fragmentShaderPrefix or vertexShaderPrefix to a hotreloadable file previous, example:
+
+funkyColor.fs file:
+```c
+uniform float time;
+
+void funkyColors() {
+  vec4 color = gl_FragColor;
+  color.gb = vec2((sin(time)+1.0)/2.0, 0.0);
+  gl_FragColor = color;
+}
+```
+
+```JavaScript
+// Show static 3D object
+this.loader.addAnimation({
+   "start": start, "duration":end
+  ,"object":"duck.obj"
+  ,"position":[{"x":0,"y":0,"z":-10}]
+  // Change 3D Object's materials properties
+  ,"material":{
+    "dithering":true,
+    "transparent:":false,
+  }
+  ,"shader":{
+    "name": "funkyColor.fs"
+    "fragmentShaderSuffix":`
+      funkyColors();
+    `
+  }
+});
+```
+
 
 ##### Generated material's default shaders
 
