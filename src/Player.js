@@ -3,10 +3,11 @@ import { Utils } from './Utils';
 import { Shader } from './Shader';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
-import { DemoRenderer, getCamera } from './DemoRenderer';
+import { DemoRenderer, getScene, getCamera } from './DemoRenderer';
 import { Loader } from './Loader';
 import { DmxLightManager } from './DmxLightManager';
 import { Input } from './Input';
+import { loggerWarning } from './Bindings';
 
 window.DmxLightManager = DmxLightManager;
 
@@ -729,6 +730,26 @@ Player.prototype.is3dObject = function (obj) {
   );
 };
 
+Player.prototype.animationRendererUpdate = function (
+  animation,
+  demoRenderer,
+  fbo
+) {
+  if (animation.ref?.cubeMap?.camera) {
+    const renderer = demoRenderer.renderer;
+    const scene = fbo?.scene || getScene();
+
+    if (!renderer) {
+      throw new Error('Renderer is not defined');
+    }
+    if (!scene) {
+      throw new Error('Scene is not defined');
+    }
+
+    animation.ref.cubeMap.camera.update(renderer, scene);
+  }
+};
+
 Player.prototype.handleCursorEvents = function (animation) {
   if (
     animation.cursor &&
@@ -763,7 +784,7 @@ Player.prototype.handleCursorEvents = function (animation) {
     }
 
     if (input.isCursorOverAnimation(camera, animation)) {
-      if (animation.cursor.onmouseover) {
+      if (animation.cursor?.onmouseover) {
         animation.cursor.position = {
           x: input.cursorPosition.x,
           y: input.cursorPosition.y
@@ -922,6 +943,7 @@ Player.prototype.drawSceneAnimation = function (
             Shader.disableShader(animation);
           }
 
+          this.animationRendererUpdate(animation, demoRenderer, fbo);
           this.handleCursorEvents(animation);
         } else {
           this.setAnimationVisibility(animation, false);

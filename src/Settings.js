@@ -114,6 +114,32 @@ Settings.prototype.init = function () {
     },
     model: {
       shape: {
+        cubeMap: {
+          renderTarget: {
+            size: 512,
+            options: {
+              // generateMipmaps: false,
+              // minFilter: 'LinearFilter',
+              // magFilter: 'LinearFilter',
+              // wrapS: 'ClampToEdgeWrapping',
+              // wrapT: 'ClampToEdgeWrapping',
+              // format: 'RGBAFormat',
+              // type: 'UnsignedByteType',
+              // anisotropy: 1,
+              // colorSpace: 'NoColorSpace',
+              // depthBuffer: true,
+              // stencilBuffer: false
+            },
+            texture: {
+              type: 'HalfFloatType'
+              // encoding: 'LinearEncoding'
+            }
+          },
+          camera: {
+            near: 0.1, // near clipping plane
+            far: 1000 // far clipping plane
+          }
+        },
         material: {
           type: 'Phong', // default material type for 3D shapes
           transparent: true // whether the material is transparent
@@ -347,7 +373,7 @@ Settings.prototype.createRenderer = function (canvas) {
   return renderer;
 };
 
-Settings.prototype.createMaterial = function (materialSettings) {
+Settings.prototype.createMaterial = function (materialSettings, options) {
   let MaterialType =
     THREE['Mesh' + (materialSettings.type || 'Basic') + 'Material'];
   if (!MaterialType || (!MaterialType.prototype) instanceof THREE.Material) {
@@ -357,6 +383,10 @@ Settings.prototype.createMaterial = function (materialSettings) {
 
   const material = new MaterialType();
   this.toThreeJsProperties(materialSettings, material);
+
+  if (options?.cubeMap?.renderTarget?.texture) {
+    material.envMap = options.cubeMap.renderTarget.texture;
+  }
 
   return material;
 };
