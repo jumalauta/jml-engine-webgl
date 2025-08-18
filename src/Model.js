@@ -26,6 +26,7 @@ const Model = function (animationDefinition) {
   }
 
   this.materialProperties = animationDefinition.material || {};
+  this.cubeMapProperties = animationDefinition.cubeMap;
   this.additive = animationDefinition.additive === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
 };
@@ -118,7 +119,39 @@ Model.prototype.load = function (filename) {
           ...this.materialProperties,
           ...shapeMaterial
         });
-        const material = settings.createMaterial(shapeMaterialSettings);
+
+        if (this.cubeMapProperties) {
+          const cubeMapSettings = Utils.deepCopyJson({
+            ...settings.demo.model.shape.cubeMap,
+            ...shapeTypeDefaultSettings.cubeMap,
+            ...this.cubeMapProperties
+          });
+
+          const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
+            cubeMapSettings.renderTarget.size
+          );
+          settings.toThreeJsProperties(
+            cubeMapSettings.renderTarget.options,
+            cubeRenderTarget
+          );
+          settings.toThreeJsProperties(
+            cubeMapSettings.renderTarget.texture,
+            cubeRenderTarget.texture
+          );
+          const cubeCamera = new THREE.CubeCamera(
+            cubeMapSettings.camera.near,
+            cubeMapSettings.camera.far,
+            cubeRenderTarget
+          );
+          instance.cubeMap = {
+            renderTarget: cubeRenderTarget,
+            camera: cubeCamera
+          };
+        }
+
+        const material = settings.createMaterial(shapeMaterialSettings, {
+          cubeMap: instance.cubeMap
+        });
 
         const defaultSize = 0.4;
         if (instance.shape.type === 'SKYSPHERE') {

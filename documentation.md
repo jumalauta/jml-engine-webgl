@@ -652,6 +652,27 @@ this.loader.addAnimation({
 });
 ```
 
+##### Cubemap
+
+```JavaScript
+  this.loader.addAnimation({
+    object: null,
+    // cubeMap object initializes cubemap as environment map of the object's material
+    // You can add settings as parameters inside the property, or go with the defaults from
+    // settings.demo.model.shape.cubeMap
+    cubeMap: {},
+    material: {
+      type: 'Standard',
+      roughness: 0.1,
+      metalness: 0.8
+    },
+    shape: {
+        type: 'SPHERE',
+        radius: 2.0,
+    }
+  });
+```
+
 ##### Skysphere / skydome
 
 ```JavaScript
