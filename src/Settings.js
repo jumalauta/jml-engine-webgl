@@ -52,7 +52,8 @@ Settings.prototype.init = function () {
       port: 7447 // host port
     },
     client: {
-      maxBufferedAmount: 1024 * 1024 * 100 // 100MB payload data buffer
+      maxBufferedAmount: 1024 * 1024 * 100, // 100MB payload data buffer
+      stopOnDisconnect: true // stop demo if server disconnects
     },
     midi: {
       capture: true, // capture MIDI events

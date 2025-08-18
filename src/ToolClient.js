@@ -4,7 +4,7 @@ import {
   loggerWarning,
   loggerDebug
 } from './Bindings';
-import { setWaitingForFrame } from './main';
+import { setWaitingForFrame, stopDemo } from './main';
 import { Settings } from './Settings';
 import { FileManager } from './FileManager';
 
@@ -135,6 +135,9 @@ ToolClient.prototype.handleNotification = function (msg) {
     loggerWarning('Capture error: ' + (params?.message || 'Unknown error'));
   } else if (method === 'disconnect') {
     loggerInfo('Server requested disconnect');
+    if (settings.tool.client.stopOnDisconnect) {
+      stopDemo();
+    }
   } else {
     loggerTrace(`Unknown notification: ${method}`);
   }
