@@ -24,6 +24,7 @@ import embeddedDefaultPlainFsUrl from './_embedded/defaultPlain.fs?url';
 import embeddedDefaultTransparentPngUrl from './_embedded/defaultTransparent.png?url';
 import embeddedDefaultWhitePngUrl from './_embedded/defaultWhite.png?url';
 import embeddedTestUvMapPngUrl from './_embedded/testUvMap.png?url';
+import { Shader } from './Shader';
 
 THREE.Cache.enabled = true;
 
@@ -77,7 +78,9 @@ FileManager.prototype.waitForFilesToLoad = async function () {
 
 FileManager.prototype.init = function () {
   this.fileReferences = {};
-  this.needsUpdateFiles = [];
+  if (!this.needsUpdateFiles) {
+    this.needsUpdateFiles = [];
+  }
 
   this.staticUrls = {
     '_embedded/default.fs': embeddedDefaultFsUrl,
@@ -103,17 +106,62 @@ FileManager.prototype.stopWatchFileChanges = async function () {
   }
 };
 
+FileManager.prototype.loadJavaScriptFile = async function (filePath) {
+  return new Promise(async (resolve, reject) => {
+    const path = this.getPath(filePath);
+    const cacheBuster = Date.now();
+
+    try {
+      const response = await fetch(`${path}?t=${cacheBuster}`);
+      const sourceCode = await response.text();
+
+      // trying to avoid "Identifier has already been declared" type of errors
+      // other way would be to wrap and call the source code using eval()
+      // but that would make stack traces more difficult to read - we want to maintain readability
+      const transformedCode = sourceCode
+        .replace(/^(\s*)const\s+/gm, '$1var ')
+        .replace(/^(\s*)let\s+/gm, '$1var ')
+        .replace(/^(\s*)class\s+(\w+)/gm, '$1var $2 = class $2')
+        .replace(/^(\s*)function\s+(\w+)/gm, '$1var $2 = function $2');
+
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.innerHTML = transformedCode;
+      script.innerHTML += `\n//# sourceURL=${path}?t=${cacheBuster}`;
+
+      script.onerror = () => {
+        loggerWarning(`Failed to load script: ${path}`);
+        reject(`Failed to load script: ${path}`);
+      };
+
+      const existingScript = document.querySelector(
+        `script[data-file-path="${path}"]`
+      );
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      script.setAttribute('data-file-path', path);
+      document.head.appendChild(script);
+
+      loggerDebug(`Loaded JavaScript file: ${path}`);
+      resolve();
+    } catch (error) {
+      loggerWarning(
+        `Failed to load JavaScript file: ${path} - ${error.message}`
+      );
+      reject(error);
+    }
+  });
+};
+
 FileManager.prototype.loadUpdatedFiles = async function () {
   for (const filePath of this.needsUpdateFiles) {
     if (this.getFileFromCache(filePath)) {
-      loggerDebug('File updated: ' + filePath);
-      const file = this.getFileFromCache(filePath);
-
+      loggerTrace('File updated: ' + filePath);
       if (filePath.toUpperCase().endsWith('.JS')) {
         try {
-          loggerDebug('Executing JavaScript file: ' + filePath);
-
-          eval(file);
+          await this.loadJavaScriptFile(filePath);
         } catch (e) {
           loggerWarning('Error loading JavaScript file: ' + filePath + ' ' + e);
         }
@@ -125,13 +173,8 @@ FileManager.prototype.loadUpdatedFiles = async function () {
 };
 
 FileManager.prototype.setReference = function (filePath, reference) {
-  if (!reference || !reference.isMaterial) {
-    throw new Error(
-      'Internal error: invalid reference provided: ' +
-        filePath +
-        ' - ' +
-        JSON.stringify(reference)
-    );
+  if (!(reference instanceof Shader)) {
+    throw new Error('Internal error: invalid reference provided: ' + filePath);
   }
 
   const path = filePath;
@@ -160,17 +203,14 @@ FileManager.prototype.updateReferences = function (filePath) {
 
   if (this.fileReferences[path]) {
     this.fileReferences[path].forEach((ref) => {
-      if (ref.isMaterial) {
-        if (ref.vertexShader && path.toUpperCase().endsWith('.VS')) {
-          loggerInfo('Updating material with vertex shader: ' + path);
-          ref.vertexShader = this.getFileFromCache(path);
+      if (ref instanceof Shader) {
+        if (ref.hotreload(path)) {
+          updated = true;
         }
-        if (ref.fragmentShader && path.toUpperCase().endsWith('.FS')) {
-          loggerInfo('Updating material with fragment shader: ' + path);
-          ref.fragmentShader = this.getFileFromCache(path);
-        }
-        ref.needsUpdate = true;
-        updated = true;
+      } else {
+        loggerDebug(
+          `Unrecognized reference type for: ${path} - ${ref.constructor?.name}`
+        );
       }
     });
   }
@@ -386,7 +426,7 @@ FileManager.prototype.monitorFile = function (filePath) {
 
 FileManager.prototype.load = function (filePath, instance, callback) {
   const fileManager = this;
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const path = fileManager.getPath(filePath);
     fileManager.monitorFile(filePath);
 
@@ -406,16 +446,27 @@ FileManager.prototype.load = function (filePath, instance, callback) {
     }
 
     const cacheData = this.getFileFromCache(filePath);
-    if (cacheData && Loader === THREE.FileLoader) {
-      fileManager.processPromise(
-        resolve,
-        reject,
-        filePath,
-        instance,
-        cacheData,
-        callback
-      );
-      return;
+    if (Loader === THREE.FileLoader) {
+      if (filePath.toUpperCase().endsWith('.JS')) {
+        try {
+          await this.loadJavaScriptFile(filePath);
+        } catch (err) {
+          loggerWarning(`Failed to load JavaScript file: ${filePath}: ${err}`);
+          reject(instance);
+        }
+      }
+
+      if (cacheData) {
+        fileManager.processPromise(
+          resolve,
+          reject,
+          filePath,
+          instance,
+          cacheData,
+          callback
+        );
+        return;
+      }
     }
 
     new Loader().load(
