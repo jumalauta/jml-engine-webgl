@@ -493,10 +493,6 @@ Shader.assignToMaterial = function (obj, animation) {
 
         animation.shader.ref.material = obj.material;
         obj.material.userData.shader = shader;
-
-        loggerDebug(
-          `Material before compile inline shader: ${animation.shader.name}, vsPrefix: ${!!vsPrefix}, vsSuffix: ${!!vsSuffix}, fsPrefix: ${!!fsPrefix}, fsSuffix: ${!!fsSuffix}`
-        );
       };
     }
   }
