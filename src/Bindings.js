@@ -1,5 +1,6 @@
 import { Timer } from './Timer';
 import { Settings } from './Settings';
+import { Utils } from './Utils';
 
 const settings = new Settings();
 
@@ -54,11 +55,18 @@ function log(type, txt) {
 
   previousText = txt;
 
+  const animation = Utils.getActiveAnimation();
+  let traceText = '';
+  if (animation?._debug?.src) {
+    const src = animation._debug.src;
+    traceText = `(${src.function}@${src.file}:${src.lineNumber}:${src.columnNumber})`;
+  }
+
   let time = new Timer().getTimeInSeconds().toFixed(2);
   if (time === '0.00') {
     time += ` (${(performance.now() - initialTime).toFixed(0)} ms)`;
   }
-  const msg = `${time} [${originalType.toUpperCase()}]: ${txt}`;
+  const msg = `${time} [${originalType.toUpperCase()}]: ${txt} ${traceText}`;
   console[type](msg);
 
   // Show alert banner for specified log levels when in tool mode

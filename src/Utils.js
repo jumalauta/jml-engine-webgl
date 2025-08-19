@@ -94,7 +94,7 @@ Utils.setMaterialProperties = function (animation) {
     return;
   }
 
-  if (!animation.ref && !animation.ref.mesh) {
+  if (!animation.ref?.mesh) {
     loggerWarning(
       'No mesh found for material properties, cannot set material properties'
     );
@@ -397,7 +397,26 @@ Utils.wrapAsync = function (func) {
   };
 };
 
-Utils.getTraceInfo = function () {
+Utils.addTraceInfo = function (animationDefinition) {
+  const debugSrc = Utils.createTraceInfo();
+  if (debugSrc) {
+    if (!animationDefinition._debug) {
+      animationDefinition._debug = {};
+    }
+    animationDefinition._debug.src = debugSrc;
+  }
+};
+
+let activeAnimation = undefined;
+Utils.setActiveAnimation = function (animationDefinition) {
+  activeAnimation = animationDefinition;
+};
+
+Utils.getActiveAnimation = function () {
+  return activeAnimation;
+};
+
+Utils.createTraceInfo = function () {
   const err = new Error();
   if (!err.stack) {
     return undefined;

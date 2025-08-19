@@ -856,6 +856,7 @@ Player.prototype.drawSceneAnimation = function (
         animationI++
       ) {
         const animation = animationLayers[key][animationI];
+        Utils.setActiveAnimation(animation);
 
         const startTime = animation.start;
 
@@ -958,6 +959,8 @@ Player.prototype.drawSceneAnimation = function (
   } else {
     demoRenderer.renderScene();
   }
+
+  Utils.setActiveAnimation(null);
 };
 
 // Legacy method for backward compatibility
