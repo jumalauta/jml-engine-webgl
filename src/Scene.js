@@ -483,14 +483,9 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
   ) {
     const animationDefinition = animationDefinitions[animationI];
 
+    Utils.setActiveAnimation(animationDefinition);
     if (settings.engine.tool) {
-      const debugSrc = Utils.getTraceInfo();
-      if (debugSrc) {
-        if (!animationDefinition._debug) {
-          animationDefinition._debug = {};
-        }
-        animationDefinition._debug.src = debugSrc;
-      }
+      Utils.addTraceInfo(animationDefinition);
     }
 
     const promises = [];
@@ -761,6 +756,7 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
   }
 
   this.animationLayers = this.loader.sortArray(animationLayers);
+  Utils.setActiveAnimation(null);
 };
 
 Scene.prototype.getParentObject = function (
