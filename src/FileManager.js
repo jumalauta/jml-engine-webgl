@@ -115,14 +115,7 @@ FileManager.prototype.loadJavaScriptFile = async function (filePath) {
       const response = await fetch(`${path}?t=${cacheBuster}`);
       const sourceCode = await response.text();
 
-      // trying to avoid "Identifier has already been declared" type of errors
-      // other way would be to wrap and call the source code using eval()
-      // but that would make stack traces more difficult to read - we want to maintain readability
-      const transformedCode = sourceCode
-        .replace(/^(\s*)const\s+/gm, '$1var ')
-        .replace(/^(\s*)let\s+/gm, '$1var ')
-        .replace(/^(\s*)class\s+(\w+)/gm, '$1var $2 = class $2')
-        .replace(/^(\s*)function\s+(\w+)/gm, '$1var $2 = function $2');
+      const transformedCode = this._transformJavaScriptCode(sourceCode);
 
       const script = document.createElement('script');
       script.type = 'text/javascript';
@@ -153,6 +146,138 @@ FileManager.prototype.loadJavaScriptFile = async function (filePath) {
       reject(error);
     }
   });
+};
+
+// trying to avoid "Identifier has already been declared" type of errors
+// other way would be to wrap and call the source code using eval()
+// but that would make stack traces more difficult to read - we want to maintain readability
+FileManager.prototype._transformJavaScriptCode = function (sourceCode) {
+  const lines = sourceCode.split('\n');
+  const transformedLines = [];
+
+  let inTemplateString = false;
+  let inSingleQuoteString = false;
+  let inDoubleQuoteString = false;
+  let braceDepth = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    let transformedLine = line;
+
+    const stringState = this._updateStringAndBraceState(line, {
+      inTemplateString,
+      inSingleQuoteString,
+      inDoubleQuoteString,
+      braceDepth
+    });
+
+    // only transform if we're not inside any string or brace block
+    if (
+      !stringState.inAnyString &&
+      stringState.braceDepth === 0 &&
+      this._isJavaScriptDeclarationLine(line)
+    ) {
+      transformedLine = transformedLine
+        .replace(/^(\s*)const\s+/, '$1var ')
+        .replace(/^(\s*)let\s+/, '$1var ');
+
+      transformedLine = transformedLine.replace(
+        /^(\s*)class\s+(\w+)/,
+        '$1var $2 = class $2'
+      );
+
+      transformedLine = transformedLine.replace(
+        /^(\s*)function\s+(\w+)/,
+        '$1var $2 = function $2'
+      );
+    }
+
+    inTemplateString = stringState.inTemplateString;
+    inSingleQuoteString = stringState.inSingleQuoteString;
+    inDoubleQuoteString = stringState.inDoubleQuoteString;
+    braceDepth = stringState.braceDepth;
+
+    transformedLines.push(transformedLine);
+  }
+
+  return transformedLines.join('\n');
+};
+
+FileManager.prototype._updateStringAndBraceState = function (
+  line,
+  currentState
+) {
+  let {
+    inTemplateString,
+    inSingleQuoteString,
+    inDoubleQuoteString,
+    braceDepth
+  } = currentState;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const prevChar = i > 0 ? line[i - 1] : '';
+
+    if (prevChar === '\\') {
+      continue;
+    }
+
+    if (inTemplateString) {
+      if (char === '`') {
+        inTemplateString = false;
+      }
+    } else if (inSingleQuoteString) {
+      if (char === "'") {
+        inSingleQuoteString = false;
+      }
+    } else if (inDoubleQuoteString) {
+      if (char === '"') {
+        inDoubleQuoteString = false;
+      }
+    } else {
+      if (char === '`') {
+        inTemplateString = true;
+      } else if (char === "'") {
+        inSingleQuoteString = true;
+      } else if (char === '"') {
+        inDoubleQuoteString = true;
+      } else if (char === '{') {
+        braceDepth++;
+      } else if (char === '}') {
+        braceDepth = Math.max(0, braceDepth - 1);
+      }
+    }
+  }
+
+  return {
+    inTemplateString,
+    inSingleQuoteString,
+    inDoubleQuoteString,
+    braceDepth,
+    inAnyString: inTemplateString || inSingleQuoteString || inDoubleQuoteString
+  };
+};
+
+FileManager.prototype._isJavaScriptDeclarationLine = function (line) {
+  const trimmed = line.trim();
+
+  if (
+    !trimmed ||
+    trimmed.startsWith('//') ||
+    trimmed.startsWith('/*') ||
+    trimmed.startsWith('*')
+  ) {
+    return false;
+  }
+
+  const declarationPatterns = [
+    /^(\s*)const\s+\w+/,
+    /^(\s*)let\s+\w+/,
+    /^(\s*)class\s+\w+/,
+    /^(\s*)function\s+\w+/
+  ];
+
+  return declarationPatterns.some((pattern) => pattern.test(line));
 };
 
 FileManager.prototype.loadUpdatedFiles = async function () {
