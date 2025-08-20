@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { pino } from 'pino';
 import { v4 as uuidv4 } from 'uuid';
+import { createTwoFilesPatch } from 'diff';
 import { handleCaptureMessage } from './VideoExporter.js';
 import { stopFileWatch, handleFileSystemMessage } from './FileSystem.js';
 
@@ -107,7 +108,6 @@ const server = async function () {
             ws.sendResponse(id, { status: 'initialized' });
           }
         } else if (method === 'settings') {
-          ws.logger.info('Received settings');
           if (!params || !params.settings) {
             ws.sendError(
               id || null,
@@ -117,6 +117,35 @@ const server = async function () {
             );
             return;
           }
+
+          const settingsHumanReadable = JSON.stringify(
+            params.settings,
+            null,
+            2
+          );
+          if (ws.state.oldSettings === settingsHumanReadable) {
+            // settings did not change
+            return;
+          }
+
+          if (ws.state.oldSettings) {
+            const patch = createTwoFilesPatch(
+              '', // old file name
+              '', // new file name
+              ws.state.oldSettings,
+              settingsHumanReadable,
+              '', // old file header
+              '', // new file header
+              { ignoreWhitespace: true }
+            );
+
+            if (patch) {
+              ws.logger.child({ diff: patch }).info('Received settings');
+            }
+          } else {
+            ws.logger.info('Received settings');
+          }
+          ws.state.oldSettings = settingsHumanReadable;
 
           const oldDemoPathPrefix = ws.state.settings?.engine?.demoPathPrefix;
           const newDemoPathPrefix = params.settings?.engine?.demoPathPrefix;
