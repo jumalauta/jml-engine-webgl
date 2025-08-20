@@ -59,7 +59,7 @@ function log(type, txt) {
   let traceText = '';
   if (animation?._debug?.src) {
     const src = animation._debug.src;
-    traceText = `(${src.function}@${src.file}:${src.lineNumber}:${src.columnNumber})`;
+    traceText = `(${src.function}@${src.shortFile}:${src.lineNumber}:${src.columnNumber})`;
   }
 
   let time = new Timer().getTimeInSeconds().toFixed(2);
