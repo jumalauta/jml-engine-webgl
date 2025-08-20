@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getCamera } from './DemoRenderer';
 
 const Instancer = function (animationObjectInstance, instancerDefinition) {
   this.animationObjectInstance = animationObjectInstance;
@@ -8,11 +9,17 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
     return;
   }
 
+  if (this.instancer.count === undefined) {
+    this.instancer.count = 1;
+  }
+
   this.color = new Float32Array(this.instancer.count * 4);
   this.color.fill(1.0);
 
   this.angle = new Float32Array(this.instancer.count * 3);
   this.angle.fill(0.0);
+
+  this.instanceData = new Array(this.instancer.count);
 
   this.runFunction =
     this.instancer.runFunction ||
@@ -23,6 +30,7 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
 
       if (this.instancer.runInstanceFunction) {
         const startCount = this.instancer.count;
+
         for (let i = 0; i < startCount; i++) {
           const instanceColor = {
             r: this.color[4 * i + 0],
@@ -35,11 +43,11 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
             degreesY: this.angle[3 * i + 1],
             degreesZ: this.angle[3 * i + 2]
           };
-          const input = {
+          const input = this.instanceData[i] || {
             index: i,
             count: this.instancer.count,
             time,
-            object: this.instancer.object,
+            object: this.instancer.object.clone(),
             color: instanceColor,
             angle: instanceAngle
           };
@@ -52,26 +60,39 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
             input.object.rotation.z = input.angle.degreesZ;
           }
 
-          this.instancer.count = input.count;
-          this.color[4 * i + 0] = instanceColor.r;
-          this.color[4 * i + 1] = instanceColor.g;
-          this.color[4 * i + 2] = instanceColor.b;
-          this.color[4 * i + 3] = instanceColor.a;
+          input.object.updateMatrix();
 
-          this.angle[3 * i + 0] = input.object.rotation.x;
-          this.angle[3 * i + 1] = input.object.rotation.y;
-          this.angle[3 * i + 2] = input.object.rotation.z;
+          this.instanceData[i] = {
+            index: i,
+            count: this.instancer.count,
+            time,
+            object: input.object,
+            color: input.color,
+            angle: input.angle,
+            originalIndex: i
+          };
+        }
 
-          this.instancer.object.updateMatrix();
-          this.animationObjectInstance.mesh.setMatrixAt(
-            i,
-            this.instancer.object.matrix
-          );
+        if (this.instancer.sort) {
+          this._sortInstances();
+        }
+
+        for (let i = 0; i < this.instanceData.length; i++) {
+          const data = this.instanceData[i];
+          this.color[4 * i + 0] = data.color.r;
+          this.color[4 * i + 1] = data.color.g;
+          this.color[4 * i + 2] = data.color.b;
+          this.color[4 * i + 3] = data.color.a;
+
+          this.angle[3 * i + 0] = data.object.rotation.x;
+          this.angle[3 * i + 1] = data.object.rotation.y;
+          this.angle[3 * i + 2] = data.object.rotation.z;
+
+          data.object.updateMatrix();
+          this.animationObjectInstance.mesh.setMatrixAt(i, data.object.matrix);
+
           if (this.animationObjectInstance.mixer) {
-            this.animationObjectInstance.mesh.setMorphAt(
-              i,
-              this.instancer.object
-            );
+            this.animationObjectInstance.mesh.setMorphAt(i, data.object);
           }
         }
 
@@ -99,6 +120,28 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
         this.animationObjectInstance.mesh.computeBoundingSphere();
       }
     });
+};
+
+Instancer.prototype._sortInstances = function () {
+  const camera = getCamera();
+  if (!camera) {
+    return;
+  }
+
+  const cameraPosition = camera.position;
+
+  for (let i = 0; i < this.instanceData.length; i++) {
+    const data = this.instanceData[i];
+
+    const position = new THREE.Vector3();
+    position.setFromMatrixPosition(data.object.matrix);
+
+    data.distanceToCamera = cameraPosition.distanceToSquared(position);
+  }
+
+  this.instanceData.sort((a, b) => {
+    return a.distanceToCamera - b.distanceToCamera;
+  });
 };
 
 Instancer.prototype.createInstancedMesh = function (geometry, material) {
