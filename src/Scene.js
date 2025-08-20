@@ -11,7 +11,7 @@ import { ToolUi } from './ToolUi';
 import {
   windowSetTitle,
   loggerError,
-  loggerWarning,
+  loggerInfo,
   loggerDebug
 } from './Bindings';
 import { Settings } from './Settings';
@@ -781,7 +781,7 @@ Scene.prototype.getParentObject = function (
           if (childMesh) {
             animationDefinition.ref.setParent(childMesh);
           } else {
-            loggerWarning(
+            loggerInfo(
               `Parent object ${animationDefinition.parent} child object not found: ${animationDefinition.parent}`
             );
           }
@@ -789,7 +789,7 @@ Scene.prototype.getParentObject = function (
           return parent.ref.mesh;
         }
       } else {
-        loggerWarning(`Parent object not found: ${animationDefinition.parent}`);
+        loggerInfo(`Parent object not found: ${animationDefinition.parent}`);
       }
     }
   }
@@ -826,6 +826,8 @@ Scene.prototype.processAnimation = function () {
         }
 
         const animationDefinition = animationLayers[key][animationI];
+        Utils.setActiveAnimation(animationDefinition);
+
         Utils.setTimeVariables(
           animationDefinition,
           startTime,
@@ -1254,6 +1256,8 @@ Scene.prototype.processAnimation = function () {
       }
     }
   }
+
+  Utils.setActiveAnimation(null);
 };
 
 Scene.prototype.deinitAnimation = function () {
@@ -1271,12 +1275,15 @@ Scene.prototype.deinitAnimation = function () {
           continue; // skip animations that are in error state
         }
 
+        Utils.setActiveAnimation(animation);
         if (animation.deinitFunction !== undefined) {
           Utils.evaluateVariable(animation, animation.deinitFunction);
         }
       }
     }
   }
+
+  Utils.setActiveAnimation(null);
 };
 
 export { Scene };

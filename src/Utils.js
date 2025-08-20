@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerTrace, loggerWarning } from './Bindings';
+import { loggerInfo, loggerTrace, loggerWarning } from './Bindings';
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 import { Random } from './Random';
@@ -436,13 +436,15 @@ Utils.createTraceInfo = function () {
         .replace(/\)$/, '');
 
       if (line.includes(settings.engine.demoPathPrefix)) {
-        const [func, location] = line.split('@');
+        let [func, location] = line.split('@');
+        location = location || func;
         const [file, parameters] = location.split('?');
         const [queryParameters, lineNumber, columnNumber] =
           parameters.split(':');
         return {
-          function: func,
+          function: func === location ? undefined : func,
           file: file,
+          shortFile: file.replace(settings.engine.demoPathPrefix, ''),
           location: location,
           queryParameters: queryParameters,
           lineNumber: parseInt(lineNumber, 10),
