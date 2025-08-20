@@ -372,6 +372,7 @@ this.loader.addAnimation({
   // instancer can be used for static objects, texts and images
   "instancer": {
     "count": 10, // adjust maximum number of instances, i.e. display 10 images of jml_fist.png
+    "sort": true, // sort the instances. avoid sorting for better performance unless there is transparency involved in which case this is very much needed
     "runInstanceFunction": (properties) => {
       const i = properties.index;
       const count = properties.count;
