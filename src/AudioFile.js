@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { loggerDebug, loggerError } from './Bindings';
 import { Timer } from './Timer';
-import { Loader } from './Loader';
 import { FileManager } from './FileManager';
 
 const AudioFile = function () {
@@ -35,7 +34,7 @@ AudioFile.prototype.load = function (url) {
   const path = new FileManager().getPath(url);
 
   const instance = this;
-  return new Loader().newPromise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     if (instance.duration) {
       loggerDebug(
         'Loaded AudioFile from cache ' +

@@ -6,25 +6,20 @@ import { Fbo } from './Fbo';
 
 /** @constructor */
 
+const defaultSceneName = 'main';
+
 const Loader = function () {
-  return this.getInstance();
+  this.clear();
+};
+
+Loader.prototype.addPromise = function (promise) {
+  this.promises.push(promise);
 };
 
 Loader.prototype.newPromise = function (f) {
   const promise = new Promise(f);
-  this.promises.push(promise);
+  this.addPromise(promise);
   return promise;
-};
-
-const defaultSceneName = 'main';
-
-Loader.prototype.getInstance = function () {
-  if (!Loader.prototype._singletonInstance) {
-    Loader.prototype._singletonInstance = this;
-    this.clear();
-  }
-
-  return Loader.prototype._singletonInstance;
 };
 
 Loader.prototype.clear = function () {
@@ -108,7 +103,7 @@ Loader.prototype.addNotifyResource = function (name, promises) {
   if (promises) {
     promises = Utils.isArray(promises) ? promises : [promises];
     promises.forEach((promise) => {
-      this.promises.push(promise);
+      this.addPromise(promise);
     });
   }
 

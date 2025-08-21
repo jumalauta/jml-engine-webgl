@@ -16,6 +16,10 @@ const settings = new Settings();
 /** @constructor */
 const Player = function () {};
 
+Player.prototype.setLoader = function (loader) {
+  this.loader = loader;
+};
+
 Player.prototype.calculate3dCoordinateAnimation = function (
   time,
   animation,
@@ -928,7 +932,7 @@ Player.prototype.drawSceneAnimation = function (
             }
 
             this.drawSceneAnimation(
-              new Loader().scenes[animation.scene.name],
+              this.loader.scenes[animation.scene.name],
               currentTime - startTime,
               animation
             );

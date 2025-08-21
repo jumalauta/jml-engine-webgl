@@ -555,23 +555,23 @@ FileManager.prototype.load = function (filePath, instance, callback) {
     const path = fileManager.getPath(filePath);
     fileManager.monitorFile(filePath);
 
-    let Loader = THREE.FileLoader;
+    let assetLoaderClass = THREE.FileLoader;
     if (instance instanceof Image) {
-      Loader = THREE.TextureLoader;
+      assetLoaderClass = THREE.TextureLoader;
     } else if (instance instanceof Text) {
-      Loader = TTFLoader;
+      assetLoaderClass = TTFLoader;
     } else if (instance instanceof Model) {
       if (filePath.toUpperCase().endsWith('.OBJ')) {
-        Loader = OBJLoader;
+        assetLoaderClass = OBJLoader;
       } else if (filePath.toUpperCase().endsWith('.MTL')) {
-        Loader = MTLLoader;
+        assetLoaderClass = MTLLoader;
       } else {
         throw new Error('3D Model fileformat not supported: ' + filePath);
       }
     }
 
     const cacheData = this.getFileFromCache(filePath);
-    if (Loader === THREE.FileLoader) {
+    if (assetLoaderClass === THREE.FileLoader) {
       if (filePath.toUpperCase().endsWith('.JS')) {
         try {
           await this.loadJavaScriptFile(filePath);
@@ -594,7 +594,7 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       }
     }
 
-    new Loader().load(
+    new assetLoaderClass().load(
       this.getUrl(filePath),
       // onLoad callback
       (data) => {
