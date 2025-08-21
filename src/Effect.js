@@ -97,8 +97,8 @@ Effect.init = function (effectName) {
       }
 
       effect.loader = new Loader();
-      effect.loader.clear();
       effect.player = new Player();
+      effect.player.setLoader(effect.loader);
 
       Effect.effects[effectName] = effect;
 
@@ -115,11 +115,11 @@ Effect.init = function (effectName) {
         effect.postInit();
       }
 
-      effect.loader.promises.push(new Spectogram().init());
+      effect.loader.addPromise(new Spectogram().init());
 
       const music = new Music();
       if (settings.demo.music.musicFile) {
-        music.load(settings.demo.music.musicFile);
+        effect.loader.addPromise(music.load(settings.demo.music.musicFile));
       } else {
         if (settings.demo.duration === undefined) {
           throw new Error(
@@ -158,7 +158,7 @@ Effect.init = function (effectName) {
 
             for (let i = 0; i < steps; i++) {
               const percent = i / steps;
-              effect.loader.promises.push(demoRenderer.preload(percent));
+              effect.loader.addPromise(demoRenderer.preload(percent));
             }
 
             if (!(await processPromises(effect.loader.promises, 0.85, 0.99))) {
