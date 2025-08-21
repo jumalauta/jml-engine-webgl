@@ -136,7 +136,10 @@ const server = async function () {
               settingsHumanReadable,
               '', // old file header
               '', // new file header
-              { ignoreWhitespace: true }
+              {
+                ignoreWhitespace: true,
+                context: 1
+              }
             );
 
             if (patch) {
