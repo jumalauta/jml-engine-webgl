@@ -154,4 +154,7 @@ Timer.prototype.isEnd = function () {
   return this.getTime() >= this.endTime;
 };
 
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.Timer = Timer;
+
 export { Timer };
