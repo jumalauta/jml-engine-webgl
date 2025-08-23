@@ -110,6 +110,14 @@ Timer.prototype.setTime = function (time, skipMusicUpdate) {
   Video.rewind();
 };
 
+Timer.prototype.handleLoopAt = function () {
+  if (settings.engine.loopAtTime !== undefined) {
+    if (this.getTime() > settings.engine.loopAtTime) {
+      this.setTime(settings.engine.startTime || 0);
+    }
+  }
+};
+
 Timer.prototype.update = function (force) {
   if (this.startTime === undefined) {
     this.time = 0;
