@@ -44,10 +44,11 @@ Camera.prototype.setLookAt = function (x, y, z) {
 Camera.prototype.setRotation = function (
   pitchDegrees,
   yawDegrees,
-  rollDegrees
+  rollDegrees,
+  order
 ) {
   const camera = getCamera();
-  camera.rotation.order = 'YXZ';
+  camera.rotation.order = order || 'YXZ';
   camera.rotation.x = (pitchDegrees * Math.PI) / 180;
   camera.rotation.y = (yawDegrees * Math.PI) / 180;
   camera.rotation.z = (rollDegrees * Math.PI) / 180;
@@ -59,12 +60,14 @@ Camera.prototype.setUpVector = function (x, y, z) {
   camera.up.set(x, y, z);
 };
 
-Camera.prototype.setPositionObject = function (modelPtr) {
+Camera.prototype.setPositionObject = function () {
+  throw new Error('setPositionObject not implemented');
   // loggerDebug("setPositionObject not implemented");
   // setCameraPositionObject(modelPtr);
 };
 
-Camera.prototype.setTargetObject = function (modelPtr) {
+Camera.prototype.setTargetObject = function () {
+  throw new Error('setTargetObject not implemented');
   // loggerDebug("setTargetObject not implemented");
   // setCameraTargetObject(modelPtr);
 };

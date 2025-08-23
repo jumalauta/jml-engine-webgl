@@ -188,11 +188,13 @@ Text.prototype.setDefaults = function () {
   // setTextDefaults();
 };
 
-Text.prototype.setPivot = function (x, y, z) {
+Text.prototype.setPivot = function () {
   // setTextPivot(x, y, z);
 };
 
-Text.prototype.setRotation = function (degreesX, degreesY, degreesZ) {
+Text.prototype.setRotation = function (degreesX, degreesY, degreesZ, order) {
+  this.mesh.rotation.order = order || 'XYZ';
+
   // setTextRotation(degreesX, degreesY, degreesZ);
   this.mesh.rotation.x = (degreesX * Math.PI) / 180;
   this.mesh.rotation.y = (degreesY * Math.PI) / 180;

@@ -465,7 +465,17 @@ Model.prototype.setPosition = function (x, y, z) {
   this.mesh.position.z = z;
 };
 
-Model.prototype.setRotation = function (degreesX, degreesY, degreesZ, x, y, z) {
+Model.prototype.setRotation = function (
+  degreesX,
+  degreesY,
+  degreesZ,
+  x,
+  y,
+  z,
+  order
+) {
+  this.mesh.rotation.order = order || 'XYZ';
+
   this.mesh.rotation.x = (degreesX * Math.PI) / 180;
   this.mesh.rotation.y = (degreesY * Math.PI) / 180;
   this.mesh.rotation.z = (degreesZ * Math.PI) / 180;
