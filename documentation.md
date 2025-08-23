@@ -179,6 +179,18 @@ this.loader.addAnimation(
 ]
 ```
 
+If you do not need to define more than one animation primitive you can skip array `[]` notation and define animation primitive object directly:
+```JavaScript
+"scale": {
+   "x":1.0         //scale X value 1.0 = 100% - default is 1.0
+  ,"y":1.0         //scale Y value 1.0 = 100% - default is 1.0
+  ,"z":1.0         //scale Z value 1.0 = 100% - default is 1.0
+  ,"uniform2d":1.0 //scale X & Y = uniform2d value - default undefined
+  ,"uniform3d":1.0 //scale X, Y & Z = uniform2d value - default undefined
+}
+```
+
+
 ```JavaScript
 //in case of images:
 // - if position is not given then image is aligned to center
