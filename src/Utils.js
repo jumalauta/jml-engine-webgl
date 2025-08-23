@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerInfo, loggerTrace, loggerWarning } from './Bindings';
+import { loggerTrace, loggerWarning } from './Bindings';
 import { getSceneTimeFromStart } from './Player';
 import { Sync } from './Sync';
 import { Random } from './Random';
@@ -101,20 +101,20 @@ Utils.setMaterialProperties = function (animation) {
     return;
   }
 
-  if (
-    animation.material &&
-    animation.material.map &&
-    animation.material.map.texture
-  ) {
-    const image = animation.material.map;
-    if (image.texture && image.texture.length > 0) {
-      loggerTrace(`Setting material map Image ${image.filename}`);
-      animation.material.map = image.texture[0];
-    } else {
-      loggerWarning(
-        `No texture found for material map Image ${image.filename}`
-      );
-    }
+  if (animation.material) {
+    settings.engine.material.mapTypes.forEach((map) => {
+      if (animation.material[map] && animation.material[map].texture) {
+        const image = animation.material[map];
+        if (image.texture && image.texture.length > 0) {
+          loggerTrace(`Setting material map Image ${image.filename}`);
+          animation.material[map] = image.texture[0];
+        } else {
+          loggerWarning(
+            `No texture found for material map Image ${image.filename}`
+          );
+        }
+      }
+    });
   }
 
   animation.ref.mesh.traverse((obj) => {

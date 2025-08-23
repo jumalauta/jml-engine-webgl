@@ -5,6 +5,7 @@ import { Shader } from './Shader';
 import { Model } from './Model';
 import { Text } from './Text';
 import { Fbo } from './Fbo';
+import { CubeMap } from './CubeMap';
 import { Light } from './Light';
 import { Camera } from './Camera';
 import { ToolUi } from './ToolUi';
@@ -467,19 +468,30 @@ Scene.prototype.preloadMaterialProperties = function (
   animationDefinition,
   promises
 ) {
+  if (animationDefinition.cubeMap) {
+    const cubeMapSettings = Utils.deepCopyJson({
+      ...settings.demo.cubeMap,
+      ...animationDefinition.cubeMap
+    });
+
+    new CubeMap(cubeMapSettings);
+  }
+
   if (animationDefinition.material) {
-    if ('map' in animationDefinition.material) {
-      const mapValue = animationDefinition.material.map;
-      if (typeof mapValue === 'string') {
-        const filename = mapValue;
-        const image = new Image();
-        if (image.isFileSupported(filename)) {
-          loggerDebug(`Preloading material map: ${filename}`);
-          promises.push(image.load(filename, false));
-          animationDefinition.material.map = image;
+    settings.engine.material.mapTypes.forEach((map) => {
+      if (map in animationDefinition.material) {
+        const mapValue = animationDefinition.material[map];
+        if (typeof mapValue === 'string') {
+          const filename = mapValue;
+          const image = new Image();
+          if (image.isFileSupported(filename)) {
+            loggerDebug(`Preloading material '${map}': ${filename}`);
+            promises.push(image.load(filename, false));
+            animationDefinition.material[map] = image;
+          }
         }
       }
-    }
+    });
   }
 };
 

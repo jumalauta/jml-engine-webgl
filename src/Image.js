@@ -4,6 +4,7 @@ import { loggerInfo, loggerWarning } from './Bindings';
 import { FileManager } from './FileManager';
 import { Settings } from './Settings';
 import { Video } from './Video';
+import { CubeMap } from './CubeMap';
 import { Instancer } from './Instancer';
 import vertexShader3dData from './_embedded/default.vs?raw';
 import vertexShader3dBillboardData from './_embedded/billboard.vs?raw';
@@ -217,6 +218,7 @@ Image.prototype.isFileSupported = function (filenames) {
       (!filename.toUpperCase().endsWith('.PNG') &&
         !filename.toUpperCase().endsWith('.MP4') &&
         !filename.endsWith('.fbo') &&
+        !filename.endsWith('.map') &&
         !customImages[filename])
     ) {
       return false;
@@ -272,6 +274,30 @@ Image.prototype.loadTexture = function (filename) {
         resolve(instance);
       } catch (e) {
         loggerWarning(`Could not load FBO ${instance.filename}: ${e}`);
+        reject(instance);
+      }
+    });
+  } else if (instance.filename.endsWith('.map')) {
+    if (!instance.filename.endsWith('.cube.map')) {
+      throw new Error(
+        'Only .cube.map CubeMap definitions are supported: ' + instance.filename
+      );
+    }
+
+    const cubeMapName = instance.filename.replace('.cube.map', '');
+
+    try {
+      const cubeMap = CubeMap.get(cubeMapName);
+      instance.cubeMap = cubeMap;
+      instance.texture[textureI] = cubeMap.getTexture();
+    } catch (e) {
+      loggerWarning(`Could not load CubeMap '${cubeMapName}': ${e}`);
+    }
+
+    return new Promise((resolve, reject) => {
+      if (instance.cubeMap && instance.texture[textureI]) {
+        resolve(instance);
+      } else {
         reject(instance);
       }
     });

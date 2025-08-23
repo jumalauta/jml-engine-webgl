@@ -2,6 +2,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls';
 import { loggerTrace } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { Fbo } from './Fbo';
+import { CubeMap } from './CubeMap';
 import { Effect } from './Effect';
 import { Settings } from './Settings';
 import { Spectogram } from './Spectogram';
@@ -84,6 +85,7 @@ DemoRenderer.prototype.cleanScene = function (forceDispose) {
   cameras = [];
   this.scenes = {};
 
+  CubeMap.clear();
   Fbo.clear();
   if (!settings.engine.tool || forceDispose) {
     disposeMemory();
