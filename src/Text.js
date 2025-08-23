@@ -51,7 +51,7 @@ Text.prototype.load = function (name) {
   }
 
   if (Text.getFontFromCache(name)) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       instance.font = Text.getFontFromCache(name);
       resolve(true);
     });
@@ -228,7 +228,7 @@ Text.prototype.setPosition = function (x, y, z) {
   this.mesh.position.y = y;
 };
 
-Text.prototype.setCenterAlignment = function (align) {
+Text.prototype.setCenterAlignment = function () {
   // setTextCenterAlignment(align);
 };
 

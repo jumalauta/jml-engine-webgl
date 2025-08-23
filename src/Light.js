@@ -126,11 +126,11 @@ Light.type = {
   SPOT: 3
 };
 
-Light.prototype.setType = function (type) {
+Light.prototype.setType = function () {
   // lightSetType(this.index, type);
 };
 
-Light.prototype.setGenerateShadowMap = function (generateShadowMap) {
+Light.prototype.setGenerateShadowMap = function () {
   // lightSetGenerateShadowMap(this.index, generateShadowMap === true ? 1 : 0);
 };
 
@@ -144,15 +144,15 @@ Light.prototype.disable = function () {
   this.mesh.visible = false;
 };
 
-Light.prototype.setAmbientColor = function (r, g, b, a) {
+Light.prototype.setAmbientColor = function () {
   // lightSetAmbientColor(this.index, r, g, b, a);
 };
 
-Light.prototype.setDiffuseColor = function (r, g, b, a) {
+Light.prototype.setDiffuseColor = function () {
   // lightSetDiffuseColor(this.index, r, g, b, a);
 };
 
-Light.prototype.setSpecularColor = function (r, g, b, a) {
+Light.prototype.setSpecularColor = function () {
   // lightSetSpecularColor(this.index, r, g, b, a);
 };
 
@@ -163,11 +163,11 @@ Light.prototype.setPosition = function (x, y, z) {
   this.mesh.position.z = z;
 };
 
-Light.prototype.setDirection = function (x, y, z) {
+Light.prototype.setDirection = function () {
   // lightSetDirection(this.index, x, y, z);
 };
 
-Light.prototype.setColor = function (r, g, b, a) {
+Light.prototype.setColor = function (r, g, b) {
   // setObjectColor(this.ptr, r/255, g/255, b/255, a/255);
   let nr = r;
   let ng = g;

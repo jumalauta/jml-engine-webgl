@@ -345,7 +345,7 @@ Model.prototype.load = function (filename) {
   const path = fileManager.getPath(this.filename);
 
   if (this.loadFromCache(path)) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       loggerDebug(
         `Loaded model from cache: ${instance.filename}. Animations: ${Object.keys(instance.clips || {}).join(', ')}. Mesh names: ${instance.getMeshNames().join(', ')}`
       );

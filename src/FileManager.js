@@ -488,7 +488,7 @@ FileManager.prototype.loadFiles = function (filePaths, instance, callback) {
     const promises = [];
     for (let i = 0; i < filePaths.length; i++) {
       promises.push(
-        this.load(filePaths[i], instance, (instance, data) => {
+        this.load(filePaths[i], instance, () => {
           return true;
         })
       );

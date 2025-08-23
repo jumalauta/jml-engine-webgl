@@ -35,7 +35,7 @@ Sync.prototype.initRocket = async function () {
     try {
       await this.initDevice(true);
     } catch (e) {
-      loggerDebug('Error initializing GNU Rocket WebSocket connection');
+      loggerDebug(`Error initializing GNU Rocket WebSocket connection: ${e}`);
     }
   }
 

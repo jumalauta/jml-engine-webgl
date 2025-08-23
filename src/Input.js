@@ -71,7 +71,8 @@ Input.prototype.isCursorOverAnimation = function (camera, animation) {
   return false;
 };
 
-Input.prototype.setUserExit = function (userExit) {
+Input.prototype.setUserExit = function () {
+  throw new Error('setUserExit not implemented');
   // inputSetUserExit(userExit);
 };
 

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loggerInfo, loggerWarning } from './Bindings';
+import { loggerWarning } from './Bindings';
 import { Utils } from './Utils';
 
 const Settings = function () {
@@ -235,6 +235,8 @@ Settings.prototype.init = function () {
   if (import.meta.env.MODE === 'production') {
     this.engine.tool = false;
     this.engine.enabledLogLevels = ['info', 'warn', 'error'];
+
+    // eslint-disable-next-line n/no-process-env
     this.engine.webDemoExe = process.env.NODE_ENV === 'exe';
 
     if (this.engine.webDemoExe) {

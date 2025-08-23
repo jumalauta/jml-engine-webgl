@@ -5,7 +5,7 @@ const JavaScriptFile = function () {};
 JavaScriptFile.prototype.load = function (filename) {
   this.filename = filename;
   const fileManager = new FileManager();
-  return fileManager.load(filename, this, (instance, data) => {
+  return fileManager.load(filename, this, () => {
     return true;
   });
 };
