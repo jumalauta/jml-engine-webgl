@@ -32,13 +32,13 @@ export default [
       'import/namespace': 'off',
       'import/no-unresolved': 'off',
       'import/no-nodejs-modules': 'error',
-      'n/no-extraneous-import': 'off',
-      'n/no-missing-import': 'off',
-      'n/no-unsupported-features/es-syntax': 'off',
+      'n/no-extraneous-import': 'error',
+      'n/no-missing-import': 'error',
+      'n/no-unsupported-features/es-syntax': 'error',
       'n/no-unsupported-features/node-builtins': 'off',
-      'n/no-process-env': 'off',
-      'n/no-path-concat': 'off',
-      'n/no-hide-core-modules': 'off'
+      'n/no-process-env': 'error',
+      'n/no-path-concat': 'error',
+      'n/no-hide-core-modules': 'error'
     },
     languageOptions: { globals: globals.browser }
   },
@@ -75,7 +75,9 @@ export default [
           asyncArrow: 'always'
         }
       ],
-      'n/no-process-exit': 'off'
+      'n/no-process-exit': 'off',
+      'no-unused-vars': 'warn',
+      'import/no-unused-modules': 'error'
     }
   }
 ];
