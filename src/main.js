@@ -43,17 +43,24 @@ function setDemoPathPrefix(prefix) {
   }
 }
 
-function setStartTime() {
+function setPlayerTimes() {
   const startTime = new URLSearchParams(window.location.search).get(
     'startTime'
   );
   if (startTime) {
     settings.engine.startTime = parseInt(startTime);
   }
+
+  const loopAtTime = new URLSearchParams(window.location.search).get(
+    'loopAtTime'
+  );
+  if (loopAtTime) {
+    settings.engine.loopAtTime = parseInt(loopAtTime);
+  }
 }
 
 function customizeSettings() {
-  setStartTime();
+  setPlayerTimes();
 
   const queryParams = new URLSearchParams(window.location.search);
 
@@ -300,6 +307,7 @@ function animate() {
     }
   }
 
+  timer.handleLoopAt();
   timer.update();
   const time = timer.getTime();
   if (oldTime !== time) {

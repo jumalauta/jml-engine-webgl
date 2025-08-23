@@ -40,7 +40,8 @@ Settings.prototype.init = function () {
     bannerLogLevels: ['warn', 'error'], // log levels that will be displayed in the alert banner when in tool mode
     webDemoExe: false, // true = build for https://github.com/pandrr/WebDemoExe/ executable
     autoStart: false, // start demo automatically when the page is loaded skipping menu / user interaction, this may disable sound until user interaction happens
-    startTime: 0, // place of time where the demo starts
+    startTime: 0, // place of time when the demo starts
+    loopAtTime: undefined, // place of time when the demo loops to startTime
     fps: 60, // frames per second
     material: {
       mapTypes: ['map', 'envMap'] // map types recognized by the engine in image loading

@@ -56,6 +56,52 @@
   display: block;
 }
 
+#timeline-slider {
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #333;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+#timeline-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 8px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: 1px solid #666;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+#timeline-slider::-moz-range-thumb {
+  width: 8px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: 1px solid #666;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+#timeline-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--timeline-background, #333);
+}
+
+#timeline-slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--timeline-background, #333);
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;

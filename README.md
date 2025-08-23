@@ -76,6 +76,7 @@ Tool controls are only enabled when tool mode (`settings.engine.tool`) is enable
 | Query parameter   | Action                    |
 |-------------------|---------------------------|
 | `startTime=<millis>`   | Set start time of the demo |
+| `loopAtTime=<millis>`   | Set time when the demo loops to startTime |
 | `enabledLogLevels=trace,debug,info,warn,error` | Enable logging levels |
 | `autoStart=<true\|false>`  | Automatically start demo |
 | `preload=<true\|false>`  | If preload should be enabled |

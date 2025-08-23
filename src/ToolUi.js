@@ -204,8 +204,78 @@ ToolUi.prototype.clearScenes = function () {
 };
 
 ToolUi.prototype.update = function () {
+  this.markSliderLoopRange();
+
   this.timelineSlider.value =
     new Timer().getTimePercent() * this.timelineSlider.max;
+};
+
+ToolUi.prototype.markSliderLoopRange = function () {
+  if (!this.timelineSlider) {
+    return;
+  }
+
+  if (settings.engine.loopAtTime === undefined) {
+    if (this.currentLoopEndPercent) {
+      this.currentLoopStartPercent = undefined;
+      this.currentLoopEndPercent = undefined;
+      this.clearTimelineSliderColoring();
+    }
+
+    return;
+  }
+
+  const endTime = new Timer().endTime;
+  if (!endTime) {
+    return;
+  }
+
+  const loopStart = settings.engine.startTime || 0;
+  const loopAt = settings.engine.loopAtTime || 0;
+  const loopStartPercent = loopStart / endTime;
+  const loopAtPercent = loopAt / endTime;
+
+  if (
+    this.currentLoopStartPercent === loopStartPercent &&
+    this.currentLoopEndPercent === loopAtPercent
+  ) {
+    return;
+  }
+
+  this.currentLoopStartPercent = loopStartPercent;
+  this.currentLoopEndPercent = loopAtPercent;
+  this.clearTimelineSliderColoring();
+  this.setTimelineSliderColoredRegion(loopStartPercent, loopAtPercent);
+};
+
+ToolUi.prototype.setTimelineSliderColoredRegion = function (
+  startPercent,
+  endPercent,
+  color = '#4CAF50'
+) {
+  if (!this.timelineSlider) {
+    return;
+  }
+
+  const startPos = (Math.max(0, Math.min(1, startPercent)) * 100).toFixed(2);
+  const endPos = (
+    Math.max(startPercent, Math.min(1, endPercent)) * 100
+  ).toFixed(2);
+  const gradient = `linear-gradient(to right, 
+    #333 0%, 
+    #333 ${startPos}%, 
+    ${color} ${startPos}%, 
+    ${color} ${endPos}%, 
+    #333 ${endPos}%, 
+    #333 100%)`;
+
+  this.timelineSlider.style.setProperty('--timeline-background', gradient);
+};
+
+ToolUi.prototype.clearTimelineSliderColoring = function () {
+  if (this.timelineSlider) {
+    this.timelineSlider.style.removeProperty('--timeline-background');
+  }
 };
 
 ToolUi.prototype.updateFboPreviews = function () {
@@ -263,6 +333,30 @@ ToolUi.prototype.getMenuItems = function () {
       action: () => {
         timer.pause(!isPaused);
       }
+    },
+    {
+      label: 'Timer',
+      children: [
+        {
+          label: 'Set StartAt',
+          action: () => {
+            settings.engine.startTime = timer.getTime();
+          }
+        },
+        {
+          label: 'Set LoopAt',
+          action: () => {
+            settings.engine.loopAtTime = timer.getTime();
+          }
+        },
+        {
+          label: 'Reset',
+          action: () => {
+            settings.engine.startTime = 0;
+            settings.engine.loopAtTime = undefined;
+          }
+        }
+      ]
     },
     {
       label: 'FBO',
