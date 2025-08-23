@@ -98,6 +98,20 @@ Scene.prototype.preprocess3dCoordinateAnimation = function (
   }
 };
 
+Scene.prototype.initializeAnimation = function (
+  animationDefinition,
+  animationKey
+) {
+  if (animationDefinition !== undefined) {
+    const animation = animationDefinition[animationKey];
+    if (animation && Utils.isObject(animation) && !Array.isArray(animation)) {
+      animationDefinition[animationKey] = [animation];
+    }
+  }
+
+  this.setSyncDefaults(animationDefinition, animationKey);
+};
+
 Scene.prototype.setSyncDefaults = function (animationDefinition, syncType) {
   if (
     animationDefinition.sync !== undefined &&
@@ -118,7 +132,7 @@ Scene.prototype.preprocessColorAnimation = function (
   animationDefinition,
   animationDefinitionColor
 ) {
-  this.setSyncDefaults(animationDefinition, 'color');
+  this.initializeAnimation(animationDefinition, 'color');
 
   const c = settings.demo.compatibility.oldColors ? 0xff : 1.0;
 
@@ -167,7 +181,7 @@ Scene.prototype.preprocessAngleAnimation = function (
   animationDefinition
 ) {
   if (animationDefinition.angle !== undefined) {
-    this.setSyncDefaults(animationDefinition, 'angle');
+    this.initializeAnimation(animationDefinition, 'angle');
 
     Utils.preprocessTimeAnimation(
       animStart,
@@ -220,7 +234,7 @@ Scene.prototype.preprocessPerspectiveAnimation = function (
   animEnd,
   animationDefinition
 ) {
-  this.setSyncDefaults(animationDefinition, 'perspective');
+  this.initializeAnimation(animationDefinition, 'perspective');
 
   if (animationDefinition.perspective === undefined) {
     animationDefinition.perspective = [{}];
@@ -272,7 +286,7 @@ Scene.prototype.preprocessScaleAnimation = function (
   animEnd,
   animationDefinition
 ) {
-  this.setSyncDefaults(animationDefinition, 'scale');
+  this.initializeAnimation(animationDefinition, 'scale');
 
   if (animationDefinition.scale === undefined) {
     animationDefinition.scale = [{}];
@@ -311,7 +325,7 @@ Scene.prototype.preprocessDimensionAnimation = function (
   animEnd,
   animationDefinition
 ) {
-  this.setSyncDefaults(animationDefinition, 'dimension');
+  this.initializeAnimation(animationDefinition, 'dimension');
 
   if (animationDefinition.dimension === undefined) {
     animationDefinition.dimension = [{}];
@@ -341,7 +355,7 @@ Scene.prototype.preprocessPositionAnimation = function (
 ) {
   // position initialization
   if (animationDefinition.position !== undefined) {
-    this.setSyncDefaults(animationDefinition, 'position');
+    this.initializeAnimation(animationDefinition, 'position');
 
     Utils.preprocessTimeAnimation(
       animStart,
@@ -368,7 +382,7 @@ Scene.prototype.preprocessPivotAnimation = function (
 ) {
   // pivot initialization
   if (animationDefinition.pivot !== undefined) {
-    this.setSyncDefaults(animationDefinition, 'pivot');
+    this.initializeAnimation(animationDefinition, 'pivot');
 
     Utils.preprocessTimeAnimation(
       animStart,
