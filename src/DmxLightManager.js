@@ -90,7 +90,7 @@ DmxLightManager.prototype.isInitialized = function () {
   return this.lightCount > 0;
 };
 
-DmxLightManager.prototype.setHost = function (host) {};
+DmxLightManager.prototype.setHost = function () {};
 
 DmxLightManager.prototype.setPort = function () {};
 

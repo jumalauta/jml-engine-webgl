@@ -84,15 +84,15 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
       this.playStarted = false;
       this.playEnded = true;
     };
-    instance.videoElement.onseeked = (event) => {
+    instance.videoElement.onseeked = () => {
       // console.log(`Video seeked: ${filename} ${event}`);
       this.texture.update();
     };
-    instance.videoElement.ontimeupdate = (event) => {
-      // console.log(`Video time update: ${filename} ${event} ${this.videoElement.currentTime}`);
-    };
+    // instance.videoElement.ontimeupdate = () => {
+    //   // console.log(`Video time update: ${filename} ${event} ${this.videoElement.currentTime}`);
+    // };
 
-    instance.videoElement.oncanplaythrough = (event) => {
+    instance.videoElement.oncanplaythrough = () => {
       instance.texture = new THREE.VideoTexture(instance.videoElement);
       instance.ptr = instance.videoElement;
       instance.startTime = undefined;
@@ -112,7 +112,7 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
         resolve(instance);
       }
     };
-    instance.videoElement.onerror = (event) => {
+    instance.videoElement.onerror = () => {
       loggerWarning(`Video file could not be loaded: ${filename}`);
       reject(instance);
     };
@@ -129,7 +129,7 @@ Video.prototype.setStartTime = function (startTime) {
   this.animationStartTime = startTime;
 };
 
-Video.prototype.setFps = function (fps) {
+Video.prototype.setFps = function () {
   // videoSetFps(this.ptr, fps)
 };
 
@@ -143,7 +143,7 @@ Video.prototype.setLoop = function (loop) {
   this.videoElement.loop = loop;
 };
 
-Video.prototype.setLength = function (length) {
+Video.prototype.setLength = function () {
   // videoSetLength(this.ptr, length)
 };
 

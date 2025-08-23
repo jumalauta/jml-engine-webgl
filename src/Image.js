@@ -252,7 +252,7 @@ Image.prototype.loadTexture = function (filename) {
         instance.height = customImage.height;
         resolve(instance);
       } catch (e) {
-        loggerWarning('Could not load FBO ' + instance.filename);
+        loggerWarning(`Could not load FBO ${instance.filename}: ${e}`);
         reject(instance);
       }
     });
@@ -271,7 +271,7 @@ Image.prototype.loadTexture = function (filename) {
           : fbo.depth.texture[0];
         resolve(instance);
       } catch (e) {
-        loggerWarning('Could not load FBO ' + instance.filename);
+        loggerWarning(`Could not load FBO ${instance.filename}: ${e}`);
         reject(instance);
       }
     });
@@ -340,7 +340,8 @@ Image.prototype.setPosition = function (x, y, z) {
   }
 };
 
-Image.prototype.setCenterAlignment = function (align) {
+Image.prototype.setCenterAlignment = function () {
+  //throw new Error('setCenterAlignment not implemented');
   // setTextureCenterAlignment(this.ptr, align);
 };
 

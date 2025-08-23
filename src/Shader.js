@@ -4,8 +4,7 @@ import {
   loggerDebug,
   loggerInfo,
   loggerWarning,
-  loggerError,
-  loggerTrace
+  loggerError
 } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
@@ -207,10 +206,7 @@ Shader.prototype.load = function () {
         resolve(instance);
       } catch (e) {
         loggerError(
-          'Could not load shader ' +
-            instance.vertexShaderUrl +
-            ' and ' +
-            instance.fragmentShaderUrl
+          `Could not load shader ${instance.vertexShaderUrl} and ${instance.fragmentShaderUrl}: ${e}`
         );
         instance.error = true;
         reject(instance);

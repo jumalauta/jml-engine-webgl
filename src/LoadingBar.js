@@ -35,7 +35,7 @@ LoadingBar.prototype.init = function () {
   const instance = this;
   this.loadingBarTexture = new THREE.TextureLoader().load(
     loaderPicture,
-    function (texture) {
+    function () {
       const shader = {
         uniforms: {
           texture0: { value: instance.loadingBarTexture },
