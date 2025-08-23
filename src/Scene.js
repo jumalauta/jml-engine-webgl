@@ -526,7 +526,13 @@ Scene.prototype.addAnimation = function (animationDefinitions) {
       animationLayers[animationDefinition.layer] = [];
     }
 
-    if (animationDefinition.object !== undefined) {
+    if (
+      animationDefinition.object !== undefined ||
+      animationDefinition.shape !== undefined
+    ) {
+      if (animationDefinition.object === undefined) {
+        animationDefinition.object = null;
+      }
       animationDefinition.ref = new Model(animationDefinition);
       if (
         Utils.isString(animationDefinition.object) === true ||
