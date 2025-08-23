@@ -61,13 +61,13 @@ Camera.prototype.setUpVector = function (x, y, z) {
 };
 
 Camera.prototype.setPositionObject = function () {
-  throw new Error('setPositionObject not implemented');
+  //throw new Error('setPositionObject not implemented');
   // loggerDebug("setPositionObject not implemented");
   // setCameraPositionObject(modelPtr);
 };
 
 Camera.prototype.setTargetObject = function () {
-  throw new Error('setTargetObject not implemented');
+  //throw new Error('setTargetObject not implemented');
   // loggerDebug("setTargetObject not implemented");
   // setCameraTargetObject(modelPtr);
 };
