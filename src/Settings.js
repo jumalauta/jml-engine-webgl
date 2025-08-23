@@ -41,7 +41,10 @@ Settings.prototype.init = function () {
     webDemoExe: false, // true = build for https://github.com/pandrr/WebDemoExe/ executable
     autoStart: false, // start demo automatically when the page is loaded skipping menu / user interaction, this may disable sound until user interaction happens
     startTime: 0, // place of time where the demo starts
-    fps: 60 // frames per second
+    fps: 60, // frames per second
+    material: {
+      mapTypes: ['map', 'envMap'] // map types recognized by the engine in image loading
+    }
   };
 
   this.tool = {
@@ -112,34 +115,34 @@ Settings.prototype.init = function () {
         }
       }
     },
+    cubeMap: {
+      renderTarget: {
+        size: 512,
+        options: {
+          // generateMipmaps: false,
+          // minFilter: 'LinearFilter',
+          // magFilter: 'LinearFilter',
+          // wrapS: 'ClampToEdgeWrapping',
+          // wrapT: 'ClampToEdgeWrapping',
+          // format: 'RGBAFormat',
+          // type: 'UnsignedByteType',
+          // anisotropy: 1,
+          // colorSpace: 'NoColorSpace',
+          // depthBuffer: true,
+          // stencilBuffer: false
+        },
+        texture: {
+          type: 'HalfFloatType'
+          // encoding: 'LinearEncoding'
+        }
+      },
+      camera: {
+        near: 0.1, // near clipping plane
+        far: 1000 // far clipping plane
+      }
+    },
     model: {
       shape: {
-        cubeMap: {
-          renderTarget: {
-            size: 512,
-            options: {
-              // generateMipmaps: false,
-              // minFilter: 'LinearFilter',
-              // magFilter: 'LinearFilter',
-              // wrapS: 'ClampToEdgeWrapping',
-              // wrapT: 'ClampToEdgeWrapping',
-              // format: 'RGBAFormat',
-              // type: 'UnsignedByteType',
-              // anisotropy: 1,
-              // colorSpace: 'NoColorSpace',
-              // depthBuffer: true,
-              // stencilBuffer: false
-            },
-            texture: {
-              type: 'HalfFloatType'
-              // encoding: 'LinearEncoding'
-            }
-          },
-          camera: {
-            near: 0.1, // near clipping plane
-            far: 1000 // far clipping plane
-          }
-        },
         material: {
           type: 'Phong', // default material type for 3D shapes
           transparent: true // whether the material is transparent
@@ -375,7 +378,7 @@ Settings.prototype.createRenderer = function (canvas) {
   return renderer;
 };
 
-Settings.prototype.createMaterial = function (materialSettings, options) {
+Settings.prototype.createMaterial = function (materialSettings) {
   let MaterialType =
     THREE['Mesh' + (materialSettings.type || 'Basic') + 'Material'];
   if (!MaterialType || (!MaterialType.prototype) instanceof THREE.Material) {
@@ -385,10 +388,6 @@ Settings.prototype.createMaterial = function (materialSettings, options) {
 
   const material = new MaterialType();
   this.toThreeJsProperties(materialSettings, material);
-
-  if (options?.cubeMap?.renderTarget?.texture) {
-    material.envMap = options.cubeMap.renderTarget.texture;
-  }
 
   return material;
 };

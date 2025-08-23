@@ -756,18 +756,10 @@ Player.prototype.animationRendererUpdate = function (
   demoRenderer,
   fbo
 ) {
-  if (animation.ref?.cubeMap?.camera) {
+  if (animation.ref?.cubeMap) {
     const renderer = demoRenderer.renderer;
     const scene = fbo?.scene || getScene();
-
-    if (!renderer) {
-      throw new Error('Renderer is not defined');
-    }
-    if (!scene) {
-      throw new Error('Scene is not defined');
-    }
-
-    animation.ref.cubeMap.camera.update(renderer, scene);
+    animation.ref.cubeMap.update(renderer, scene);
   }
 };
 

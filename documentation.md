@@ -670,13 +670,15 @@ this.loader.addAnimation({
 
 ```JavaScript
   this.loader.addAnimation({
-    object: null,
     // cubeMap object initializes cubemap as environment map of the object's material
     // You can add settings as parameters inside the property, or go with the defaults from
-    // settings.demo.model.shape.cubeMap
-    cubeMap: {},
+    // settings.demo.cubeMap
+    cubeMap: {
+      name: 'cube1' // name of the texture, can be referred to as 'cube1.cube.map' image
+    },
     material: {
       type: 'Standard',
+      envMap: 'cube1.cube.map', // cubemap texture name
       roughness: 0.1,
       metalness: 0.8
     },

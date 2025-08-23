@@ -6,6 +6,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader';
 import { loggerDebug, loggerWarning } from './Bindings';
 import { Image } from './Image';
 import { FileManager } from './FileManager';
+import { CubeMap } from './CubeMap';
 import { Instancer } from './Instancer';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
@@ -26,9 +27,12 @@ const Model = function (animationDefinition) {
   }
 
   this.materialProperties = animationDefinition.material || {};
-  this.cubeMapProperties = animationDefinition.cubeMap;
   this.additive = animationDefinition.additive === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
+
+  if (animationDefinition.cubeMap) {
+    this.cubeMap = new CubeMap(animationDefinition.cubeMap);
+  }
 };
 
 Model.prototype.getMeshNames = function () {
@@ -113,47 +117,16 @@ Model.prototype.load = function (filename) {
           shapeMaterial.type = 'Basic';
         }
 
-        shapeMaterialSettings = Utils.deepCopyJson({
+        shapeMaterialSettings = {
           ...settings.demo.model.shape.material,
           ...shapeTypeDefaultSettings.material,
           ...this.materialProperties,
           ...shapeMaterial
-        });
+        };
 
-        if (this.cubeMapProperties) {
-          const cubeMapSettings = Utils.deepCopyJson({
-            ...settings.demo.model.shape.cubeMap,
-            ...shapeTypeDefaultSettings.cubeMap,
-            ...this.cubeMapProperties
-          });
+        const material = settings.createMaterial(shapeMaterialSettings);
 
-          const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(
-            cubeMapSettings.renderTarget.size
-          );
-          settings.toThreeJsProperties(
-            cubeMapSettings.renderTarget.options,
-            cubeRenderTarget
-          );
-          settings.toThreeJsProperties(
-            cubeMapSettings.renderTarget.texture,
-            cubeRenderTarget.texture
-          );
-          const cubeCamera = new THREE.CubeCamera(
-            cubeMapSettings.camera.near,
-            cubeMapSettings.camera.far,
-            cubeRenderTarget
-          );
-          instance.cubeMap = {
-            renderTarget: cubeRenderTarget,
-            camera: cubeCamera
-          };
-        }
-
-        const material = settings.createMaterial(shapeMaterialSettings, {
-          cubeMap: instance.cubeMap
-        });
-
-        const defaultSize = 0.4;
+        const defaultSize = instance.shape.size || 0.4;
         if (instance.shape.type === 'SKYSPHERE') {
           object = instance.instancer.createMesh(
             new THREE.SphereGeometry(
@@ -180,7 +153,6 @@ Model.prototype.load = function (filename) {
             instance.shape.tension || 0.5
           );
 
-          const shapeSize = instance.shape.size || defaultSize;
           const shapePrecision = instance.shape.precision || 2;
           const shapePointArray = Utils.isFunction(instance.shape.function)
             ? instance.shape.function(instance.shape)
@@ -189,8 +161,8 @@ Model.prototype.load = function (filename) {
                 for (let i = 0; i < shapePrecision; i++) {
                   const angleRad = (i / shapePrecision) * 2 * Math.PI;
                   pointArray.push([
-                    Math.sin(angleRad) * shapeSize,
-                    Math.cos(angleRad) * shapeSize
+                    Math.sin(angleRad) * defaultSize,
+                    Math.cos(angleRad) * defaultSize
                   ]);
                 }
 
@@ -240,7 +212,10 @@ Model.prototype.load = function (filename) {
             new THREE.BoxGeometry(
               instance.shape.width || defaultSize,
               instance.shape.height || defaultSize,
-              instance.shape.depth || defaultSize
+              instance.shape.depth || defaultSize,
+              instance.shape.widthSegments || 1,
+              instance.shape.heightSegments || 1,
+              instance.shape.depthSegments || 1
             ),
             material
           );
