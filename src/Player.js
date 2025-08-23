@@ -4,10 +4,8 @@ import { Shader } from './Shader';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { DemoRenderer, getScene, getCamera } from './DemoRenderer';
-import { Loader } from './Loader';
 import { DmxLightManager } from './DmxLightManager';
 import { Input } from './Input';
-import { loggerWarning } from './Bindings';
 
 window.DmxLightManager = DmxLightManager;
 
@@ -235,10 +233,15 @@ Player.prototype.calculateAngleAnimation = function (time, animation) {
     degreesZ: 0,
     x: 1,
     y: 1,
-    z: 1
+    z: 1,
+    order: undefined
   };
 
   if (animation.angle !== undefined) {
+    obj.order = Utils.evaluateVariable(
+      animation.angle[0],
+      animation.angle[0].order || obj.order
+    );
     obj.degreesX = Utils.evaluateVariable(
       animation.angle[0],
       animation.angle[0].degreesX
@@ -271,6 +274,7 @@ Player.prototype.calculateAngleAnimation = function (time, animation) {
       if (timeAdjusted >= angle.start) {
         const p = (timeAdjusted - angle.start) / angle.duration;
 
+        obj.order = Utils.evaluateVariable(angle, angle.order || obj.order);
         obj.degreesX = _interpolate(
           p,
           obj.degreesX,
@@ -324,7 +328,8 @@ Player.prototype.drawImageAnimation = function (time, animation) {
       angle.degreesZ,
       angle.x,
       angle.y,
-      angle.z
+      angle.z,
+      angle.order
     );
   }
 
@@ -399,7 +404,12 @@ Player.prototype.drawTextAnimation = function (time, animation) {
 
   if (animation.angle !== undefined) {
     const angle = this.calculateAngleAnimation(time, animation);
-    animation.ref.setRotation(angle.degreesX, angle.degreesY, angle.degreesZ);
+    animation.ref.setRotation(
+      angle.degreesX,
+      angle.degreesY,
+      angle.degreesZ,
+      angle.order
+    );
   }
 
   const scale = this.calculateScaleAnimation(time, animation);
@@ -493,7 +503,8 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
             angle.degreesZ,
             angle.x,
             angle.y,
-            angle.z
+            angle.z,
+            angle.order
           );
         }
       }
@@ -513,7 +524,8 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
         angle.degreesZ,
         angle.x,
         angle.y,
-        angle.z
+        angle.z,
+        angle.order
       );
     } else {
       animation.ref.setRotation(0, 0, 0, 1, 1, 1);
@@ -651,7 +663,12 @@ Player.prototype.drawCameraAnimation = function (time, animation) {
   }
   if (animation.angle !== undefined) {
     const angle = this.calculateAngleAnimation(time, animation);
-    animation.ref.setRotation(angle.degreesX, angle.degreesY, angle.degreesZ);
+    animation.ref.setRotation(
+      angle.degreesX,
+      angle.degreesY,
+      angle.degreesZ,
+      angle.order
+    );
   }
   if (animation.lookAt !== undefined) {
     const lookAt = this.calculate3dCoordinateAnimation(time, animation.lookAt, {

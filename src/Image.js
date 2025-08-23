@@ -299,8 +299,18 @@ Image.prototype.setPerspective2d = function (perspective2d) {
   this.perspective2d = perspective2d === true;
 };
 
-Image.prototype.setRotation = function (degreesX, degreesY, degreesZ, x, y, z) {
+Image.prototype.setRotation = function (
+  degreesX,
+  degreesY,
+  degreesZ,
+  x,
+  y,
+  z,
+  order
+) {
   // setTextureRotation(this.ptr, degreesX, degreesY, degreesZ, x, y, z);
+
+  this.mesh.rotation.order = order || 'XYZ';
 
   if (this.sprite) {
     this.mesh.material.rotation = (degreesZ * Math.PI) / 180;

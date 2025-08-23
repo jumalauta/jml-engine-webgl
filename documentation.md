@@ -217,11 +217,12 @@ If you do not need to define more than one animation primitive you can skip arra
 ```
 
 ```JavaScript
-"angle": [
+angle: [
     {
-         "degreesX":0  //3d angle degrees X - default is 0
-        ,"degreesY":0  //3d angle degrees Y - default is 0
-        ,"degreesZ":0  //2d/3d angle degrees Z - default is 0
+         degreesX:0  // 3d angle degrees X - default is 0
+        ,degreesY:0  // 3d angle degrees Y - default is 0
+        ,degreesZ:0  // 2d/3d angle degrees Z - default is 0
+        ,order:'XYZ' // The order to apply rotations - default is 'XYZ', which means that the object will first be rotated around its X axis etc
     }
 ]
 ```
