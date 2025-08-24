@@ -553,6 +553,14 @@ function windowResize() {
 
 window.addEventListener('resize', windowResize, false);
 
+// The error event is fired on a Window object when a resource failed to load or couldn't be used
+// for example if a script has an execution error
+window.addEventListener('error', (event) => {
+  if (event.error) {
+    loggerError(`${event.error.name}: ${event.message}`);
+  }
+});
+
 function rewindTime(time) {
   if (Effect.loading) {
     settings.engine.preload = false; // skip preloading
