@@ -224,7 +224,7 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
   }
 
   this.controls = new OrbitControls(camera, canvas);
-  this.controls.target.set(0, 0, -10);
+  //this.controls.target.set(0, 0, -10);
   this.controls.update();
   this.controls.enablePan = false;
   this.controls.enableDamping = true;
