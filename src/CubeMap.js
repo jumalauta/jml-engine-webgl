@@ -73,7 +73,9 @@ CubeMap.prototype.update = function (renderer, scene) {
     throw new Error('Scene is not defined');
   }
 
-  this.cubeCamera.update(renderer, scene);
+  if (this.cubeCamera) {
+    this.cubeCamera.update(renderer, scene);
+  }
 };
 
 CubeMap.prototype.dispose = function () {

@@ -756,7 +756,7 @@ Player.prototype.animationRendererUpdate = function (
   demoRenderer,
   fbo
 ) {
-  if (animation.ref?.cubeMap) {
+  if (animation.ref?.cubeMap?.update) {
     const renderer = demoRenderer.renderer;
     const scene = fbo?.scene || getScene();
     animation.ref.cubeMap.update(renderer, scene);
