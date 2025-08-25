@@ -366,12 +366,16 @@ Shader.compileAndLinkShaders = function () {
 }; */
 
 function insertBeforeLastOccurrence(str, insert, find) {
+  if (!str) {
+    loggerError(`Shader source code is empty, cannot search: '${find}'`);
+    return undefined;
+  }
   const index = str.lastIndexOf(find);
   if (index === -1) {
     loggerError(
-      `Internal error! Could not find place to inject shader code: ${find}`
+      `Could not find place to inject shader code: '${find}', source: ${str}`
     );
-    return;
+    return str;
   }
   return str.substring(0, index) + insert + '\n' + str.substring(index);
 }
@@ -512,6 +516,13 @@ Shader.enableShader = function (animation) {
             ...variable.value
           ]);
         } else {
+          if (uniforms[variable.name] === undefined) {
+            loggerWarning(
+              `Uniform '${variable.name}' not found, cannot set value. Available uniforms: ${Object.keys(uniforms).join(', ')}`
+            );
+            return;
+          }
+
           if (variable.name === 'texture0' && animation.ref.texture) {
             uniforms[variable.name].value = animation.ref.texture[0];
           } else if (
