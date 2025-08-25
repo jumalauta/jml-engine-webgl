@@ -99,7 +99,7 @@ Scene.prototype.preprocess3dCoordinateAnimation = function (
   }
 };
 
-Scene.prototype.initializeAnimation = function (
+Scene.prototype.initializeAnimationArray = function (
   animationDefinition,
   animationKey
 ) {
@@ -109,6 +109,13 @@ Scene.prototype.initializeAnimation = function (
       animationDefinition[animationKey] = [animation];
     }
   }
+};
+
+Scene.prototype.initializeAnimation = function (
+  animationDefinition,
+  animationKey
+) {
+  this.initializeAnimationArray(animationDefinition, animationKey);
 
   this.setSyncDefaults(animationDefinition, animationKey);
 };
@@ -1131,6 +1138,16 @@ Scene.prototype.processAnimation = function () {
           );
         } else if (animationDefinition.light !== undefined) {
           animationDefinition.type = 'light';
+          const animStart = startTime;
+          const animEnd = endTime;
+          const animDuration = animEnd - animStart;
+          this.preprocessAnimationDefinitions(
+            animStart,
+            animDuration,
+            animEnd,
+            animationDefinition
+          );
+
           animationDefinition.ref = new Light(animationDefinition);
           parentObject.add(animationDefinition.ref.mesh);
           if (animationDefinition.ref.mesh2) {
@@ -1175,16 +1192,9 @@ Scene.prototype.processAnimation = function () {
             animStart = startTime;
             animEnd = startTime;
             animDuration = animEnd - animStart;
-            if (
-              animationDefinition.sync !== undefined &&
-              animationDefinition.sync.lookAt === undefined
-            ) {
-              if (animationDefinition.sync.all === true) {
-                animationDefinition.sync.lookAt = true;
-              } else {
-                animationDefinition.sync.lookAt = false;
-              }
-            }
+
+            this.initializeAnimation(animationDefinition, 'lookAt');
+
             Utils.preprocessTimeAnimation(
               animStart,
               animDuration,
@@ -1204,16 +1214,9 @@ Scene.prototype.processAnimation = function () {
             animStart = startTime;
             animEnd = startTime;
             animDuration = animEnd - animStart;
-            if (
-              animationDefinition.sync !== undefined &&
-              animationDefinition.sync.up === undefined
-            ) {
-              if (animationDefinition.sync.all === true) {
-                animationDefinition.sync.up = true;
-              } else {
-                animationDefinition.sync.up = false;
-              }
-            }
+
+            this.initializeAnimation(animationDefinition, 'up');
+
             Utils.preprocessTimeAnimation(
               animStart,
               animDuration,
