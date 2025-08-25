@@ -228,6 +228,9 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
   this.controls.update();
   this.controls.enablePan = false;
   this.controls.enableDamping = true;
+  this.controls.addEventListener('change', () => {
+    this.renderNeedsUpdate = true;
+  });
 };
 
 DemoRenderer.prototype.renderScene = function () {
