@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
@@ -136,7 +137,12 @@ Model.prototype.load = function (filename) {
             ),
             material
           );
-        } else if (instance.shape.type === 'SPLINE') {
+        } else if (
+          instance.shape.type === 'LINE' ||
+          instance.shape.type === 'SPLINE'
+        ) {
+          const isSpline = instance.shape.type === 'SPLINE';
+
           const splinePoints = [];
           instance.shape.points.forEach((point) => {
             let p = point;
@@ -153,35 +159,36 @@ Model.prototype.load = function (filename) {
             instance.shape.tension || 0.5
           );
 
-          const shapePrecision = instance.shape.precision || 2;
-          const shapePointArray = Utils.isFunction(instance.shape.function)
-            ? instance.shape.function(instance.shape)
-            : (() => {
-                const pointArray = [];
-                for (let i = 0; i < shapePrecision; i++) {
-                  const angleRad = (i / shapePrecision) * 2 * Math.PI;
-                  pointArray.push([
-                    Math.sin(angleRad) * defaultSize,
-                    Math.cos(angleRad) * defaultSize
-                  ]);
-                }
+          let geometry = undefined;
 
-                return pointArray;
-              })();
+          if (isSpline) {
+            const shapePrecision = instance.shape.precision || 2;
+            const shapePointArray = Utils.isFunction(instance.shape.function)
+              ? instance.shape.function(instance.shape)
+              : (() => {
+                  const pointArray = [];
+                  for (let i = 0; i < shapePrecision; i++) {
+                    const angleRad = (i / shapePrecision) * 2 * Math.PI;
+                    pointArray.push([
+                      Math.sin(angleRad) * defaultSize,
+                      Math.cos(angleRad) * defaultSize
+                    ]);
+                  }
 
-          const shapePoints = [];
-          shapePointArray.forEach((point) => {
-            let p = point;
-            if (point instanceof Array) {
-              p = { x: point[0], y: point[1], z: point[2] || 0 };
-            }
+                  return pointArray;
+                })();
 
-            shapePoints.push(new THREE.Vector3(p.x, p.y, p.z));
-          });
+            const shapePoints = [];
+            shapePointArray.forEach((point) => {
+              let p = point;
+              if (point instanceof Array) {
+                p = { x: point[0], y: point[1], z: point[2] || 0 };
+              }
 
-          const geometry = new THREE.ExtrudeGeometry(
-            new THREE.Shape(shapePoints),
-            {
+              shapePoints.push(new THREE.Vector3(p.x, p.y, p.z));
+            });
+
+            geometry = new THREE.ExtrudeGeometry(new THREE.Shape(shapePoints), {
               curveSegments: instance.shape.extrudeSettings.curveSegments || 12,
               steps: instance.shape.extrudeSettings.steps || 1,
               depth: instance.shape.extrudeSettings.depth || 1,
@@ -194,8 +201,24 @@ Model.prototype.load = function (filename) {
               bevelSegments: instance.shape.extrudeSettings.bevelSegments || 0,
               extrudePath: splinePath
               // UVGenerator -  object that provides UV generator functions
+            });
+          } else {
+            const smoothPoints = [];
+
+            const shapePrecision = instance.shape.precision || 1;
+            const divisions = Math.round(shapePrecision * splinePoints.length);
+
+            for (let i = 0; i < divisions; i++) {
+              const t = i / divisions;
+
+              const point = new THREE.Vector3();
+              splinePath.getPoint(t, point);
+              smoothPoints.push(point.x, point.y, point.z);
             }
-          );
+
+            geometry = new LineGeometry();
+            geometry.setPositions(smoothPoints);
+          }
 
           object = instance.instancer.createMesh(geometry, material);
         } else if (instance.shape.type === 'SPHERE') {
