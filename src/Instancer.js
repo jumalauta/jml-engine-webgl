@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Line2 } from 'three/addons/lines/Line2.js';
 import { getCamera } from './DemoRenderer';
 
 const Instancer = function (animationObjectInstance, instancerDefinition) {
@@ -171,6 +172,10 @@ Instancer.prototype.createMesh = function (geometry, material) {
       mesh = this.createInstancedMesh(geometry, material);
     } else if (material.isSpriteMaterial) {
       mesh = new THREE.Sprite(material);
+    } else if (geometry.isLineGeometry) {
+      mesh = new Line2(geometry, material);
+      mesh.computeLineDistances();
+      mesh.scale.set(1, 1, 1);
     } else {
       mesh = new THREE.Mesh(geometry, material);
     }

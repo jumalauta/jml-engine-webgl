@@ -1,6 +1,11 @@
 import * as THREE from 'three';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { loggerWarning } from './Bindings';
 import { Utils } from './Utils';
+
+const THREEAddons = {
+  LineMaterial: LineMaterial
+};
 
 const Settings = function () {
   return this.getInstance();
@@ -151,6 +156,12 @@ Settings.prototype.init = function () {
         skysphere: {
           material: {
             type: 'Basic', // default material type for skysphere
+            transparent: true // whether the material is transparent
+          }
+        },
+        line: {
+          material: {
+            type: 'Line', // default material type for line
             transparent: true // whether the material is transparent
           }
         }
@@ -379,15 +390,25 @@ Settings.prototype.createRenderer = function (canvas) {
   return renderer;
 };
 
-Settings.prototype.createMaterial = function (materialSettings) {
-  let MaterialType =
-    THREE['Mesh' + (materialSettings.type || 'Basic') + 'Material'];
-  if (!MaterialType || (!MaterialType.prototype) instanceof THREE.Material) {
-    loggerWarning('Unsupported material type: ' + materialSettings.type);
-    MaterialType = THREE.MeshBasicMaterial;
+Settings.prototype.getMaterialClass = function (type) {
+  let materialClass =
+    THREE['Mesh' + (type || 'Basic') + 'Material'] ||
+    THREE[type + 'Material'] ||
+    THREEAddons['Mesh' + (type || 'Basic') + 'Material'] ||
+    THREEAddons[type + 'Material'];
+
+  if (!materialClass || (!materialClass.prototype) instanceof THREE.Material) {
+    loggerWarning('Unsupported material type: ' + type);
+    materialClass = THREE.MeshBasicMaterial;
   }
 
-  const material = new MaterialType();
+  return materialClass;
+};
+
+Settings.prototype.createMaterial = function (materialSettings) {
+  const materialClass = this.getMaterialClass(materialSettings.type);
+
+  const material = new materialClass();
   this.toThreeJsProperties(materialSettings, material);
 
   return material;
