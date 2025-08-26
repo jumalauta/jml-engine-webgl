@@ -32,11 +32,9 @@
     "node": ">=20"
   },
   "dependencies": {
-    "ace-builds": "^1.43.2",
-    "clipboard": "^2.0.11",
     "dat.gui": "^0.7.9",
     "stats.js": "^0.17.0",
-    "three": "^0.165.0"
+    "three": "^0.179.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

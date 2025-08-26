@@ -485,6 +485,18 @@ Scene.prototype.preloadMaterialProperties = function (
   }
 
   if (animationDefinition.material) {
+    if (
+      animationDefinition.material.blending &&
+      animationDefinition.material.premultipliedAlpha === undefined
+    ) {
+      if (
+        animationDefinition.material.blending === 'SubtractiveBlending' ||
+        animationDefinition.material.blending === 'MultiplyBlending'
+      ) {
+        animationDefinition.material.premultipliedAlpha = true;
+      }
+    }
+
     settings.engine.material.mapTypes.forEach((map) => {
       if (map in animationDefinition.material) {
         const mapValue = animationDefinition.material[map];
