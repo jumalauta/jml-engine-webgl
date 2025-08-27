@@ -176,7 +176,7 @@ Sync.setMidiSync = function (variable, callback, options) {
   }
 };
 
-Sync.get = function (name) {
+Sync.get = function (name, defaultValue = 0.0) {
   const sync = new Sync();
 
   if (sync.rocketReady) {
@@ -188,15 +188,25 @@ Sync.get = function (name) {
 
     if (track) {
       const row = sync.getRow();
-      return track.getValue(row) || 0;
+      const value = track.getValue(row);
+      if (value !== undefined) {
+        return value;
+      } else {
+        return defaultValue;
+      }
     }
   }
 
   if (sync.midiReady) {
-    return sync.midiManager.callSync(name) || 0;
+    const value = sync.midiManager.callSync(name);
+    if (value !== undefined) {
+      return value;
+    } else {
+      return defaultValue;
+    }
   }
 
-  return 0;
+  return defaultValue;
 };
 
 Sync.getSyncValue = Sync.get;

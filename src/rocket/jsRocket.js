@@ -70,7 +70,7 @@ JSRocket.Track = function () {
         var keys = Object.keys(data);
 
         if (!keys.length) {
-            return 0.0;
+            return undefined; // JML Engine change
         }
 
         var idx = findKeyIndex(keys, Math.floor(row));
