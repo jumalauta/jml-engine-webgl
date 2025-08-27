@@ -498,6 +498,8 @@ this.loader.addAnimation({
 });
 ```
 
+It's also possible to use default values if you want defaults prior actual syncing is started, example: `Sync.get('vinyl.scratch', 2.0)` where 2.0 will be used is sync is not having any values yet.
+
 #### Use MIDI for syncing
 
 ```JavaScript
