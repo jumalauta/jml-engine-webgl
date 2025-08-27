@@ -49,7 +49,7 @@ Settings.prototype.init = function () {
     loopAtTime: undefined, // place of time when the demo loops to startTime
     fps: 60, // frames per second
     material: {
-      mapTypes: ['map', 'envMap'] // map types recognized by the engine in image loading
+      mapTypes: ['map', 'envMap', 'bumpMap', 'normalMap'] // map types recognized by the engine in image loading
     }
   };
 
