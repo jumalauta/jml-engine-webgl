@@ -123,7 +123,7 @@ Settings.prototype.init = function () {
     },
     cubeMap: {
       renderTarget: {
-        size: 512,
+        size: 1024,
         options: {
           // generateMipmaps: false,
           // minFilter: 'LinearFilter',
