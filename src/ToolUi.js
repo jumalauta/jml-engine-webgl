@@ -17,6 +17,7 @@ import { loggerInfo, loggerWarning } from './Bindings';
 import { Utils } from './Utils';
 import { Fbo } from './Fbo';
 import { DemoRenderer } from './DemoRenderer';
+import { ToolClient } from './ToolClient';
 import './ToolUi.css';
 
 const settings = new Settings();
@@ -332,6 +333,13 @@ ToolUi.prototype.getMenuItems = function () {
       label: isPaused ? 'Resume' : 'Pause',
       action: () => {
         timer.pause(!isPaused);
+      }
+    },
+    {
+      label: 'Check unused files',
+      action: () => {
+        const toolClient = new ToolClient();
+        toolClient.showUnusedFiles();
       }
     },
     {

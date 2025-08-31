@@ -31,7 +31,8 @@ AudioFile.prototype.load = function (url) {
     throw new Error('Unsupported AudioFile format ' + url);
   }
 
-  const path = new FileManager().getPath(url);
+  const fileManager = new FileManager();
+  const path = fileManager.getPath(url);
 
   const instance = this;
   return new Promise((resolve, reject) => {
@@ -50,6 +51,8 @@ AudioFile.prototype.load = function (url) {
     loader.load(
       path,
       function (buffer) {
+        fileManager.monitorFile(url);
+
         instance.listener = new THREE.AudioListener();
         instance.audio = new THREE.Audio(instance.listener);
         instance.audio.setBuffer(buffer);

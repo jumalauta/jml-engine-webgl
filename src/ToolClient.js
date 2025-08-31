@@ -162,6 +162,18 @@ ToolClient.prototype.handleResponse = function (msg) {
   }
 };
 
+ToolClient.prototype.showUnusedFiles = function () {
+  return this.request('fs.showUnusedFiles')
+    .then((response) => {
+      const { unusedFiles } = response;
+      loggerInfo('Unused files:', unusedFiles);
+      return unusedFiles;
+    })
+    .catch((error) => {
+      loggerWarning('Error showing unused files', error);
+    });
+};
+
 ToolClient.prototype.synchronizeSettings = function () {
   try {
     if (this.state === STATE.CONNECTING) {

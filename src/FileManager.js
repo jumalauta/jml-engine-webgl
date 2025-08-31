@@ -537,14 +537,14 @@ FileManager.prototype.monitorFile = function (filePath) {
     settings.engine.tool &&
     !filePath.startsWith('_embedded/') &&
     !filePath.endsWith('.fbo') &&
-    filePath !== 'spectogram.png' &&
+    !filePath.endsWith('.map') &&
     filePath !== './playlist.js'
   ) {
     try {
       const toolClient = new ToolClient();
       toolClient.notify('fs.monitorFile', { path: filePath });
     } catch (err) {
-      loggerDebug(`Failed to start monitoring file: ${filePath}: ${err}`);
+      loggerDebug(`Failed to start monitoring file: ${filePath}`, err);
     }
   }
 };
