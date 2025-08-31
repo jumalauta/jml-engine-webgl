@@ -2,6 +2,7 @@ import { pino } from 'pino';
 import {
   stat,
   readFile as fsReadFile,
+  readdir,
   access,
   constants
 } from 'node:fs/promises';
@@ -217,6 +218,49 @@ FileSystem.prototype.stopFileWatch = function () {
   this.contentCache.clear();
 };
 
+FileSystem.prototype.getAllFiles = async function (dirPath = '') {
+  const allFiles = [];
+  const absoluteDirPath = dirPath
+    ? this.toAbsolutePath(dirPath)
+    : this.projectAbsolutePath;
+
+  try {
+    const entries = await readdir(absoluteDirPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      // skip hidden files and directories (starting with '.'), e.g., ".git" etc
+      if (entry.name.startsWith('.')) {
+        continue;
+      }
+
+      const relativePath = dirPath ? `${dirPath}/${entry.name}` : entry.name;
+      const absolutePath = this.toAbsolutePath(relativePath);
+
+      if (entry.isDirectory()) {
+        const subFiles = await this.getAllFiles(relativePath);
+        allFiles.push(...subFiles);
+      } else if (entry.isFile()) {
+        allFiles.push({ relativePath, absolutePath });
+      }
+    }
+  } catch (err) {
+    this.logger.warn({ err, absoluteDirPath }, 'Error reading directory');
+  }
+
+  return allFiles;
+};
+
+FileSystem.prototype.getUnusedFiles = async function () {
+  const allFiles = await this.getAllFiles();
+  const monitoredPaths = new Set(this.watchers.keys());
+
+  const unusedFiles = allFiles.filter(
+    (file) => !monitoredPaths.has(file.absolutePath)
+  );
+
+  return unusedFiles.map((file) => file.relativePath);
+};
+
 const getProjectPath = async (ws) => {
   assert(
     ws.state.settings?.engine?.demoPathPrefix,
@@ -305,6 +349,38 @@ const handleFileSystemMessage = async (ws, msg) => {
       return;
     } catch (err) {
       ws.logger.child({ err }).error('Failed to stop file watch');
+      if (id !== undefined) {
+        ws.sendError(id, -32603, 'Internal error', err.message);
+      }
+      return;
+    }
+  }
+
+  if (method === 'fs.showUnusedFiles') {
+    try {
+      const fileSystem = await ensureFileSystem(ws);
+      const unusedFiles = await fileSystem.getUnusedFiles();
+
+      ws.logger.info({ count: unusedFiles.length }, 'Found unused files');
+
+      if (unusedFiles.length === 0) {
+        ws.logger.info('No unused files found');
+      } else {
+        ws.logger.info('Unused files:');
+        unusedFiles.forEach((file) => {
+          ws.logger.info(`  ${file}`);
+        });
+      }
+
+      if (id !== undefined) {
+        ws.sendResponse(id, {
+          unusedFiles,
+          count: unusedFiles.length
+        });
+      }
+      return;
+    } catch (err) {
+      ws.logger.child({ err }).error('Failed to show unused files');
       if (id !== undefined) {
         ws.sendError(id, -32603, 'Internal error', err.message);
       }

@@ -110,7 +110,11 @@ Sync.prototype.initDevice = function (webSocket) {
       loggerDebug('Loading GNU Rocket via WebSocket');
       instance.syncDevice.init();
     } else {
-      const path = new FileManager().getPath(settings.demo.sync.rocketFile);
+      const fileManager = new FileManager();
+      const filePath = settings.demo.sync.rocketFile;
+      const path = fileManager.getPath(filePath);
+      fileManager.monitorFile(filePath);
+
       loggerDebug('Loading GNU Rocket from XML: ' + path);
       instance.syncDevice.setConfig({
         rocketXML: path
