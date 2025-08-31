@@ -28,7 +28,7 @@ function showAlertBanner(message, type = 'error') {
   }
 }
 
-function log(type, txt) {
+function log(type, txt, optionalParams) {
   // This console printing thing causes heavy delays in the browser
   // let elem = document.getElementById('panel-console');
   // if (elem) {
@@ -67,7 +67,7 @@ function log(type, txt) {
     time += ` (${(performance.now() - initialTime).toFixed(0)} ms)`;
   }
   const msg = `${time} [${originalType.toUpperCase()}]: ${txt} ${traceText}`;
-  console[type](msg);
+  console[type](msg, optionalParams);
 
   // Show alert banner for specified log levels when in tool mode
   if (
@@ -79,20 +79,20 @@ function log(type, txt) {
   }
 }
 
-export function loggerTrace(txt) {
-  log('trace', txt);
+export function loggerTrace(txt, optionalParams) {
+  log('trace', txt, optionalParams);
 }
-export function loggerDebug(txt) {
-  log('debug', txt);
+export function loggerDebug(txt, optionalParams) {
+  log('debug', txt, optionalParams);
 }
-export function loggerInfo(txt) {
-  log('info', txt);
+export function loggerInfo(txt, optionalParams) {
+  log('info', txt, optionalParams);
 }
-export function loggerWarning(txt) {
-  log('warn', txt);
+export function loggerWarning(txt, optionalParams) {
+  log('warn', txt, optionalParams);
 }
-export function loggerError(txt) {
-  log('error', txt);
+export function loggerError(txt, optionalParams) {
+  log('error', txt, optionalParams);
 }
 
 let windowTitle = '';
