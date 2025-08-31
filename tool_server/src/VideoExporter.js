@@ -120,7 +120,7 @@ const handleCaptureMessage = async (ws, msg) => {
     ws.state.videoExporter = new VideoExporter();
     if (ws.state.settings?.demo?.music?.musicFile) {
       ws.state.videoExporter.setMusicPath(
-        `../public/${ws.state.settings.engine.demoPathPrefix}/${ws.state.settings.demo.music.musicFile}`
+        `public/${ws.state.settings.engine.demoPathPrefix}${ws.state.settings.demo.music.musicFile}`
       );
     }
     ws.state.videoExporter.spawn(
