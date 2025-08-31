@@ -117,6 +117,7 @@ function toolServerPlugin() {
 export default defineConfig(({ command }) => {
   if (command === 'serve') {
     return {
+      appType: 'mpa', // proper 404 responses instead of index.html fallback
       server: {
         hmr: false,
         host: '127.0.0.1',

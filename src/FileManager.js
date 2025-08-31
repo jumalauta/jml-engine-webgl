@@ -155,12 +155,19 @@ FileManager.prototype._transformJavaScriptCode = function (sourceCode) {
   const lines = sourceCode.split('\n');
   const transformedLines = [];
 
+  // remove first line if it contains HTML tag (starts with "<")
+  // this is some persistent issue with MacOS users
+  let startIndex = 0;
+  if (lines.length > 0 && lines[0].trim().startsWith('<')) {
+    startIndex = 1;
+  }
+
   let inTemplateString = false;
   let inSingleQuoteString = false;
   let inDoubleQuoteString = false;
   let braceDepth = 0;
 
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = startIndex; i < lines.length; i++) {
     let line = lines[i];
     let transformedLine = line;
 
@@ -598,19 +605,6 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       this.getUrl(filePath),
       // onLoad callback
       (data) => {
-        if (data[0] === '<') {
-          const logMethod =
-            path === './playlist.js' ? loggerTrace : loggerWarning;
-          logMethod(
-            `${fileManager.getInstanceName(instance)} file not found: ${path}`
-          );
-          if (instance) {
-            instance.error = true;
-          }
-          reject(instance);
-          return;
-        }
-
         fileManager.processPromise(
           resolve,
           reject,
@@ -631,7 +625,7 @@ FileManager.prototype.load = function (filePath, instance, callback) {
           path.endsWith(`/${settings.demo.music.spectogramFile}`)
             ? loggerInfo
             : loggerWarning;
-        logMethod(`${instanceName} file could not be loaded: ${path}: ${err}`);
+        logMethod(`${instanceName} file could not be loaded: ${path}`, err);
         if (instance) {
           instance.error = true;
         }
