@@ -67,7 +67,11 @@ function log(type, txt, optionalParams) {
     time += ` (${(performance.now() - initialTime).toFixed(0)} ms)`;
   }
   const msg = `${time} [${originalType.toUpperCase()}]: ${txt} ${traceText}`;
-  console[type](msg, optionalParams);
+  if (optionalParams) {
+    console[type](msg, optionalParams);
+  } else {
+    console[type](msg);
+  }
 
   // Show alert banner for specified log levels when in tool mode
   if (
