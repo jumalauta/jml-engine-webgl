@@ -165,6 +165,7 @@ FileManager.prototype._transformJavaScriptCode = function (sourceCode) {
   let inTemplateString = false;
   let inSingleQuoteString = false;
   let inDoubleQuoteString = false;
+  let inBlockComment = false;
   let braceDepth = 0;
 
   for (let i = startIndex; i < lines.length; i++) {
@@ -175,12 +176,14 @@ FileManager.prototype._transformJavaScriptCode = function (sourceCode) {
       inTemplateString,
       inSingleQuoteString,
       inDoubleQuoteString,
+      inBlockComment,
       braceDepth
     });
 
-    // only transform if we're not inside any string or brace block
+    // only transform if we're not inside any string, comment, or brace block
     if (
       !stringState.inAnyString &&
+      !stringState.inBlockComment &&
       stringState.braceDepth === 0 &&
       this._isJavaScriptDeclarationLine(line)
     ) {
@@ -202,6 +205,7 @@ FileManager.prototype._transformJavaScriptCode = function (sourceCode) {
     inTemplateString = stringState.inTemplateString;
     inSingleQuoteString = stringState.inSingleQuoteString;
     inDoubleQuoteString = stringState.inDoubleQuoteString;
+    inBlockComment = stringState.inBlockComment;
     braceDepth = stringState.braceDepth;
 
     transformedLines.push(transformedLine);
@@ -218,18 +222,25 @@ FileManager.prototype._updateStringAndBraceState = function (
     inTemplateString,
     inSingleQuoteString,
     inDoubleQuoteString,
+    inBlockComment,
     braceDepth
   } = currentState;
 
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
+    const nextChar = i < line.length - 1 ? line[i + 1] : '';
     const prevChar = i > 0 ? line[i - 1] : '';
 
-    if (prevChar === '\\') {
+    if (prevChar === '\\' && !inBlockComment) {
       continue;
     }
 
-    if (inTemplateString) {
+    if (inBlockComment) {
+      if (char === '*' && nextChar === '/') {
+        inBlockComment = false;
+        i++;
+      }
+    } else if (inTemplateString) {
       if (char === '`') {
         inTemplateString = false;
       }
@@ -242,7 +253,12 @@ FileManager.prototype._updateStringAndBraceState = function (
         inDoubleQuoteString = false;
       }
     } else {
-      if (char === '`') {
+      if (char === '/' && nextChar === '/') {
+        break; // rest of the line is a comment
+      } else if (char === '/' && nextChar === '*') {
+        inBlockComment = true;
+        i++;
+      } else if (char === '`') {
         inTemplateString = true;
       } else if (char === "'") {
         inSingleQuoteString = true;
@@ -260,6 +276,7 @@ FileManager.prototype._updateStringAndBraceState = function (
     inTemplateString,
     inSingleQuoteString,
     inDoubleQuoteString,
+    inBlockComment,
     braceDepth,
     inAnyString: inTemplateString || inSingleQuoteString || inDoubleQuoteString
   };
