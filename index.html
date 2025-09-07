@@ -1,39 +1,98 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <meta name="mobile-web-app-capable" content="yes"/>
-        <meta name="apple-mobile-web-app-capable" content="yes"/> <!-- deprecated -->
-        <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
-        <link rel="stylesheet" href="/style.css">
-        <title>JML Engine</title>
-    </head>
-    <body>
-        <div id="alert-banner" style="display: none; background-color: #f44336; color: white; padding: 15px; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
-            <span id="alert-message"></span>
-            <button onclick="document.getElementById('alert-banner').style.display='none'" style="margin-left: 10px; background: white; color: #f44336; border: none; padding: 5px 10px; cursor: pointer;">✕</button>
-        </div>
-        <canvas id="canvas" hidden></canvas>
-        <div class="menu">
-            <button onclick="startDemo()" id="start">Start</button>
-            <label class="checkbox" id="fullscreenLabel" for="checkbox"><input type="checkbox" id="fullscreen" class="checkbox" name="fullscreen" onclick="toggleFullscreen()"/> Fullscreen</label>
-            <select name="qualityList" id="qualityList">
-                <option value="0.6">Low</option>
-                <option value="0.8">Medium</option>
-                <option value="1.0" selected>High</option>
-            </select>
-            <select name="demoList" id="demoList" hidden></select>
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- deprecated -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>JML Engine</title>
+  </head>
+  <body>
+    <div
+      id="alert-banner"
+      style="
+        display: none;
+        background-color: #f44336;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+      "
+    >
+      <span id="alert-message"></span>
+      <button
+        onclick="document.getElementById('alert-banner').style.display='none'"
+        style="
+          margin-left: 10px;
+          background: white;
+          color: #f44336;
+          border: none;
+          padding: 5px 10px;
+          cursor: pointer;
+        "
+      >
+        ✕
+      </button>
+    </div>
+    <canvas id="canvas" hidden></canvas>
+    <div class="menu">
+      <button onclick="startDemo()" id="start">Start</button>
+      <ul id="external-links">
+        <li id="playerLink" style="display: none">
+          <a href="#" onclick="toggleDemoPlayer()" title="Play demo on browser"
+            >Switch to demo player</a
+          >
+        </li>
+        <li id="youtubeLink" style="display: none">
+          <a
+            href="#"
+            onclick="toggleYouTubePlayer()"
+            title="Play demo on YouTube"
+            >Switch to YouTube</a
+          >
+        </li>
+      </ul>
+      <label class="checkbox" id="fullscreenLabel" for="checkbox"
+        ><input
+          type="checkbox"
+          id="fullscreen"
+          class="checkbox"
+          name="fullscreen"
+          onclick="toggleFullscreen()"
+        />
+        Fullscreen</label
+      >
+      <select name="qualityList" id="qualityList">
+        <option value="0.6">Low</option>
+        <option value="0.8">Medium</option>
+        <option value="1.0" selected>High</option>
+      </select>
+      <select name="demoList" id="demoList" hidden></select>
+    </div>
 
-        <script type="module" src="/src/main.js"></script>
-        <audio id="appleSilence" src="silence.mp3" type="audio/mpeg" loop></audio>
+    <script type="module" src="/src/main.js"></script>
+    <audio id="appleSilence" src="silence.mp3" type="audio/mpeg" loop></audio>
 
-        <div id="panel">
-            <input type="range" min="0" max="1000" value="0" class="slider" id="timeline-slider" hidden/>
-        </div>
-    </body>
+    <div id="panel">
+      <input
+        type="range"
+        min="0"
+        max="1000"
+        value="0"
+        class="slider"
+        id="timeline-slider"
+        hidden
+      />
+    </div>
+  </body>
 </html>
