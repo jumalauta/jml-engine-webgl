@@ -36,7 +36,26 @@ const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
 
+const playlistOptions = {};
 function setDemoPathPrefix(prefix) {
+  const options = playlistOptions[prefix];
+  if (options) {
+    toggleDemoPlayer();
+    const playerLink = document.getElementById('playerLink');
+    if (playerLink) {
+      playerLink.style.display = 'none';
+    }
+    const youtubeLink = document.getElementById('youtubeLink');
+    if (youtubeLink) {
+      if (options.youtube) {
+        youtubeLink.style.display = 'block';
+        playerLink.style.display = 'none';
+      } else {
+        youtubeLink.style.display = 'none';
+      }
+    }
+  }
+
   settings.engine.demoPathPrefix = prefix;
   if (toolClient.isConnected()) {
     toolClient.synchronizeSettings();
@@ -94,9 +113,100 @@ function clearCache() {
   }
 }
 
-window.appendDemoToPlaylist = function (name, path) {
+window.toggleDemoPlayer = function () {
+  const startButton = document.getElementById('start');
+  if (startButton) {
+    startButton.style.display = 'block';
+  }
+
+  const oldScreenshot = document.getElementById('screenshot');
+  if (oldScreenshot) {
+    oldScreenshot.remove();
+  }
+
+  const options = playlistOptions[settings.engine.demoPathPrefix];
+  if (options?.screenshot) {
+    const screenshot = document.createElement('img');
+    screenshot.id = 'screenshot';
+    screenshot.src = options.screenshot;
+    screenshot.style.width = '20em';
+    const startButton = document.getElementById('start');
+    if (startButton.parentNode) {
+      startButton.parentNode.insertBefore(
+        screenshot,
+        startButton.previousSibling
+      );
+    }
+  }
+
+  const youtubePlayer = document.getElementById('youtubePlayer');
+  if (youtubePlayer) {
+    youtubePlayer.remove();
+  }
+
+  const playerLink = document.getElementById('playerLink');
+  if (playerLink) {
+    playerLink.style.display = 'none';
+  }
+
+  const youtubeLink = document.getElementById('youtubeLink');
+  if (youtubeLink) {
+    youtubeLink.style.display = 'block';
+  }
+};
+
+window.toggleYouTubePlayer = function () {
+  const youtubePlayer = document.getElementById('youtubePlayer');
+  if (youtubePlayer) {
+    youtubePlayer.remove();
+  }
+
+  const options = playlistOptions[settings.engine.demoPathPrefix];
+  if (!options?.youtube) {
+    return;
+  }
+
+  const oldScreenshot = document.getElementById('screenshot');
+  if (oldScreenshot) {
+    oldScreenshot.remove();
+  }
+
+  const videoId = options.youtube;
+
+  const startButton = document.getElementById('start');
+  if (startButton) {
+    startButton.style.display = 'none';
+  }
+
+  const playerLink = document.getElementById('playerLink');
+  if (playerLink) {
+    playerLink.style.display = 'block';
+  }
+
+  const youtubeLink = document.getElementById('youtubeLink');
+  if (youtubeLink) {
+    youtubeLink.style.display = 'none';
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'youtubePlayer';
+  iframe.style.width = '20em';
+  iframe.src = `https://www.youtube.com/embed/${videoId}`;
+  iframe.title = 'YouTube video player';
+  iframe.allow =
+    'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+  iframe.allowFullscreen = true;
+
+  if (startButton.parentNode) {
+    startButton.parentNode.insertBefore(iframe, startButton.nextSibling);
+  }
+};
+
+window.appendDemoToPlaylist = function (name, path, options = {}) {
   if (select) {
     select.appendChild(new Option(name, path));
+    playlistOptions[path] = options;
   }
 };
 
@@ -606,9 +716,15 @@ document.addEventListener('keydown', (event) => {
   }
 
   if (event.key === 'Escape') {
-    stopDemo();
+    const youtubePlayer = document.getElementById('youtubePlayer');
+    if (!youtubePlayer) {
+      stopDemo();
+    }
   } else if (event.key === 'Enter') {
-    startDemo();
+    const youtubePlayer = document.getElementById('youtubePlayer');
+    if (!youtubePlayer) {
+      startDemo();
+    }
   } else if (event.key === 'f') {
     fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
   } else if (settings.engine.tool) {
