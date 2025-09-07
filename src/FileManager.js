@@ -1,3 +1,4 @@
+import { Midi } from '@tonejs/midi';
 import * as THREE from 'three';
 import { TTFLoader } from 'three/addons/loaders/TTFLoader';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader';
@@ -596,13 +597,24 @@ FileManager.prototype.load = function (filePath, instance, callback) {
 
     const cacheData = this.getFileFromCache(filePath);
     if (assetLoaderClass === THREE.FileLoader) {
-      if (filePath.toUpperCase().endsWith('.JS')) {
-        try {
+      try {
+        if (filePath.toUpperCase().endsWith('.JS')) {
           await this.loadJavaScriptFile(filePath);
-        } catch (err) {
-          loggerWarning(`Failed to load JavaScript file: ${filePath}: ${err}`);
-          reject(instance);
+        } else if (filePath.toUpperCase().endsWith('.MID')) {
+          const midi = await Midi.fromUrl(this.getUrl(filePath));
+          fileManager.processPromise(
+            resolve,
+            reject,
+            filePath,
+            instance,
+            midi,
+            callback
+          );
+          return;
         }
+      } catch (err) {
+        loggerWarning(`Failed to load file: ${filePath}: ${err}`);
+        reject(instance);
       }
 
       if (cacheData) {
