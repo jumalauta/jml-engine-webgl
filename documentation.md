@@ -39,19 +39,20 @@ uniform sampler2D  texture3;                // Samplers for input textures
 
 ## Supported file formats
 
-| File format | Description               | Hot reloadable |
-|-------------|---------------------------|----------------|
-| .JS         | JavaScript file           | Yes            |
-| .OBJ & .MTL | 3D Object                 | No             |
-| .GLB        | 3D Object (/w animations) | No             |
-| .GLTF       | 3D Object (/w animations) | No             |
-| .MP3        | Music                     | No             |
-| .PNG        | 2D graphics media         | Yes            |
-| .MP4        | Video media               | No             |
-| .TTF        | Font file                 | No             |
-| .VS         | Vertex shader             | Yes            |
-| .FS         | Fragment shader           | Yes            |
-| .ROCKET     | GNU Rocket syncs          | No             |
+| File format  | Description               | Hot reloadable |
+|--------------|---------------------------|----------------|
+| .JS          | JavaScript file           | Yes            |
+| .OBJ & .MTL  | 3D Object                 | No             |
+| .GLB         | 3D Object (/w animations) | No             |
+| .GLTF        | 3D Object (/w animations) | No             |
+| .MP3         | Music                     | No             |
+| .PNG         | 2D graphics media         | Yes            |
+| .MP4         | Video media               | No             |
+| .TTF         | Font file                 | No             |
+| .VS          | Vertex shader             | Yes            |
+| .FS          | Fragment shader           | Yes            |
+| .ROCKET      | GNU Rocket syncs          | No             |
+| .MID & .JSON | MIDI syncs                | No             |
 
 ## Hot reloading
 

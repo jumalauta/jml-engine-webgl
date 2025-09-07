@@ -34,6 +34,19 @@ const midiStatus = {
   CHANNEL_PRESSURE: 0xd0,
   PITCH_BEND: 0xe0,
   SYSTEM: 0xf0,
+  SYSTEM_EXCLUSIVE: 0xf0,
+  MIDI_TIME_CODE_QUARTER_FRAME: 0xf1,
+  SONG_POSITION_POINTER: 0xf2,
+  SONG_SELECT: 0xf3,
+  TUNE_REQUEST: 0xf6,
+  END_OF_EXCLUSIVE: 0xf7,
+  TIMING_CLOCK: 0xf8,
+  START: 0xfa,
+  CONTINUE: 0xfb,
+  STOP: 0xfc,
+  ACTIVE_SENSING: 0xfe,
+  RESET: 0xff,
+
   0x80: 'NOTE_OFF',
   0x90: 'NOTE_ON',
   0xa0: 'AFTERTOUCH',
@@ -41,7 +54,302 @@ const midiStatus = {
   0xc0: 'PATCH_CHANGE',
   0xd0: 'CHANNEL_PRESSURE',
   0xe0: 'PITCH_BEND',
-  0xf0: 'SYSTEM'
+  0xf0: 'SYSTEM_EXCLUSIVE',
+  0xf1: 'MIDI_TIME_CODE_QUARTER_FRAME',
+  0xf2: 'SONG_POSITION_POINTER',
+  0xf3: 'SONG_SELECT',
+  0xf6: 'TUNE_REQUEST',
+  0xf7: 'END_OF_EXCLUSIVE',
+  0xf8: 'TIMING_CLOCK',
+  0xfa: 'START',
+  0xfb: 'CONTINUE',
+  0xfc: 'STOP',
+  0xfe: 'ACTIVE_SENSING',
+  0xff: 'RESET'
+};
+
+MidiManager.prototype.convertMidiToJson = (midi) => {
+  const timeToRow = (time) => {
+    return (
+      (time / 60.0) *
+      settings.demo.sync.beatsPerMinute *
+      settings.demo.sync.rowsPerBeat
+    );
+  };
+
+  const createStatusByte = (messageType, channel) => {
+    if (messageType >= 0xf0) {
+      return messageType;
+    }
+    return messageType | (channel & 0x0f);
+  };
+
+  const getStatusName = (statusByte) => {
+    const messageType = statusByte & 0xf0;
+    return midiStatus[messageType] || 'UNKNOWN';
+  };
+
+  const result = {
+    inputs: {
+      default_midi_input: {
+        manufacturer: midi.header?.manufacturer || '',
+        name: midi.header?.name || 'MIDI File',
+        version: midi.header?.version || ''
+      }
+    },
+    recordings: {
+      default: {
+        callbacks: {},
+        events: []
+      }
+    }
+  };
+
+  const eventsByTime = new Map();
+
+  midi.tracks.forEach((track) => {
+    const channel = track.channel || 0;
+
+    track.notes.forEach((note) => {
+      const timeMs = Math.round(note.time * 1000);
+      const row = timeToRow(note.time);
+
+      if (!eventsByTime.has(timeMs)) {
+        eventsByTime.set(timeMs, {
+          time: timeMs,
+          row: row,
+          events: []
+        });
+      }
+
+      eventsByTime.get(timeMs).events.push({
+        statusLong: getStatusName(
+          createStatusByte(midiStatus.NOTE_ON, channel)
+        ),
+        status: createStatusByte(midiStatus.NOTE_ON, channel),
+        channel: channel,
+        key: note.midi,
+        velocity: Math.round(note.velocity * 127)
+      });
+
+      const noteOffTime = Math.round((note.time + note.duration) * 1000);
+      const noteOffRow = timeToRow(note.time + note.duration);
+
+      if (!eventsByTime.has(noteOffTime)) {
+        eventsByTime.set(noteOffTime, {
+          time: noteOffTime,
+          row: noteOffRow,
+          events: []
+        });
+      }
+
+      eventsByTime.get(noteOffTime).events.push({
+        statusLong: getStatusName(
+          createStatusByte(midiStatus.NOTE_OFF, channel)
+        ),
+        status: createStatusByte(midiStatus.NOTE_OFF, channel),
+        channel: channel,
+        key: note.midi,
+        velocity: 0
+      });
+    });
+
+    if (track.controlChanges) {
+      Object.keys(track.controlChanges).forEach((ccNumber) => {
+        track.controlChanges[ccNumber].forEach((cc) => {
+          const timeMs = Math.round(cc.time * 1000);
+          const row = timeToRow(cc.time);
+
+          if (!eventsByTime.has(timeMs)) {
+            eventsByTime.set(timeMs, {
+              time: timeMs,
+              row: row,
+              events: []
+            });
+          }
+
+          eventsByTime.get(timeMs).events.push({
+            statusLong: getStatusName(
+              createStatusByte(midiStatus.CONTROLLER_CHANGE, channel)
+            ),
+            status: createStatusByte(midiStatus.CONTROLLER_CHANGE, channel),
+            channel: channel,
+            controller: parseInt(ccNumber),
+            value: Math.round(cc.value * 127)
+          });
+        });
+      });
+    }
+
+    if (track.aftertouch) {
+      track.aftertouch.forEach((aftertouch) => {
+        const timeMs = Math.round(aftertouch.time * 1000);
+        const row = timeToRow(aftertouch.time);
+
+        if (!eventsByTime.has(timeMs)) {
+          eventsByTime.set(timeMs, {
+            time: timeMs,
+            row: row,
+            events: []
+          });
+        }
+
+        eventsByTime.get(timeMs).events.push({
+          statusLong: getStatusName(
+            createStatusByte(midiStatus.AFTERTOUCH, channel)
+          ),
+          status: createStatusByte(midiStatus.AFTERTOUCH, channel),
+          channel: channel,
+          key: aftertouch.key || aftertouch.midi,
+          pressure: Math.round(
+            (aftertouch.value || aftertouch.pressure || 0) * 127
+          )
+        });
+      });
+    }
+
+    if (track.instrument && track.instrument.number !== undefined) {
+      const timeMs = 0;
+      const row = 0;
+
+      if (!eventsByTime.has(timeMs)) {
+        eventsByTime.set(timeMs, {
+          time: timeMs,
+          row: row,
+          events: []
+        });
+      }
+
+      eventsByTime.get(timeMs).events.push({
+        statusLong: getStatusName(
+          createStatusByte(midiStatus.PATCH_CHANGE, channel)
+        ),
+        status: createStatusByte(midiStatus.PATCH_CHANGE, channel),
+        channel: channel,
+        program: track.instrument.number
+      });
+    }
+
+    if (track.channelPressure) {
+      track.channelPressure.forEach((pressure) => {
+        const timeMs = Math.round(pressure.time * 1000);
+        const row = timeToRow(pressure.time);
+
+        if (!eventsByTime.has(timeMs)) {
+          eventsByTime.set(timeMs, {
+            time: timeMs,
+            row: row,
+            events: []
+          });
+        }
+
+        eventsByTime.get(timeMs).events.push({
+          statusLong: getStatusName(
+            createStatusByte(midiStatus.CHANNEL_PRESSURE, channel)
+          ),
+          status: createStatusByte(midiStatus.CHANNEL_PRESSURE, channel),
+          channel: channel,
+          pressure: Math.round((pressure.value || pressure.pressure || 0) * 127)
+        });
+      });
+    }
+
+    if (track.pitchBend) {
+      track.pitchBend.forEach((bend) => {
+        const timeMs = Math.round(bend.time * 1000);
+        const row = timeToRow(bend.time);
+
+        if (!eventsByTime.has(timeMs)) {
+          eventsByTime.set(timeMs, {
+            time: timeMs,
+            row: row,
+            events: []
+          });
+        }
+
+        const pitchBendValue = Math.round((bend.value || 0) * 16383);
+        const lsb = pitchBendValue & 0x7f;
+        const msb = (pitchBendValue >> 7) & 0x7f;
+
+        eventsByTime.get(timeMs).events.push({
+          statusLong: getStatusName(
+            createStatusByte(midiStatus.PITCH_BEND, channel)
+          ),
+          status: createStatusByte(midiStatus.PITCH_BEND, channel),
+          channel: channel,
+          lsb: lsb,
+          msb: msb,
+          value: pitchBendValue
+        });
+      });
+    }
+
+    if (track.meta) {
+      track.meta.forEach((metaEvent) => {
+        const timeMs = Math.round(metaEvent.time * 1000);
+        const row = timeToRow(metaEvent.time);
+
+        if (!eventsByTime.has(timeMs)) {
+          eventsByTime.set(timeMs, {
+            time: timeMs,
+            row: row,
+            events: []
+          });
+        }
+
+        let statusLong = 'SYSTEM';
+        let status = midiStatus.SYSTEM;
+        let eventData = {
+          statusLong: statusLong,
+          status: status,
+          type: metaEvent.type || 'meta'
+        };
+
+        if (metaEvent.type === 'tempo') {
+          eventData.tempo = metaEvent.bpm || metaEvent.microsecondsPerBeat;
+        } else if (metaEvent.type === 'timeSignature') {
+          eventData.numerator = metaEvent.numerator;
+          eventData.denominator = metaEvent.denominator;
+        } else if (
+          metaEvent.type === 'text' ||
+          metaEvent.type === 'trackName'
+        ) {
+          eventData.text = metaEvent.text;
+        } else if (metaEvent.data) {
+          eventData.data = metaEvent.data;
+        }
+
+        eventsByTime.get(timeMs).events.push(eventData);
+      });
+    }
+
+    if (track.sysex) {
+      track.sysex.forEach((sysexEvent) => {
+        const timeMs = Math.round(sysexEvent.time * 1000);
+        const row = timeToRow(sysexEvent.time);
+
+        if (!eventsByTime.has(timeMs)) {
+          eventsByTime.set(timeMs, {
+            time: timeMs,
+            row: row,
+            events: []
+          });
+        }
+
+        eventsByTime.get(timeMs).events.push({
+          statusLong: 'SYSTEM',
+          status: 0xf0,
+          data: sysexEvent.data || []
+        });
+      });
+    }
+  });
+
+  result.recordings.default.events = Array.from(eventsByTime.values()).sort(
+    (a, b) => a.time - b.time
+  );
+
+  return result;
 };
 
 MidiManager.prototype.decodeMidiMessage = function (data) {
@@ -102,8 +410,15 @@ MidiManager.prototype.initMidi = async function () {
   this.syncData = settings.demo.sync.midi.sync;
   if (Utils.isString(this.syncData)) {
     const fileManager = new FileManager();
-    const data = await fileManager.load(this.syncData);
-    this.syncData = JSON.parse(data);
+    if (this.syncData.toUpperCase().endsWith('.MID')) {
+      const data = await fileManager.load(this.syncData);
+      this.syncData = this.convertMidiToJson(data);
+    } else if (this.syncData.toUpperCase().endsWith('.JSON')) {
+      const data = await fileManager.load(this.syncData);
+      this.syncData = JSON.parse(data);
+    } else {
+      throw new Error(`Unknown MIDI sync data file type: ${this.syncData}`);
+    }
   }
 
   if (!this.syncData || Utils.isString(this.syncData)) {
