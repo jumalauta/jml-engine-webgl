@@ -1,4 +1,4 @@
-FROM node:22-alpine3.20
+FROM node:22-alpine3.22
 
 RUN apk add --no-cache \
 # Video capture and processing
@@ -14,6 +14,10 @@ RUN apk add --no-cache \
 # Git commit signing
   gpg \
 # GitHub CLI tool
-  github-cli
+  github-cli \
+# Text editor
+  vim \
+# Oxipng is a multithreaded lossless PNG/APNG compression optimizer
+  oxipng
 
 USER node

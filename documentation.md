@@ -24,6 +24,11 @@ appendDemoToPlaylist('New project','data/demo-project-20xx/');
 appendDemoToPlaylist('Point of No Return','data/demo-jml-ponr/');
 ```
 
+## Optimize project size
+
+- Use OxiPNG to optimize PNG file size: `find . -type f -name '*.png'|xargs -I {} oxipng -o max --strip safe {}`
+- In tool mode check unused files `right click -> Check unused files` and remove unused files
+
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
