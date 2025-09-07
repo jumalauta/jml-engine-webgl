@@ -152,9 +152,13 @@ Video.prototype.isPlaying = function () {
   return !this.videoElement.paused;
 };
 
-Video.prototype.play = function () {
+Video.prototype.play = function (forcePlay) {
   // videoPlay(this.ptr)
-  if (this.isPlaying() || (this.playStarted && !this.playEnded)) {
+
+  if (
+    !forcePlay &&
+    (this.isPlaying() || (this.playStarted && !this.playEnded))
+  ) {
     return;
   }
 
@@ -192,7 +196,7 @@ Video.prototype.pause = function (pauseState) {
     }
   } else {
     if (this.videoElement.paused && this.playStarted) {
-      this.play();
+      this.play(true);
     }
   }
 };
