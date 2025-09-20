@@ -29,6 +29,24 @@ appendDemoToPlaylist('Point of No Return','data/demo-jml-ponr/');
 - Use OxiPNG to optimize PNG file size: `find . -type f -name '*.png'|xargs -I {} oxipng -o max --strip safe {}`
 - In tool mode check unused files `right click -> Check unused files` and remove unused files
 
+## Optimize Git repo for release
+
+Quite common occurrence is that there may be resources that were not used and are not needed in final release.
+
+Either create a new repo with only HEAD's content or try to delete, e.g., [bfg](https://rtyley.github.io/bfg-repo-cleaner/) and git:
+
+```sh
+# delete all files that are needed
+bfg --delete-files eyetex.png
+
+# finalize cleanup
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+git push --force
+```
+
+For history conservation purposes, so that people can see how demos were made and roughly in which timeline, using an approach that partially preserves commit history is recommended.
+
 ## Shader uniform autobinding
 
 Following uniforms will be attempted to be auto-binded, if uniform is available in the shader:
