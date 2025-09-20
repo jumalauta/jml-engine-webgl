@@ -57,9 +57,12 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
   }
 
   return new Promise((resolve, reject) => {
+    const fileManager = new FileManager();
+    const filePath = fileManager.getPath(filename);
+    fileManager.monitorFile(filename);
     instance.filename = filename;
     instance.videoElement = document.createElement('video');
-    instance.videoElement.src = new FileManager().getPath(filename);
+    instance.videoElement.src = filePath;
     instance.videoElement.crossOrigin = 'anonymous';
     instance.videoElement.autoplay = false;
     instance.videoElement.loop = false;
