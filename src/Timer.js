@@ -125,7 +125,7 @@ Timer.prototype.update = function (force) {
   }
 
   if (!this.pauseTime || force) {
-    const time = this.now() - this.startTime;
+    const time = this.now() - (this.startTime || 0);
     this.time = Math.min(time, this.endTime || time);
     this.deltaTime = this.time - this.prevTime;
     this.prevTime = this.time;
