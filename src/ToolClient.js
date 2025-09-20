@@ -179,7 +179,10 @@ ToolClient.prototype.showUnusedFiles = function () {
 
       let { unusedFiles } = response;
       unusedFiles = unusedFiles.filter((f) => !cacheFiles.includes(f));
-      loggerInfo('Unused files:', unusedFiles);
+      loggerInfo(
+        'Potentially unused files - ALWAYS VERIFY BEFORE YOU DELETE:',
+        unusedFiles
+      );
       return unusedFiles;
     })
     .catch((error) => {
