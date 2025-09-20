@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import {
   loggerTrace,
   loggerInfo,
@@ -165,7 +166,19 @@ ToolClient.prototype.handleResponse = function (msg) {
 ToolClient.prototype.showUnusedFiles = function () {
   return this.request('fs.showUnusedFiles')
     .then((response) => {
-      const { unusedFiles } = response;
+      const cacheFiles = [];
+      Object.keys(THREE.Cache.files).forEach((element) => {
+        // original: file:data/demo-catarchy/scenes/skateboard.obj
+        // target: scenes/skateboard.obj
+        const fileName = element
+          .split(':')
+          .pop()
+          .replace(settings.engine.demoPathPrefix, '');
+        cacheFiles.push(fileName);
+      });
+
+      let { unusedFiles } = response;
+      unusedFiles = unusedFiles.filter((f) => !cacheFiles.includes(f));
       loggerInfo('Unused files:', unusedFiles);
       return unusedFiles;
     })

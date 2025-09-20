@@ -254,6 +254,7 @@ FileSystem.prototype.getUnusedFiles = async function () {
   const allFiles = await this.getAllFiles();
   const monitoredPaths = new Set(this.watchers.keys());
 
+  // This can report false-positive unused files if three.js is loading something and bypassing the monitoring. So THREE.Cache must be compared to avoid false positives
   const unusedFiles = allFiles.filter(
     (file) => !monitoredPaths.has(file.absolutePath)
   );
