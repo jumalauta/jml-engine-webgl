@@ -683,7 +683,7 @@ if (settings.engine.pauseOnInvisibility) {
   // Especially prevents audio from going onward in iOS or so if requestAnimationFrame is suspended by the OS/browser
   let timerPausedBeforeVisibilityChange = false;
   document.addEventListener('visibilitychange', () => {
-    if (!isStarted()) {
+    if (!isStarted() || Effect.loading) {
       return;
     }
 
