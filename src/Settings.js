@@ -92,7 +92,8 @@ Settings.prototype.init = function () {
       beatsPerMinute: 120, // beats per minute for the demo, used for calculating beat time
       rowsPerBeat: 8, // number of rows per beat for GNU Rocket
       midi: {
-        sync: undefined // MIDI + file connection can be enabled by defining sync file path or JSON data, e.g.: 'sync/midi.json'
+        sync: undefined, // MIDI + file connection can be enabled by defining sync file path or JSON data, e.g.: 'sync/midi.json'
+        syncData: undefined // MIDI sync data can be defined directly as JSON object instead of file path
       }
     },
     music: {
