@@ -407,17 +407,47 @@ MidiManager.prototype.setCaptureOverwrite = function (captureOverwrite) {
 };
 
 MidiManager.prototype.initMidi = async function () {
-  this.syncData = settings.demo.sync.midi.sync;
-  if (Utils.isString(this.syncData)) {
-    const fileManager = new FileManager();
-    if (this.syncData.toUpperCase().endsWith('.MID')) {
-      const data = await fileManager.load(this.syncData);
-      this.syncData = this.convertMidiToJson(data);
-    } else if (this.syncData.toUpperCase().endsWith('.JSON')) {
-      const data = await fileManager.load(this.syncData);
-      this.syncData = JSON.parse(data);
+  this.syncData = settings.demo.sync.midi.syncData;
+
+  const parseData = async (file) => {
+    if (Utils.isString(file)) {
+      loggerDebug(`Loading MIDI sync data file: ${file}`);
+      const fileManager = new FileManager();
+      if (file.toUpperCase().endsWith('.MID')) {
+        const data = await fileManager.load(file);
+        return this.convertMidiToJson(data);
+      } else if (file.toUpperCase().endsWith('.JSON')) {
+        const data = await fileManager.load(file);
+        return JSON.parse(data);
+      } else {
+        throw new Error(`Unknown MIDI sync data file type: ${file}`);
+      }
     } else {
-      throw new Error(`Unknown MIDI sync data file type: ${this.syncData}`);
+      throw new Error(`Unknown MIDI sync data. file: ${file}`);
+    }
+  };
+
+  if (settings.demo.sync.midi.sync !== undefined) {
+    if (Utils.isString(settings.demo.sync.midi.sync)) {
+      this.syncData = await parseData(settings.demo.sync.midi.sync);
+    } else {
+      for (const key in settings.demo.sync.midi.sync) {
+        const file = settings.demo.sync.midi.sync[key];
+        if (Utils.isString(file)) {
+          const syncData = await parseData(file);
+          if (!this.syncData) {
+            this.syncData = syncData;
+            if (key !== 'default') {
+              this.syncData.recordings[key] = this.syncData.recordings.default;
+              delete this.syncData.recordings.default;
+            }
+          } else {
+            this.syncData.recordings[key] = syncData.recordings.default;
+          }
+        } else {
+          throw new Error(`Unknown MIDI sync data. file: ${file}, key: ${key}`);
+        }
+      }
     }
   }
 
@@ -590,7 +620,8 @@ MidiManager.prototype.update = function () {
   const timer = new Timer();
   const now = timer.getTime();
 
-  for (const recording of Object.values(this.syncData.recordings)) {
+  for (const key in this.syncData.recordings) {
+    const recording = this.syncData.recordings[key];
     if (
       recording.currentEvent !== undefined &&
       recording.currentEvent.time > now
@@ -608,7 +639,7 @@ MidiManager.prototype.update = function () {
         recording.newEvent = true;
         recording.i = i + 1;
         if (settings.tool.midi.playbackLogging) {
-          loggerDebug(`MIDI playback: ${JSON.stringify(event)}`);
+          loggerDebug(`MIDI playback [${key}]: ${JSON.stringify(event)}`);
         }
 
         if (recording.callback) {
