@@ -36,10 +36,30 @@ const startButton = document.getElementById('start');
 const select = document.getElementById('demoList');
 const quality = document.getElementById('qualityList');
 
+window.getDemoMenuControlDomElement = function () {
+  return document.getElementById('demoMenuControls');
+};
+
+function clearDemoMenuControls() {
+  const demoMenuControls = window.getDemoMenuControlDomElement();
+  if (demoMenuControls) {
+    demoMenuControls.style.display = 'block';
+    demoMenuControls.innerHTML = '';
+  }
+}
+
+function hideDemoMenuControls() {
+  const demoMenuControls = window.getDemoMenuControlDomElement();
+  if (demoMenuControls) {
+    demoMenuControls.style.display = 'none';
+  }
+}
+
 const playlistOptions = {};
 function setDemoPathPrefix(prefix) {
   const options = playlistOptions[prefix];
   if (options) {
+    clearDemoMenuControls();
     toggleDemoPlayer();
     const playerLink = document.getElementById('playerLink');
     if (playerLink) {
@@ -172,6 +192,8 @@ window.toggleYouTubePlayer = function () {
   }
 
   const videoId = options.youtube;
+
+  hideDemoMenuControls();
 
   const startButton = document.getElementById('start');
   if (startButton) {
@@ -531,6 +553,7 @@ function startDemoAnimation() {
 }
 
 function startDemo() {
+  hideDemoMenuControls();
   return javaScriptFile
     .load('Demo.js')
     .then(() => {
