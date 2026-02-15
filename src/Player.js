@@ -4,7 +4,6 @@ import { Shader } from './Shader';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
 import { DemoRenderer, getScene, getCamera } from './DemoRenderer';
-import { DmxLightManager } from './DmxLightManager';
 import { Input } from './Input';
 
 window.DmxLightManager = DmxLightManager;
