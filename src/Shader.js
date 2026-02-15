@@ -56,28 +56,55 @@ const Shader = function (animationDefinition) {
 };
 
 Shader.convertToThreeJsUniformValues = function (value) {
-  const v = Utils.evaluateVariable(null, value);
+  const evaluateValue = (val) => {
+    const evaluated = Utils.evaluateVariable(null, val);
 
-  if (v instanceof Array) {
-    v.forEach((element, index) => {
-      v[index] = Utils.evaluateVariable(null, v[index]);
-    });
-
-    switch (v.length) {
-      case 1:
-        return v[0];
-      case 2:
-        return new THREE.Vector2(v[0], v[1]);
-      case 3:
-        return new THREE.Vector3(v[0], v[1], v[2]);
-      case 4:
-        return new THREE.Vector4(v[0], v[1], v[2], v[3]);
-      default:
-        loggerWarning('Unsupported uniform value length: ' + v.length);
+    if (!Array.isArray(evaluated)) {
+      return evaluated;
     }
-  }
 
-  return v;
+    return evaluated.map((item) => evaluateValue(item));
+  };
+
+  const convertVector = (val) => {
+    switch (val.length) {
+      case 1:
+        return val[0];
+      case 2:
+        return new THREE.Vector2(val[0], val[1]);
+      case 3:
+        return new THREE.Vector3(val[0], val[1], val[2]);
+      case 4:
+        return new THREE.Vector4(val[0], val[1], val[2], val[3]);
+      default:
+        loggerWarning('Unsupported uniform value length: ' + val.length);
+    }
+  };
+
+  const convertValue = (val) => {
+    if (!Array.isArray(val)) {
+      return val;
+    }
+
+    if (val.length === 0) {
+      return val;
+    }
+
+    const hasNestedArrays = val.some((item) => Array.isArray(item));
+    const converted = val.map((item) => convertValue(item));
+
+    if (hasNestedArrays) {
+      if (converted.length === 1) {
+        return converted[0];
+      }
+
+      return converted;
+    }
+
+    return convertVector(converted);
+  };
+
+  return convertValue(evaluateValue(value));
 };
 
 Shader.prototype.createThreeJsUniforms = function (uniforms) {
