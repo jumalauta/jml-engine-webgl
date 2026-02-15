@@ -1,6 +1,6 @@
 import { WebSocketServer } from 'ws';
+import { randomUUID } from 'node:crypto';
 import { pino } from 'pino';
-import { v4 as uuidv4 } from 'uuid';
 import { createTwoFilesPatch } from 'diff';
 import { handleCaptureMessage } from './VideoExporter.js';
 import { stopFileWatch, handleFileSystemMessage } from './FileSystem.js';
@@ -42,7 +42,7 @@ const server = async function () {
   });
 
   wss.on('connection', (ws) => {
-    ws.state = { id: uuidv4() };
+    ws.state = { id: randomUUID() };
 
     ws.logger = logger.child({ id: ws.state.id });
 
