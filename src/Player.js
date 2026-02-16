@@ -6,8 +6,6 @@ import { Settings } from './Settings';
 import { DemoRenderer, getScene, getCamera } from './DemoRenderer';
 import { Input } from './Input';
 
-window.DmxLightManager = DmxLightManager;
-
 const settings = new Settings();
 
 /** @constructor */
