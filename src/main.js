@@ -662,6 +662,7 @@ export function isStarted() {
 
 function reloadDemo() {
   loggerInfo('Reloading demo');
+  hideDemoMenuControls();
   demoRenderer.setupScene();
   Effect.init('Demo');
 }
