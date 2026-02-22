@@ -118,9 +118,12 @@ FileManager.prototype.loadJavaScriptFile = async function (filePath) {
 
       const transformedCode = this._transformJavaScriptCode(sourceCode);
 
+      const preprocessedCode =
+        await this._preprocessJavaScriptCode(transformedCode);
+
       const script = document.createElement('script');
       script.type = 'text/javascript';
-      script.innerHTML = transformedCode;
+      script.innerHTML = preprocessedCode;
       script.innerHTML += `\n//# sourceURL=${path}?t=${cacheBuster}`;
 
       script.onerror = () => {
@@ -213,6 +216,32 @@ FileManager.prototype._transformJavaScriptCode = function (sourceCode) {
   }
 
   return transformedLines.join('\n');
+};
+
+FileManager.prototype._preprocessJavaScriptCode = function (sourceCode) {
+  // This mimics Sweet.js macro preprocessing, ref. https://www.sweetjs.org/
+  const macroPattern =
+    /(^|\n)\s*syntax\s+(\w+)\s*=\s*function\s*\([^)]*\)\s*\{\s*return\s+#`([^`]+)`;\s*\};?/gm;
+
+  const macroMap = {};
+
+  let codeWithoutDefinitions = sourceCode.replace(
+    macroPattern,
+    (_match, linePrefix, macroName, expansion) => {
+      macroMap[macroName] = expansion.trim();
+      return linePrefix;
+    }
+  );
+
+  Object.entries(macroMap).forEach(([macroName, expansion]) => {
+    const keywordPattern = new RegExp(`\\b${macroName}\\b`, 'g');
+    codeWithoutDefinitions = codeWithoutDefinitions.replace(
+      keywordPattern,
+      expansion
+    );
+  });
+
+  return codeWithoutDefinitions;
 };
 
 FileManager.prototype._updateStringAndBraceState = function (
