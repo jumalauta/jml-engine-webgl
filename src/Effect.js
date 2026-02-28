@@ -250,4 +250,6 @@ Effect.deinit = function (effectName) {
   delete Effect.effects[effectName];
 };
 
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.Effect = Effect;
 export { Effect };
