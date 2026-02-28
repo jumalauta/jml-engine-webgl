@@ -107,6 +107,10 @@ LoadingBar.prototype.getPercent = function () {
   return this.percent;
 };
 
+LoadingBar.prototype.isLoading = function () {
+  return this.percent < 1.0;
+};
+
 LoadingBar.prototype.render = function () {
   if (!this.renderer) {
     throw new Error('Renderer not set');
@@ -124,4 +128,6 @@ LoadingBar.prototype.render = function () {
   this.renderer.render(this.scene, this.camera);
 };
 
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.LoadingBar = LoadingBar;
 export { LoadingBar };
