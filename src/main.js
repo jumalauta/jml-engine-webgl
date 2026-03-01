@@ -558,6 +558,7 @@ function startDemo() {
     .load('Demo.js')
     .then(() => {
       loggerTrace('Demo.js loaded');
+      loadingBar.init();
       customizeSettings();
       restartDemo();
       return true;

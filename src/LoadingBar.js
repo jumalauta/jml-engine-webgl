@@ -11,6 +11,11 @@ LoadingBar.prototype.setRenderer = function (renderer) {
   this.renderer = renderer;
 };
 
+LoadingBar.prototype.setShader = function (vertexShader, fragmentShader) {
+  this.vertexShaderData = vertexShader || vertexShaderData;
+  this.fragmentShaderData = fragmentShader || fragmentShaderData;
+};
+
 LoadingBar.prototype.init = function () {
   this.scene = new THREE.Scene();
   this.scene.visible = false;
@@ -43,8 +48,8 @@ LoadingBar.prototype.init = function () {
           time: { value: 0.0 }
         },
         // Manually added vertex shader to get the fragment shader running
-        vertexShader: vertexShaderData,
-        fragmentShader: fragmentShaderData
+        vertexShader: instance.vertexShaderData || vertexShaderData,
+        fragmentShader: instance.fragmentShaderData || fragmentShaderData
       };
 
       instance.material = new THREE.ShaderMaterial({
@@ -74,7 +79,9 @@ LoadingBar.prototype.init = function () {
       // resolve(instance);
 
       instance.camera.add(instance.mesh);
-      instance.scene.add(instance.cube);
+      if (!instance.fragmentShaderData && !instance.vertexShaderData) {
+        instance.scene.add(instance.cube);
+      }
     },
     undefined,
     function (err) {
@@ -86,8 +93,6 @@ LoadingBar.prototype.init = function () {
 LoadingBar.prototype.getInstance = function () {
   if (!LoadingBar.prototype._singletonInstance) {
     LoadingBar.prototype._singletonInstance = this;
-
-    this.init();
   }
 
   return LoadingBar.prototype._singletonInstance;
