@@ -679,8 +679,9 @@ FileManager.prototype.load = function (filePath, instance, callback) {
         // spectogram.png is an info message not a warning
         const instanceName = fileManager.getInstanceName(instance);
         const logMethod =
-          instanceName === 'Image' &&
-          path.endsWith(`/${settings.demo.music.spectogramFile}`)
+          (instanceName === 'Image' &&
+            path.endsWith(`/${settings.demo.music.spectogramFile}`)) ||
+          path == './playlist.js'
             ? loggerInfo
             : loggerWarning;
         logMethod(`${instanceName} file could not be loaded: ${path}`, err);
