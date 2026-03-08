@@ -53,6 +53,7 @@ function hideDemoMenuControls() {
   if (demoMenuControls) {
     demoMenuControls.style.display = 'none';
   }
+  clearDemoPreviews();
 }
 
 const playlistOptions = {};
@@ -133,16 +134,35 @@ function clearCache() {
   }
 }
 
+function clearDemoPreviews() {
+  const oldScreenshot = document.getElementById('screenshot');
+  if (oldScreenshot) {
+    oldScreenshot.remove();
+  }
+
+  const youtubePlayer = document.getElementById('youtubePlayer');
+  if (youtubePlayer) {
+    youtubePlayer.remove();
+  }
+
+  const playerLink = document.getElementById('playerLink');
+  if (playerLink) {
+    playerLink.style.display = 'none';
+  }
+
+  const youtubeLink = document.getElementById('youtubeLink');
+  if (youtubeLink) {
+    youtubeLink.style.display = 'none';
+  }
+}
+
 window.toggleDemoPlayer = function () {
   const startButton = document.getElementById('start');
   if (startButton) {
     startButton.style.display = 'block';
   }
 
-  const oldScreenshot = document.getElementById('screenshot');
-  if (oldScreenshot) {
-    oldScreenshot.remove();
-  }
+  clearDemoPreviews();
 
   const options = playlistOptions[settings.engine.demoPathPrefix];
   if (options?.screenshot) {
@@ -184,11 +204,6 @@ window.toggleYouTubePlayer = function () {
   const options = playlistOptions[settings.engine.demoPathPrefix];
   if (!options?.youtube) {
     return;
-  }
-
-  const oldScreenshot = document.getElementById('screenshot');
-  if (oldScreenshot) {
-    oldScreenshot.remove();
   }
 
   const videoId = options.youtube;
