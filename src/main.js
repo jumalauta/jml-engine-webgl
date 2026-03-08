@@ -255,6 +255,7 @@ if (customDemoPath) {
 }
 
 if (select) {
+  select.style.display = 'none';
   // playlist.js is expected to just list available productions, e.g., appendDemoToPlaylist('JUHA 001', 'data_juha001/');
   new JavaScriptFile()
     .load('./playlist.js')
@@ -266,9 +267,7 @@ if (select) {
       }
 
       // if select has only one option, hide the select element
-      if (select.options.length === 1) {
-        select.style.display = 'none';
-      } else {
+      if (select.options.length > 1) {
         select.style.display = 'block';
       }
 
@@ -283,15 +282,14 @@ if (select) {
       if (select.value) {
         clearCache();
         setDemoPathPrefix(select.value);
-      } else {
-        select.style.display = 'none';
       }
 
       return true;
     })
     .catch((e) => {
       loggerDebug('No playlist.js found, loading default demo...: ' + e);
-      select.style.display = 'none';
+      clearCache();
+      setDemoPathPrefix(settings.engine.demoPathPrefix);
       return false;
     });
 }
