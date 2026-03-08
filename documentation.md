@@ -656,7 +656,7 @@ this.loader.addAnimation({
 // this is used to rotate this object's child object to "orbit" the original object 
 this.loader.addAnimation({
   "start": start, "duration":end
-  ,"parent":"allseeing" // parent object ID, object will utilize matrix of this object. If object has child meshes then you can use child mesh as parent, e.g.,  "allseeing.childmesh" (assuming object has child mesh with name 'childmesh')
+  ,"parent":"allseeing" // parent object ID, object will utilize matrix of this object. If object has child meshes or bones then you can use them as parent, e.g.,  "allseeing.childmesh" (assuming object has child mesh with name 'childmesh'). NOTE: If the mesh or bone name has a dot (.) in it, the dot is omitted in the name. For example bone "allseeing.leg.L" should be "allseeing.LegL when parenting.
   ,"id": "allseeing2" // unique ID for this object
   ,"layer": layer
   ,"object":null // this is special notation, there is no object but you can do matrix transformations / animations that child objects can inherit
