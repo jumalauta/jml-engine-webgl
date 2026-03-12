@@ -60,9 +60,47 @@ Sync.prototype.initMidi = async function () {
   this.midiReady = true;
 };
 
+Sync.prototype.getBpmSegments = function () {
+  const bpm = settings.demo.sync.beatsPerMinute;
+  if (Array.isArray(bpm)) {
+    return bpm;
+  }
+  return [[0, bpm]];
+};
+
+Sync.prototype.timeToRow = function (time) {
+  const segments = this.getBpmSegments();
+  const rowsPerBeat = settings.demo.sync.rowsPerBeat;
+  let row = 0;
+  for (let i = 0; i < segments.length; i++) {
+    const segEnd = i + 1 < segments.length ? segments[i + 1][0] : Infinity;
+    if (time <= segments[i][0]) break;
+    const deltaTime = Math.min(time, segEnd) - segments[i][0];
+    row += deltaTime * (segments[i][1] / 60) * rowsPerBeat;
+  }
+  return row;
+};
+
+Sync.prototype.rowToTime = function (row) {
+  const segments = this.getBpmSegments();
+  const rowsPerBeat = settings.demo.sync.rowsPerBeat;
+  let remainingRows = row;
+  for (let i = 0; i < segments.length; i++) {
+    const rate = (segments[i][1] / 60) * rowsPerBeat;
+    const segEnd = i + 1 < segments.length ? segments[i + 1][0] : Infinity;
+    const segRows =
+      segEnd === Infinity ? Infinity : (segEnd - segments[i][0]) * rate;
+    if (remainingRows <= segRows) {
+      return segments[i][0] + remainingRows / rate;
+    }
+    remainingRows -= segRows;
+  }
+  return 0;
+};
+
 Sync.prototype.init = async function () {
   this.rowRate =
-    (settings.demo.sync.beatsPerMinute / 60) * settings.demo.sync.rowsPerBeat;
+    (this.getBpmSegments()[0][1] / 60) * settings.demo.sync.rowsPerBeat;
 
   await this.initMidi();
 
@@ -91,7 +129,7 @@ Sync.prototype.initDevice = function (webSocket) {
       if (!instance.timer.isPaused()) {
         instance.timer.pause(false);
       }
-      const time = (row / instance.rowRate) * 1000;
+      const time = instance.rowToTime(row) * 1000;
       instance.timer.setTime(time);
     });
     instance.syncDevice.on('play', function () {
@@ -125,9 +163,8 @@ Sync.prototype.initDevice = function (webSocket) {
 };
 
 Sync.prototype.getRow = function (time) {
-  const row =
-    (time !== undefined ? time : this.timer.getTimeInSeconds()) * this.rowRate;
-  return row;
+  const currentTime = time !== undefined ? time : this.timer.getTimeInSeconds();
+  return this.timeToRow(currentTime);
 };
 
 Sync.prototype.update = function () {

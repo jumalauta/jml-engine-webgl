@@ -70,11 +70,8 @@ const midiStatus = {
 
 MidiManager.prototype.convertMidiToJson = (midi) => {
   const timeToRow = (time) => {
-    return (
-      (time / 60.0) *
-      settings.demo.sync.beatsPerMinute *
-      settings.demo.sync.rowsPerBeat
-    );
+    const sync = new Sync();
+    return sync.timeToRow(time);
   };
 
   const createStatusByte = (messageType, channel) => {
