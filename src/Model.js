@@ -68,6 +68,39 @@ Model.prototype.cloneAnimations = function (srcAnimations) {
   return undefined;
 };
 
+// Filtering originally by CasualKyle https://discourse.threejs.org/t/creating-a-dynamic-run-walk-animation/442/23
+Model.prototype.filterIdentityTracks = function (animations) {
+  if (!settings.demo.model.animation.filterIdentityTracks || !animations) {
+    return animations;
+  }
+
+  const e = 0.000001;
+
+  animations.forEach((clip) => {
+    for (let t = clip.tracks.length - 1; t >= 0; t--) {
+      const track = clip.tracks[t];
+      let isStatic = true;
+      const inc = track.getValueSize();
+
+      for (let i = 0; i < track.values.length - inc; i += inc) {
+        for (let j = 0; j < inc; j++) {
+          if (Math.abs(track.values[i + j] - track.values[i + j + inc]) > e) {
+            isStatic = false;
+            break;
+          }
+        }
+        if (!isStatic) break;
+      }
+
+      if (isStatic) {
+        clip.tracks.splice(t, 1);
+      }
+    }
+  });
+
+  return animations;
+};
+
 Model.prototype.saveToCache = function (path) {
   const mesh = SkeletonUtils.clone(this.mesh);
 
@@ -412,7 +445,7 @@ Model.prototype.load = function (filename) {
         (gltf) => {
           instance.mesh = instance.instancer.createMesh(gltf.scene);
           instance.ptr = instance.mesh;
-          instance.animations = gltf.animations;
+          instance.animations = instance.filterIdentityTracks(gltf.animations);
 
           // gltf.animations = null;
           // gltf.animations; // Array<THREE.AnimationClip>

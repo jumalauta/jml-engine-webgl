@@ -149,6 +149,9 @@ Settings.prototype.init = function () {
       }
     },
     model: {
+      animation: {
+        filterIdentityTracks: true // Remove identity tracks from animations (pos 0, rot 0, scale 1).
+      },
       shape: {
         material: {
           type: 'Phong', // default material type for 3D shapes
