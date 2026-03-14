@@ -465,6 +465,12 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
             Utils.evaluateVariable(animation, animationData.loop)
           );
         }
+        if (animationData.additive !== undefined) {
+          animation.ref.setBlendMode(
+            animationName,
+            Utils.evaluateVariable(animation, animationData.additive)
+          );
+        }
       }
     }
 

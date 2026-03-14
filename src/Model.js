@@ -623,12 +623,13 @@ Model.prototype.setDefaults = function () {
     this.animations.forEach((clip) => {
       const clipAction = this.mixer.clipAction(clip);
       // clipAction.play();
-      // FIXME support for animating / mixing animations
       clipAction.enabled = true;
       clipAction.setEffectiveTimeScale(1);
       clipAction.setEffectiveWeight(0);
       clipAction.setLoop(THREE.LoopOnce, 0);
       clipAction.clampWhenFinished = true;
+      // Default to NormalAnimationBlendMode (weights are normalized)
+      clipAction.blendMode = THREE.NormalAnimationBlendMode;
       this.clips[clip.name] = clipAction;
     });
     this.mixer.clipAction(this.animations[0]).setEffectiveWeight(0);
@@ -744,6 +745,15 @@ Model.prototype.setWeight = function (clipName, weight) {
   const clip = this.getClip(clipName);
   if (clip) {
     clip.setEffectiveWeight(weight);
+  }
+};
+
+Model.prototype.setBlendMode = function (clipName, additive) {
+  const clip = this.getClip(clipName);
+  if (clip) {
+    clip.blendMode = additive
+      ? THREE.AdditiveAnimationBlendMode
+      : THREE.NormalAnimationBlendMode;
   }
 };
 
