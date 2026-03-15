@@ -445,7 +445,7 @@ Model.prototype.load = function (filename) {
         (gltf) => {
           instance.mesh = instance.instancer.createMesh(gltf.scene);
           instance.ptr = instance.mesh;
-          instance.animations = instance.filterIdentityTracks(gltf.animations);
+          instance.animations = gltf.animations;
 
           // gltf.animations = null;
           // gltf.animations; // Array<THREE.AnimationClip>
@@ -651,18 +651,30 @@ Model.prototype.setDefaults = function () {
   this.setRotation(0, 0, 0);
   this.setScale(1, 1, 1);
   if (this.animations && this.animations.length > 0) {
+    this.animations = this.filterIdentityTracks(this.animations);
+
     this.mixer = new THREE.AnimationMixer(this.mesh);
     this.clips = {};
     this.animations.forEach((clip) => {
       const clipAction = this.mixer.clipAction(clip);
       // clipAction.play();
       clipAction.enabled = true;
-      clipAction.setEffectiveTimeScale(1);
-      clipAction.setEffectiveWeight(0);
-      clipAction.setLoop(THREE.LoopOnce, 0);
-      clipAction.clampWhenFinished = true;
-      // Default to NormalAnimationBlendMode (weights are normalized)
-      clipAction.blendMode = THREE.NormalAnimationBlendMode;
+      clipAction.setEffectiveTimeScale(
+        settings.demo.model.animation.timeScale ?? 1
+      );
+      clipAction.setEffectiveWeight(settings.demo.model.animation.weight ?? 0);
+      clipAction.setLoop(
+        settings.getThreeVariableValue(
+          'Loop' + (settings.demo.model.animation.loop.mode ?? 'Once')
+        ),
+        settings.demo.model.animation.loop.repetitions ?? 0
+      );
+      clipAction.clampWhenFinished =
+        settings.demo.model.animation.clampWhenFinished ?? true;
+      clipAction.blendMode = settings.getThreeVariableValue(
+        (settings.demo.model.animation.blendMode ?? 'Normal') +
+          'AnimationBlendMode'
+      );
       this.clips[clip.name] = clipAction;
     });
     this.mixer.clipAction(this.animations[0]).setEffectiveWeight(0);

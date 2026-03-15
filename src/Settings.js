@@ -150,7 +150,15 @@ Settings.prototype.init = function () {
     },
     model: {
       animation: {
-        filterIdentityTracks: true // Remove identity tracks from animations (pos 0, rot 0, scale 1).
+        filterIdentityTracks: true, // Remove identity tracks from animations (pos 0, rot 0, scale 1).
+        blendMode: 'Normal', // default blending mode for model animations, can be 'Normal', 'Additive'
+        clampWhenFinished: true, // whether the animation should clamp to the last frame when finished
+        weight: 0.0, // default weight of the model animation, 1.0 = full weight, 0.0 = no animation influence
+        timeScale: 1.0, // default speed of the model animation, 1.0 = normal speed, 0.5 = half speed
+        loop: {
+          mode: 'Once', // default loop type, can be 'Repeat', 'PingPong' or 'Once'
+          repetitions: 0 // number of repetitions for 'Repeat'
+        }
       },
       shape: {
         material: {
@@ -272,6 +280,14 @@ Settings.prototype.setXyz = function (src, dst) {
   dst.x = src.x;
   dst.y = src.y;
   dst.z = src.z;
+};
+
+Settings.prototype.getThreeVariableValue = function (variable) {
+  if (variable && variable in THREE) {
+    return THREE[variable];
+  }
+
+  throw new Error('Unrecognized THREE variable: ' + variable);
 };
 
 Settings.prototype.toThreeJsColor = function (color) {
