@@ -793,12 +793,13 @@ Model.prototype.setWeight = function (clipName, weight) {
   }
 };
 
-Model.prototype.setBlendMode = function (clipName, additive) {
+Model.prototype.setBlendMode = function (clipName, blendMode) {
   const clip = this.getClip(clipName);
   if (clip) {
-    clip.blendMode = additive
-      ? THREE.AdditiveAnimationBlendMode
-      : THREE.NormalAnimationBlendMode;
+    clip.blendMode = settings.getThreeVariableValue(
+      (blendMode ?? settings.demo.model.animation.blendMode) +
+        'AnimationBlendMode'
+    );
   }
 };
 
