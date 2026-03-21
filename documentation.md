@@ -257,6 +257,13 @@ angle: [
 
 ### Scripting language examples
 
+#### Debugging
+
+```JavaScript
+// Overlay debug HTML to screen, for example, to print text
+DemoEngine.setDebugText('Current time: ' + getSceneTimeFromStart());
+```
+
 #### 2D image animation examples
 ```JavaScript
 //Move jml_fist.png from bottom-left to top-right in 10 seconds, show image for 60 seconds
