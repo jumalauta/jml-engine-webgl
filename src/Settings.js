@@ -47,7 +47,7 @@ Settings.prototype.init = function () {
     autoStart: false, // start demo automatically when the page is loaded skipping menu / user interaction, this may disable sound until user interaction happens
     startTime: 0, // place of time when the demo starts
     loopAtTime: undefined, // place of time when the demo loops to startTime
-    fps: 60, // frames per second
+    fps: 60, // target frames per second
     material: {
       mapTypes: ['map', 'envMap', 'bumpMap', 'normalMap'] // map types recognized by the engine in image loading
     }

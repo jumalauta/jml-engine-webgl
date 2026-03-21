@@ -428,16 +428,38 @@ function captureFrame() {
   return false;
 }
 
+let nextFrameAt;
+const frameRenderTolerance = 5;
+const maxFrameDrift = 3;
 function animate() {
-  toolUi.update();
+  const now = performance.now();
+  const frameIntervalMs = 1000 / settings.engine.fps;
 
-  if (!capture) {
-    toolUi.stats.begin();
+  if (nextFrameAt === undefined) {
+    nextFrameAt = now;
   }
+
+  if (now + frameRenderTolerance < nextFrameAt) {
+    animationFrameId = requestAnimationFrame(animate);
+    return;
+  }
+
+  if (now - nextFrameAt > frameIntervalMs * maxFrameDrift) {
+    nextFrameAt = now;
+  }
+
+  do {
+    nextFrameAt += frameIntervalMs;
+  } while (nextFrameAt <= now);
+
+  toolUi.update();
 
   if (loadingBar.percent < 1.0) {
     loadingBar.render();
     toolUi.stats.end();
+    if (!capture) {
+      toolUi.stats.begin();
+    }
     animationFrameId = requestAnimationFrame(animate);
     return;
   }
@@ -491,6 +513,9 @@ function animate() {
     }
   }
 
+  if (!capture) {
+    toolUi.stats.begin();
+  }
   animationFrameId = requestAnimationFrame(animate);
 }
 
@@ -545,6 +570,7 @@ function stopAnimate() {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = undefined;
   }
+  nextFrameAt = undefined;
 }
 
 export function startAnimate(time) {
