@@ -45,6 +45,25 @@ ToolUi.prototype.getInstance = function () {
   return ToolUi.prototype._singletonInstance;
 };
 
+ToolUi.prototype.setDebugText = function (html) {
+  if (!this.debug) {
+    this.debug = document.createElement('div');
+    this.debug.style.cssText =
+      'position:fixed;left:50%;transform:translate(-50%,0%);opacity:0.9;z-index:10000;color:#fff;font-family:monospace;font-size:2em;';
+    document.body.insertBefore(this.debug, document.body.firstChild);
+  }
+
+  this.debug.innerHTML = html;
+};
+
+ToolUi.prototype.clearDebugText = function () {
+  if (this.debug) {
+    this.debug.innerHTML = '';
+    document.body.removeChild(this.debug);
+    this.debug = undefined;
+  }
+};
+
 ToolUi.prototype.init = function () {
   this.panel = document.getElementById('panel');
   this.stats = new Stats();
@@ -123,6 +142,7 @@ ToolUi.prototype.hide = function () {
   this.panel.classList.remove('tool-ui-panel', 'visible');
   this.stats.dom.style.display = 'none';
   this.timelineSlider.classList.remove('tool-ui-timeline-slider', 'visible');
+  this.clearDebugText();
 
   new Spectogram().show(false);
 };
@@ -1169,5 +1189,8 @@ ToolUi.prototype.alert = function (message, cb) {
     ]
   });
 };
+
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.setDebugText = new ToolUi().setDebugText.bind(new ToolUi());
 
 export { ToolUi };
