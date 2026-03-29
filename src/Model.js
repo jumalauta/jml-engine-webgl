@@ -36,6 +36,15 @@ const Model = function (animationDefinition) {
   }
 };
 
+Model.prototype.getCacheKey = function (path) {
+  const instancerDefinition = this.instancer?.instancer;
+  if (!instancerDefinition) {
+    return `${path}|instancer:none`;
+  }
+
+  return `${path}|instancer:${instancerDefinition.count ?? 1}`;
+};
+
 Model.prototype.getMeshNames = function () {
   const names = [];
   if (this.mesh) {
@@ -102,9 +111,10 @@ Model.prototype.filterIdentityTracks = function (animations) {
 };
 
 Model.prototype.saveToCache = function (path) {
+  const cacheKey = this.getCacheKey(path);
   const mesh = SkeletonUtils.clone(this.mesh);
 
-  cache[path] = {
+  cache[cacheKey] = {
     mesh,
     ptr: mesh,
     animations: this.cloneAnimations()
@@ -112,7 +122,7 @@ Model.prototype.saveToCache = function (path) {
 };
 
 Model.prototype.loadFromCache = function (path) {
-  const cacheObject = cache[path];
+  const cacheObject = cache[this.getCacheKey(path)];
   if (cacheObject) {
     this.mesh = SkeletonUtils.clone(cacheObject.mesh);
     this.ptr = this.mesh;
