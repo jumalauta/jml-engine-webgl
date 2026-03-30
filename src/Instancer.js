@@ -53,7 +53,10 @@ const Instancer = function (animationObjectInstance, instancerDefinition) {
             angle: instanceAngle
           };
 
-          this.instancer.runInstanceFunction(input);
+          this.instancer.runInstanceFunction(
+            input,
+            this.animationObjectInstance
+          );
 
           if (input.angle !== undefined) {
             input.object.rotation.x = input.angle.degreesX;

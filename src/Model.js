@@ -11,6 +11,7 @@ import { CubeMap } from './CubeMap';
 import { Instancer } from './Instancer';
 import { Settings } from './Settings';
 import { Utils } from './Utils';
+import { Matrix44 } from './Matrix44';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils';
 
 const settings = new Settings();
@@ -498,6 +499,14 @@ Model.prototype.setCameraName = function (cameraName) {
 
 Model.prototype.setFps = function (fps) {
   this.fps = fps;
+};
+
+Model.prototype.cloneMatrix = function (world = true) {
+  if (world) {
+    return new Matrix44(this.mesh.matrixWorld.clone().elements);
+  }
+
+  return new Matrix44(this.mesh.matrix.clone().elements);
 };
 
 Model.prototype.setPosition = function (x, y, z) {
