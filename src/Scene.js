@@ -13,7 +13,8 @@ import {
   windowSetTitle,
   loggerError,
   loggerInfo,
-  loggerDebug
+  loggerDebug,
+  loggerWarning
 } from './Bindings';
 import { Settings } from './Settings';
 
@@ -500,14 +501,28 @@ Scene.prototype.preloadMaterialProperties = function (
     settings.engine.material.mapTypes.forEach((map) => {
       if (map in animationDefinition.material) {
         const mapValue = animationDefinition.material[map];
-        if (typeof mapValue === 'string') {
-          const filename = mapValue;
-          const image = new Image();
-          if (image.isFileSupported(filename)) {
-            loggerDebug(`Preloading material '${map}': ${filename}`);
-            promises.push(image.load(filename, false));
-            animationDefinition.material[map] = image;
-          }
+        let filename = null;
+        let image = null;
+        if (
+          typeof mapValue === 'object' &&
+          mapValue !== null &&
+          'name' in mapValue
+        ) {
+          filename = mapValue.name;
+          image = new Image(mapValue);
+        } else if (typeof mapValue === 'string') {
+          filename = mapValue;
+          image = new Image();
+        } else {
+          loggerWarning(
+            `Unsupported map value for material '${map}': ${JSON.stringify(mapValue)}`
+          );
+        }
+
+        if (image && image.isFileSupported(filename)) {
+          loggerDebug(`Preloading material '${map}': ${filename}`);
+          promises.push(image.load(filename, false));
+          animationDefinition.material[map] = image;
         }
       }
     });
