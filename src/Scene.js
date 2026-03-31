@@ -521,7 +521,7 @@ Scene.prototype.preloadMaterialProperties = function (
 
         if (image && image.isFileSupported(filename)) {
           loggerDebug(`Preloading material '${map}': ${filename}`);
-          promises.push(image.load(filename, false));
+          promises.push(image.load(filename, true));
           animationDefinition.material[map] = image;
         }
       }
