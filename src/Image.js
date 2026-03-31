@@ -111,6 +111,24 @@ Image.prototype.createMaterial = function () {
   return material;
 };
 
+Image.prototype.setTextureProperties = function () {
+  if (this.texture[0] === undefined) {
+    throw new Error('Texture not loaded, cannot generate image mesh');
+  }
+
+  this.texture.forEach((texture, index) => {
+    const customTextureProperties =
+      (this.textureProperties instanceof Array
+        ? this.textureProperties[index]
+        : this.textureProperties) || {};
+    const textureProperties = {
+      ...settings.demo.image.texture,
+      ...customTextureProperties
+    };
+    settings.toThreeJsProperties(textureProperties, texture);
+  });
+};
+
 Image.prototype.generateMesh = function () {
   if (this.texture[0] === undefined) {
     throw new Error('Texture not loaded, cannot generate image mesh');
@@ -125,18 +143,6 @@ Image.prototype.generateMesh = function () {
       this.height = this.texture[0].image.height;
     }
   }
-
-  this.texture.forEach((texture, index) => {
-    const customTextureProperties =
-      (this.textureProperties instanceof Array
-        ? this.textureProperties[index]
-        : this.textureProperties) || {};
-    const textureProperties = {
-      ...settings.demo.image.texture,
-      ...customTextureProperties
-    };
-    settings.toThreeJsProperties(textureProperties, texture);
-  });
 
   this.material = this.createMaterial();
   // this.material = new THREE.MeshBasicMaterial({ map: this.texture[0], blending:THREE.CustomBlending, depthTest: false, depthWrite: false });
@@ -189,6 +195,8 @@ Image.prototype.loadCustomSync = function (
     );
   }
 
+  this.setTextureProperties();
+
   if (noGenerate !== true) {
     this.generateMesh();
   }
@@ -202,6 +210,8 @@ Image.prototype.load = async function (filenames, noGenerate) {
   for (let i = 0; i < filenames.length; i++) {
     await this.loadTexture(filenames[i]);
   }
+
+  this.setTextureProperties();
 
   if (noGenerate !== true) {
     this.generateMesh();
