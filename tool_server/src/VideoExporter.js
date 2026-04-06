@@ -60,7 +60,7 @@ VideoExporter.prototype.spawn = function (onSpawn, onClose) {
     '18',
     '-shortest',
     '-filter:v',
-    'scale=1920:-1',
+    'scale=2560:-1', // target 1440p to ensure less compression artifacts particularly for YouTube
     outputPath
   );
 
