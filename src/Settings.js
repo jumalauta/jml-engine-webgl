@@ -50,6 +50,15 @@ Settings.prototype.init = function () {
     fps: 60, // target frames per second
     material: {
       mapTypes: ['map', 'envMap', 'bumpMap', 'normalMap'] // map types recognized by the engine in image loading
+    },
+    fileTypes: {
+      // configure file type loading
+      /*'PAL': {
+        responseType: 'arraybuffer'
+      },
+      'BPL': {
+        responseType: 'arraybuffer'
+      }*/
     }
   };
 

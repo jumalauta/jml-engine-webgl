@@ -142,7 +142,7 @@ FileManager.prototype.loadJavaScriptFile = async function (filePath) {
       document.head.appendChild(script);
 
       loggerDebug(`Loaded JavaScript file: ${path}`);
-      resolve();
+      resolve(preprocessedCode);
     } catch (error) {
       loggerWarning(
         `Failed to load JavaScript file: ${path} - ${error.message}`
@@ -609,15 +609,19 @@ FileManager.prototype.load = function (filePath, instance, callback) {
     const path = fileManager.getPath(filePath);
     fileManager.monitorFile(filePath);
 
+    const fileSuffix = filePath
+      .substring(filePath.lastIndexOf('.') + 1)
+      .toUpperCase();
+
     let assetLoaderClass = THREE.FileLoader;
     if (instance instanceof Image) {
       assetLoaderClass = THREE.TextureLoader;
     } else if (instance instanceof Text) {
       assetLoaderClass = TTFLoader;
     } else if (instance instanceof Model) {
-      if (filePath.toUpperCase().endsWith('.OBJ')) {
+      if (fileSuffix === 'OBJ') {
         assetLoaderClass = OBJLoader;
-      } else if (filePath.toUpperCase().endsWith('.MTL')) {
+      } else if (fileSuffix === 'MTL') {
         assetLoaderClass = MTLLoader;
       } else {
         throw new Error('3D Model fileformat not supported: ' + filePath);
@@ -627,9 +631,9 @@ FileManager.prototype.load = function (filePath, instance, callback) {
     const cacheData = this.getFileFromCache(filePath);
     if (assetLoaderClass === THREE.FileLoader) {
       try {
-        if (filePath.toUpperCase().endsWith('.JS')) {
+        if (fileSuffix === 'JS') {
           await this.loadJavaScriptFile(filePath);
-        } else if (filePath.toUpperCase().endsWith('.MID')) {
+        } else if (fileSuffix === 'MID') {
           const midi = await Midi.fromUrl(this.getUrl(filePath));
           fileManager.processPromise(
             resolve,
@@ -659,7 +663,15 @@ FileManager.prototype.load = function (filePath, instance, callback) {
       }
     }
 
-    new assetLoaderClass().load(
+    const assetLoader = new assetLoaderClass();
+    const fileType = settings.engine.fileTypes[fileSuffix];
+    if (fileType) {
+      if (fileType.responseType) {
+        assetLoader.setResponseType(fileType.responseType);
+      }
+    }
+
+    assetLoader.load(
       this.getUrl(filePath),
       // onLoad callback
       (data) => {
@@ -693,5 +705,8 @@ FileManager.prototype.load = function (filePath, instance, callback) {
     );
   });
 };
+
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.FileManager = FileManager;
 
 export { FileManager };
