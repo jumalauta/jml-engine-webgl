@@ -21,9 +21,9 @@ jobs:
         node-version: [20.x, 22.x, 24.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
@@ -38,9 +38,9 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Use Node.js 
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '22'
         cache: 'npm'
@@ -57,9 +57,9 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Use Node.js 
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: '22'
         cache: 'npm'
@@ -70,7 +70,7 @@ jobs:
     - run: cd tool_server && npm ci
     - run: npx vite build && mv dist release-node
     - name: Upload Node Release
-      uses: actions/upload-artifact@v4.6.0
+      uses: actions/upload-artifact@v7
       if: github.event_name != 'release'
       with:
         name: release-node
@@ -78,7 +78,7 @@ jobs:
     - run: zip -r release-node.zip release-node
       if: github.event_name == 'release'
     - name: Upload Release Asset
-      uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+      uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
       if: github.event_name == 'release'
       with:
         files: release-node.zip
