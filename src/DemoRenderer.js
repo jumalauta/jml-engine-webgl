@@ -304,6 +304,10 @@ function getScreenHeight() {
 }
 window.getScreenWidth = getScreenWidth;
 window.getScreenHeight = getScreenHeight;
+window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.getRenderer = function () {
+  return new DemoRenderer().renderer;
+};
 
 // alert(screenWidth + 'x' + screenHeight);
 
