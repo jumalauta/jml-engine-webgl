@@ -40,6 +40,7 @@ const ToolUi = function () {
 ToolUi.prototype.getInstance = function () {
   if (!ToolUi.prototype._singletonInstance) {
     ToolUi.prototype._singletonInstance = this;
+    this.setCustomMenuItems([]);
   }
 
   return ToolUi.prototype._singletonInstance;
@@ -143,6 +144,7 @@ ToolUi.prototype.hide = function () {
   this.stats.dom.style.display = 'none';
   this.timelineSlider.classList.remove('tool-ui-timeline-slider', 'visible');
   this.clearDebugText();
+  this.setCustomMenuItems([]);
 
   new Spectogram().show(false);
 };
@@ -217,6 +219,7 @@ ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
 };
 
 ToolUi.prototype.clearScenes = function () {
+  this.clearDebugText();
   this.sceneState = {};
   const sceneElements = document.getElementsByClassName('scene');
   while (sceneElements.length > 0) {
@@ -343,6 +346,10 @@ ToolUi.prototype.initContextMenu = function () {
   });
 };
 
+ToolUi.prototype.setCustomMenuItems = function (items) {
+  this.customMenuItems = items;
+};
+
 ToolUi.prototype.getMenuItems = function () {
   const timer = new Timer();
   const fbos = Fbo.getFbos();
@@ -395,7 +402,8 @@ ToolUi.prototype.getMenuItems = function () {
               action: () => this.showFboDialog(fbos[fboName])
             }))
           : [{ label: 'No FBOs available', disabled: true }]
-    }
+    },
+    ...this.customMenuItems
   ];
 };
 
@@ -1191,6 +1199,7 @@ ToolUi.prototype.alert = function (message, cb) {
 };
 
 window.DemoEngine = window.DemoEngine || {};
+window.DemoEngine.ToolUi = ToolUi;
 window.DemoEngine.setDebugText = new ToolUi().setDebugText.bind(new ToolUi());
 
 export { ToolUi };
