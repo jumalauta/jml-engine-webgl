@@ -1,4 +1,5 @@
 # Custom on top of GitHub defaults
+.DS_Store
 .vs
 *.BAK
 ace-builds
