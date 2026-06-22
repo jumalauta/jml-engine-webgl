@@ -106,7 +106,7 @@ npx vite build
 # serve the web package and check that it works
 npx vite preview
 # instead of a website release, you can also wrap it to a Windows .exe release by running
-./release-windows.sh
+./release-windows.sh data/demo-jml-helloworld/
 ```
 
 ## Contributing

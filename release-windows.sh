@@ -4,6 +4,31 @@
 
 set -euo pipefail
 
+INPUT_DEMO_DIR="${1:-}"
+if [[ -z "$INPUT_DEMO_DIR" ]]; then
+	echo "Usage: ./release-windows.sh <demo-directory-under-public>" >&2
+	exit 1
+fi
+
+DEMO_DIR="${INPUT_DEMO_DIR#/}"
+DEMO_DIR="${DEMO_DIR%/}"
+
+if [[ -z "$DEMO_DIR" || "$DEMO_DIR" == *".."* ]]; then
+	echo "Invalid demo directory: $INPUT_DEMO_DIR" >&2
+	exit 1
+fi
+
+DEMO_SOURCE_DIR="$(pwd)/public/${DEMO_DIR}"
+if [[ ! -d "$DEMO_SOURCE_DIR" ]]; then
+	echo "Demo directory does not exist or is not a directory: public/${DEMO_DIR}" >&2
+	exit 1
+fi
+
+if [[ ! -f "$DEMO_SOURCE_DIR/Demo.js" ]]; then
+	echo "Missing Demo.js in demo directory root: public/${DEMO_DIR}" >&2
+	exit 1
+fi
+
 rm -fr dist/
 NODE_ENV=exe npx vite build
 
@@ -21,26 +46,47 @@ cp -r dist/ $TMPDIR
 
 cd $TMPDIR
 
-WEBDEMOEXE_VERSION="015"
-WEBDEMOEXE_SHA256SUM="fa7724add6fa218c702814decb5710767b5ebe1b3818d6069a5ee067376454cc"
+ENGINE_WINDOWS_ZIP_URL="https://github.com/jumalauta/jml-engine-webgl/releases/download/v3.6.0/engine_v3_6_0_windows.zip"
+ENGINE_WINDOWS_ZIP_FILE=$(basename "$ENGINE_WINDOWS_ZIP_URL")
+ENGINE_WINDOWS_ZIP_SHA256SUM="e328264468cac7d4be43661893e9058c5760a74e4165336ced62d9d4e17a881d"
 
-wget https://github.com/pandrr/WebDemoExe/releases/download/release${WEBDEMOEXE_VERSION}/webdemoexe_${WEBDEMOEXE_VERSION}.zip
-echo "${WEBDEMOEXE_SHA256SUM} webdemoexe_${WEBDEMOEXE_VERSION}.zip" | sha256sum -c
-unzip -x webdemoexe_${WEBDEMOEXE_VERSION}.zip
-rm -fr webdemoexe_${WEBDEMOEXE_VERSION}.zip
+wget "$ENGINE_WINDOWS_ZIP_URL"
+echo "${ENGINE_WINDOWS_ZIP_SHA256SUM} ${ENGINE_WINDOWS_ZIP_FILE}" | sha256sum -c
+unzip -x "$ENGINE_WINDOWS_ZIP_FILE"
+rm -fr "$ENGINE_WINDOWS_ZIP_FILE"
 
-cat > webdemoexe.xml <<EOF
+ENGINE_EXE=$(find . -type f -name "WebDemoExe.exe" | head -n 1)
+if [[ -z "$ENGINE_EXE" ]]; then
+	ENGINE_EXE=$(find . -type f -name "demo.exe" | head -n 1)
+fi
+if [[ -z "$ENGINE_EXE" ]]; then
+	ENGINE_EXE=$(find . -type f -name "*.exe" | head -n 1)
+fi
+if [[ -z "$ENGINE_EXE" ]]; then
+	echo "No executable found in $ENGINE_WINDOWS_ZIP_FILE" >&2
+	exit 1
+fi
+
+ENGINE_ROOT=$(dirname "$ENGINE_EXE")
+
+cat > "$ENGINE_ROOT/webdemoexe.xml" <<EOF
 <config>
 	<title>JML</title>
 </config>
 EOF
 
-mv WebDemoExe.exe demo.exe
-node ${CURRENT_DIR}/change-favicon/index.js demo.exe ${CURRENT_DIR}/change-favicon/favicon.ico
-rm -fr demo
-mv dist demo
+if [[ "$(basename "$ENGINE_EXE")" != "demo.exe" ]]; then
+	mv "$ENGINE_EXE" "$ENGINE_ROOT/demo.exe"
+fi
+
+rm -fr "$ENGINE_ROOT/demo"
+mv dist "$ENGINE_ROOT/demo"
+TARGET_DATA_DIR="$ENGINE_ROOT/demo/data"
+rm -rf "$TARGET_DATA_DIR"
+mkdir -p "$TARGET_DATA_DIR"
+cp -r "$DEMO_SOURCE_DIR"/. "$TARGET_DATA_DIR"/
 
 cd $CURRENT_DIR
 mv $TMPDIR $CURRENT_DIR/dist/release
 
-echo Release is in dist/release - copy your 'data' directory into dist/release/demo/
+echo "Release is in dist/release and includes public/${DEMO_DIR} as demo/data"
