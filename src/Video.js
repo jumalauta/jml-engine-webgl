@@ -79,7 +79,8 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
       loggerDebug(`Video waiting: ${filename} ${event}`);
     };
     instance.videoElement.onabort = (event) => {
-      loggerWarning(`Video aborted: ${filename} ${event}`);
+      const logFunction = Effect.loading ? loggerInfo : loggerWarning;
+      logFunction(`Video aborted: ${filename} ${event}`);
     };
     instance.videoElement.onended = (event) => {
       loggerTrace(`Video ended: ${filename} ${event}`);
