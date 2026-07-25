@@ -8,6 +8,9 @@ import {
 } from './Bindings';
 import { Timer } from './Timer';
 import { FileManager } from './FileManager';
+import { Settings } from './Settings';
+
+const settings = new Settings();
 
 /** @constructor */
 const Shader = function (animationDefinition) {
@@ -121,6 +124,13 @@ Shader.prototype.createThreeJsUniforms = function (uniforms) {
   }
 
   return THREE.UniformsUtils.clone(uniforms);
+};
+
+Shader.prototype.getInlineUniforms = function () {
+  if (!this.inlineUniforms) {
+    this.inlineUniforms = this.createThreeJsUniforms({});
+  }
+  return this.inlineUniforms;
 };
 
 Shader.prototype.extendVariables = function (data) {
@@ -305,92 +315,12 @@ Shader.prototype.load = function () {
 };
 
 Shader.increaseLoaderResourceCountWithShaders = function () {
-  /*    if (Settings.demoScript.shaders !== undefined)
-    {
-        setResourceCount(Settings.demoScript.shaders.length);
-    }
-
-    if (Settings.demoScript.shaderPrograms !== undefined)
-    {
-        setResourceCount(Settings.demoScript.shaderPrograms.length);
-    } */
+  // NOP - obsolete
 };
 
 Shader.compileAndLinkShaders = function () {
   Shader.increaseLoaderResourceCountWithShaders();
-
-  /* if (Settings.demoScript.shaders !== undefined)
-    {
-        for (var shaderI = 0; shaderI < Settings.demoScript.shaders.length; shaderI++)
-        {
-            if (isUserExit())
-            {
-                return;
-            }
-
-            var shader = Settings.demoScript.shaders[shaderI];
-            if (shader.skip === true)
-            {
-                continue;
-            }
-            shader.ref = shaderLoad(shader.name, shader.filename);
-
-            notifyResourceLoaded();
-        }
-    }
-
-    if (Settings.demoScript.shaderPrograms !== undefined)
-    {
-        for (var programI = 0; programI < Settings.demoScript.shaderPrograms.length; programI++)
-        {
-            if (isUserExit())
-            {
-                return;
-            }
-
-            var shaderProgram = Settings.demoScript.shaderPrograms[programI];
-            if (shaderProgram.skip === true)
-            {
-                continue;
-            }
-
-            shaderProgram.ref = shaderProgramLoad(shaderProgram.name);
-            for (var shaderI = 0; shaderI < shaderProgram.shaders.length; shaderI++)
-            {
-                var shader = shaderProgram.shaders[shaderI];
-                shaderProgramAddShaderByName(shaderProgram.name, shader.name);
-            }
-
-            shaderProgramAttachAndLink(shaderProgram.ref.ptr);
-            notifyResourceLoaded();
-        }
-    } */
 };
-
-/* Shader.load = function(shader)
-{
-    var shaderProgram = getShaderProgramFromMemory(shader.programName);
-    if (shaderProgram.ptr === undefined)
-    {
-        shaderProgram = shaderProgramLoad(shader.programName);
-        for (var i = 0; i < shader.name.length; i++)
-        {
-            var shaderFilename = shader.name[i];
-            var loadedShader = shaderLoad(shaderFilename, shaderFilename);
-            if (loadedShader.ok == 1)
-            {
-                shaderProgramAddShaderByName(shader.programName, shaderFilename);
-            }
-            else
-            {
-                return undefined;
-            }
-        }
-        shaderProgramAttachAndLink(shaderProgram.ptr);
-    }
-
-    return shaderProgram;
-}; */
 
 function insertBeforeLastOccurrence(str, insert, find) {
   if (!str) {
@@ -406,6 +336,33 @@ function insertBeforeLastOccurrence(str, insert, find) {
   }
   return str.substring(0, index) + insert + '\n' + str.substring(index);
 }
+
+function insertAfterFirstOccurrence(str, insert, find) {
+  if (!str) {
+    loggerError(`Shader source code is empty, cannot search: '${find}'`);
+    return undefined;
+  }
+  const index = str.indexOf(find);
+  if (index === -1) {
+    loggerError(
+      `Could not find place to inject shader code: '${find}', source: ${str}`
+    );
+    return str;
+  }
+  const at = index + find.length;
+  return str.substring(0, at) + '\n' + insert + '\n' + str.substring(at);
+}
+
+// Detects whether a vertex suffix uses the object-space convention
+// Use 'transformed' instead of 'gl_Position' because it also supports point light distance shadows
+// gl_Position only works with directional and spot lights, not point lights
+Shader.isObjectSpaceVertexSuffix = function (vsSuffix) {
+  return (
+    !!vsSuffix &&
+    /\btransformed\b/.test(vsSuffix) &&
+    !/\bgl_Position\b/.test(vsSuffix)
+  );
+};
 
 Shader.setSourceMaterialPropertiesToShader = function (animationDefinition) {
   const sourceMaterial = animationDefinition.ref.mesh
@@ -460,67 +417,152 @@ Shader.prototype.hotreload = function (path) {
 
   return false;
 };
+
+Shader.injectInlineShaderCode = function (shader, ref, options) {
+  const opts = options || {};
+  const def = ref.shaderDefinition;
+  const vsPrefix = def.vertexShaderPrefix;
+  const vsSuffix = def.vertexShaderSuffix;
+  const fsPrefix = def.fragmentShaderPrefix;
+  const fsSuffix = def.fragmentShaderSuffix;
+
+  if (vsPrefix) {
+    ref.extendVariables(vsPrefix);
+    shader.vertexShader = insertBeforeLastOccurrence(
+      shader.vertexShader,
+      vsPrefix,
+      'void main()'
+    );
+  }
+
+  if (vsSuffix) {
+    if (Shader.isObjectSpaceVertexSuffix(vsSuffix)) {
+      // Use 'transformed' instead of 'gl_Position' because it also supports point light distance shadows
+      shader.vertexShader = insertAfterFirstOccurrence(
+        shader.vertexShader,
+        vsSuffix,
+        '#include <begin_vertex>'
+      );
+    } else {
+      // Legacy (non object space) convention: the suffix overwrites gl_Position directly
+      let suffix = vsSuffix;
+      if (opts.vertexSuffixAppend) {
+        suffix = `${suffix}\n${opts.vertexSuffixAppend}\n`;
+      }
+      shader.vertexShader = insertBeforeLastOccurrence(
+        shader.vertexShader,
+        suffix,
+        '}'
+      );
+    }
+  }
+
+  if (fsPrefix) {
+    ref.extendVariables(fsPrefix);
+    shader.fragmentShader = insertBeforeLastOccurrence(
+      shader.fragmentShader,
+      fsPrefix,
+      'void main()'
+    );
+  }
+
+  if (fsSuffix) {
+    shader.fragmentShader = insertBeforeLastOccurrence(
+      shader.fragmentShader,
+      fsSuffix,
+      '}'
+    );
+  }
+
+  // Point every derived material at the same uniform so uniform update affects the color and shadow pass
+  const shared = ref.getInlineUniforms();
+  shader.uniforms = THREE.UniformsUtils.merge([shader.uniforms, shared]);
+  Object.keys(shared).forEach((name) => {
+    shader.uniforms[name] = shared[name];
+  });
+};
+
+// Ensures the shadow map is rendered with the same vertex shader
+// Directional/spot lights use MeshDepthMaterial
+Shader.assignShadowDepthMaterial = function (obj, animation, cacheKey) {
+  const ref = animation.shader.ref;
+  if (
+    obj.customDepthMaterial &&
+    obj.customDepthMaterial.userData.shaderRef === ref
+  ) {
+    return;
+  }
+
+  const properties = {};
+  settings.toThreeJsProperties(
+    settings.demo.shadow.meshMaterial.depth,
+    properties
+  );
+  const depthMaterial = new THREE.MeshDepthMaterial(properties);
+  depthMaterial.userData.shaderRef = ref;
+  depthMaterial.customProgramCacheKey = cacheKey;
+  depthMaterial.onBeforeCompile = function (shader) {
+    Shader.injectInlineShaderCode(shader, ref, {
+      vertexSuffixAppend: 'vHighPrecisionZW = gl_Position.zw;'
+    });
+  };
+
+  obj.customDepthMaterial = depthMaterial;
+};
+
+// Point lights use MeshDistanceMaterial, which uses the world position 'transformed' instead of raw 'gl_Position'
+Shader.assignShadowDistanceMaterial = function (obj, animation, cacheKey) {
+  const ref = animation.shader.ref;
+  if (
+    obj.customDistanceMaterial &&
+    obj.customDistanceMaterial.userData.shaderRef === ref
+  ) {
+    return;
+  }
+
+  const properties = {};
+  settings.toThreeJsProperties(
+    settings.demo.shadow.meshMaterial.distance,
+    properties
+  );
+  const distanceMaterial = new THREE.MeshDistanceMaterial(properties);
+  distanceMaterial.userData.shaderRef = ref;
+  distanceMaterial.customProgramCacheKey = cacheKey;
+  distanceMaterial.onBeforeCompile = function (shader) {
+    Shader.injectInlineShaderCode(shader, ref, {});
+  };
+
+  obj.customDistanceMaterial = distanceMaterial;
+};
+
 Shader.assignToMaterial = function (obj, animation) {
   if (obj && animation && animation.shader && animation.shader.ref) {
     if (animation.shader.ref.inlineShader) {
+      const ref = animation.shader.ref;
+      const def = ref.shaderDefinition;
+
       // Ensure recompiling of shader on custom changes
-      obj.material.customProgramCacheKey = function () {
+      const cacheKey = function () {
         return btoa(
-          `${animation.shader.ref.shaderDefinition.vertexShaderPrefix}${animation.shader.ref.shaderDefinition.vertexShaderSuffix}${animation.shader.ref.shaderDefinition.fragmentShaderPrefix}${animation.shader.ref.shaderDefinition.fragmentShaderSuffix}`
+          `${def.vertexShaderPrefix}${def.vertexShaderSuffix}${def.fragmentShaderPrefix}${def.fragmentShaderSuffix}`
         );
       };
+      obj.material.customProgramCacheKey = cacheKey;
 
       obj.material.onBeforeCompile = function (shader) {
-        const vsPrefix =
-          animation.shader.ref.shaderDefinition.vertexShaderPrefix;
-        const vsSuffix =
-          animation.shader.ref.shaderDefinition.vertexShaderSuffix;
-        const fsPrefix =
-          animation.shader.ref.shaderDefinition.fragmentShaderPrefix;
-        const fsSuffix =
-          animation.shader.ref.shaderDefinition.fragmentShaderSuffix;
-        if (vsPrefix) {
-          animation.shader.ref.extendVariables(vsPrefix);
-          shader.vertexShader = insertBeforeLastOccurrence(
-            shader.vertexShader,
-            vsPrefix,
-            'void main()'
-          );
-        }
-
-        if (vsSuffix) {
-          shader.vertexShader = insertBeforeLastOccurrence(
-            shader.vertexShader,
-            vsSuffix,
-            '}'
-          );
-        }
-
-        if (fsPrefix) {
-          animation.shader.ref.extendVariables(fsPrefix);
-          shader.fragmentShader = insertBeforeLastOccurrence(
-            shader.fragmentShader,
-            fsPrefix,
-            'void main()'
-          );
-        }
-
-        if (fsSuffix) {
-          shader.fragmentShader = insertBeforeLastOccurrence(
-            shader.fragmentShader,
-            fsSuffix,
-            '}'
-          );
-        }
-
-        shader.uniforms = THREE.UniformsUtils.merge([
-          shader.uniforms,
-          animation.shader.ref.createThreeJsUniforms({})
-        ]);
-
-        animation.shader.ref.material = obj.material;
+        Shader.injectInlineShaderCode(shader, ref, {});
+        ref.material = obj.material;
         obj.material.userData.shader = shader;
       };
+
+      // A vertex shader must also be used in shadow/depth pass
+      const hasVertexChange = def.vertexShaderPrefix || def.vertexShaderSuffix;
+      if (hasVertexChange && obj.castShadow) {
+        Shader.assignShadowDepthMaterial(obj, animation, cacheKey);
+        if (Shader.isObjectSpaceVertexSuffix(def.vertexShaderSuffix)) {
+          Shader.assignShadowDistanceMaterial(obj, animation, cacheKey);
+        }
+      }
     }
   }
 };
@@ -584,66 +626,12 @@ Shader.enableShader = function (animation) {
           }
         }
       });
-
-      /* var _getUniformLocation = getUniformLocation;
-            var _glUniformi = glUniformi;
-            var _glUniformf = glUniformf;
-            var _setUniformFunction = undefined;
-
-            var length = animation.shader.variable.length;
-            for (var i = 0; i < length; i++)
-            {
-                var variable = animation.shader.variable[i];
-                var name = _getUniformLocation(variable.name);
-
-                _setUniformFunction = _glUniformf;
-                if (variable.type === 'int')
-                {
-                    _setUniformFunction = _glUniformi;
-                }
-
-                var value = [];
-                if (Utils.isString(variable.value) === true)
-                {
-                    value = Utils.evaluateVariable(animation, variable.value);
-                }
-                else
-                {
-                    var valueLength = variable.value.length;
-                    for (var j = 0; j < valueLength; j++)
-                    {
-                        value.push(Utils.evaluateVariable(animation, variable.value[j]));
-                    }
-                }
-
-                var valueLength = value.length;
-
-                switch (valueLength)
-                {
-                    case 1:
-                        _setUniformFunction(name, value[0]);
-                        break;
-                    case 2:
-                        _setUniformFunction(name, value[0], value[1]);
-                        break;
-                    case 3:
-                        _setUniformFunction(name, value[0], value[1], value[2]);
-                        break;
-                    case 4:
-                        _setUniformFunction(name, value[0], value[1], value[2], value[3]);
-                        break;
-                    default:
-                        break;
-                }
-            } */
     }
   }
 };
 
-Shader.disableShader = function (animation) {
-  if (animation.shader !== undefined) {
-    // disableShaderProgram(animation.shader.ref.ptr);
-  }
+Shader.disableShader = function () {
+  // NOP - obsolete
 };
 
 export { Shader };
