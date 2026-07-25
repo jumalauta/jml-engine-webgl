@@ -229,6 +229,12 @@ Settings.prototype.init = function () {
       mapSize: {
         width: 1024, // default shadow map size width
         height: 1024 // default shadow map size height
+      },
+      meshMaterial: {
+        depth: {
+          depthPacking: 'RGBADepthPacking'
+        },
+        distance: {}
       }
     },
     camera: {
