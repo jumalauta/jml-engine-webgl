@@ -1,6 +1,6 @@
 import { Scene } from './Scene';
 import { Utils } from './Utils';
-import { loggerDebug, loggerWarning } from './Bindings';
+import { loggerDebug, loggerInfo, loggerWarning } from './Bindings';
 import { DemoRenderer } from './DemoRenderer';
 import { Fbo } from './Fbo';
 
@@ -31,6 +31,9 @@ Loader.prototype.clear = function () {
 
   this.timeline = {};
   this.promises = [];
+
+  this.animationOnly = undefined;
+  this.animationOnlyScenes = [];
 
   // scene not defined, set the fall-back scene
   this.setScene(defaultSceneName, { useFbo: false });
@@ -162,8 +165,50 @@ Loader.prototype.setScene = function (name, settings) {
   this.activeScene.renderScene.push(renderScene);
 };
 
+Loader.prototype.beginAnimationOnly = function (options) {
+  loggerInfo('Starting animationOnly state');
+  if (this.animationOnly === undefined) {
+    this.animationOnlyScenes = [];
+    for (const key in this.scenes) {
+      const scene = this.scenes[key];
+      scene.clear();
+    }
+  }
+
+  if (options?.scene) {
+    if (this.activeScene && this.activeScene.name !== options.scene) {
+      this.previousScene = this.activeScene.name;
+    }
+    this.setScene(options.scene);
+  }
+
+  this.animationOnly = true;
+
+  if (!this.animationOnlyScenes.includes(this.activeScene.name)) {
+    this.animationOnlyScenes.push(this.activeScene.name);
+  }
+};
+
+Loader.prototype.endAnimationOnly = function () {
+  loggerInfo(
+    `Ending animationOnly state${this.previousScene ? `, returning from scene ${this.activeScene?.name} to scene ${this.previousScene}` : ''}`
+  );
+  if (this.previousScene) {
+    this.setScene(this.previousScene);
+    this.previousScene = undefined;
+  }
+
+  this.animationOnly = false;
+};
+
 Loader.prototype.addAnimation = function (animationDefinitions) {
-  this.activeScene.addAnimation(animationDefinitions);
+  if (this.animationOnly === undefined || this.animationOnly === true) {
+    this.activeScene.addAnimation(animationDefinitions);
+  } else {
+    loggerDebug(
+      `Skipping animation outside animationOnly block in scene '${this.activeScene.name}'`
+    );
+  }
 };
 
 Loader.prototype.processAnimation = function () {
@@ -173,7 +218,12 @@ Loader.prototype.processAnimation = function () {
             // add scenes to timeline with default values. this is not recommended, but serves as fall-back functionality
             this.addSceneToTimeline({"scene": sceneName});
         } */
-    this.addSceneToTimeline({ scene: defaultSceneName });
+    const sceneNames = this.animationOnlyScenes?.length
+      ? this.animationOnlyScenes
+      : [defaultSceneName];
+    sceneNames.forEach((sceneName) => {
+      this.addSceneToTimeline({ scene: sceneName });
+    });
   }
 
   for (const sceneName in this.scenes) {

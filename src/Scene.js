@@ -1348,4 +1348,9 @@ Scene.prototype.deinitAnimation = function () {
   Utils.setActiveAnimation(null);
 };
 
+Scene.prototype.clear = function () {
+  this.animationLayers = {};
+  this.renderScene = [];
+};
+
 export { Scene };
