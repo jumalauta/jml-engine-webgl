@@ -64,8 +64,8 @@ Tool controls are only enabled when tool mode (`settings.engine.tool`) is enable
 | Page Down         | Rewind demo -10 seconds   |
 | Page Up           | Rewind demo +10 seconds   |
 | Space             | Pause/resume demo         |
-| Home              | Rewind demo to start      |
-| End               | Rewind demo to near end   |
+| Home or Cmd+Left  | Rewind demo to start      |
+| End or Cmd+Right  | Rewind demo to near end   |
 | P                 | Capture demo to video |
 | R                 | Deep reload demo and dispose used memory |
 | S                 | Take a screenshot of the current rendered frame |
