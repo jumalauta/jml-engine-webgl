@@ -183,9 +183,11 @@ Model.prototype.load = function (filename) {
           );
         } else if (
           instance.shape.type === 'LINE' ||
-          instance.shape.type === 'SPLINE'
+          instance.shape.type === 'SPLINE' ||
+          instance.shape.type === 'TUBE'
         ) {
           const isSpline = instance.shape.type === 'SPLINE';
+          const isTube = instance.shape.type === 'TUBE';
 
           const splinePoints = [];
           instance.shape.points.forEach((point) => {
@@ -246,6 +248,16 @@ Model.prototype.load = function (filename) {
               extrudePath: splinePath
               // UVGenerator -  object that provides UV generator functions
             });
+          } else if (isTube) {
+            geometry = new THREE.TubeGeometry(
+              splinePath,
+              instance.shape.tubularSegments ??
+                instance.shape.extrudeSettings?.steps ??
+                64,
+              instance.shape.radius ?? defaultSize,
+              instance.shape.radialSegments ?? instance.shape.precision ?? 8,
+              instance.shape.closed || false
+            );
           } else {
             const smoothPoints = [];
 
@@ -271,6 +283,17 @@ Model.prototype.load = function (filename) {
               instance.shape.radius || defaultSize,
               instance.shape.widthSegments || 64,
               instance.shape.heightSegments || 64
+            ),
+            material
+          );
+        } else if (instance.shape.type === 'CAPSULE') {
+          object = instance.instancer.createMesh(
+            new THREE.CapsuleGeometry(
+              instance.shape.radius ?? defaultSize,
+              instance.shape.height ?? defaultSize,
+              instance.shape.capSegments ?? 8,
+              instance.shape.radialSegments ?? 32,
+              instance.shape.heightSegments ?? 1
             ),
             material
           );
