@@ -747,6 +747,41 @@ this.loader.addAnimation({
   });
 ```
 
+##### Tube and Spline
+
+```JavaScript
+  this.loader.addAnimation({
+    shape: {
+      type: 'TUBE', // 'SPLINE' takes the same definition
+      radius: 0.2,
+      radialSegments: 16,
+      tubularSegments: 128,
+      closed: false,
+      points: [
+        { x: -1, y: 0, z: 0 },
+        { x: 1, y: 0, z: 0 },
+        { x: 1, y: 1, z: 0 },
+        { x: 2, y: 1, z: -1 },
+      ]
+    }
+  });
+```
+
+##### Capsule
+
+```JavaScript
+  this.loader.addAnimation({
+    shape: {
+      type: 'CAPSULE',
+      radius: 0.4,
+      height: 1.0,
+      capSegments: 8,
+      radialSegments: 32,
+      heightSegments: 1
+    }
+  });
+```
+
 ##### Skysphere / skydome
 
 ```JavaScript
