@@ -431,7 +431,7 @@ Shader.injectInlineShaderCode = function (shader, ref, options) {
     shader.vertexShader = insertBeforeLastOccurrence(
       shader.vertexShader,
       vsPrefix,
-      'void main()'
+      'void main'
     );
   }
 
@@ -462,7 +462,7 @@ Shader.injectInlineShaderCode = function (shader, ref, options) {
     shader.fragmentShader = insertBeforeLastOccurrence(
       shader.fragmentShader,
       fsPrefix,
-      'void main()'
+      'void main'
     );
   }
 
