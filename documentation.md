@@ -264,6 +264,29 @@ angle: [
 DemoEngine.setDebugText('Current time: ' + getSceneTimeFromStart());
 ```
 
+If you want inclusively debug certain animations without rendering anything else you can call `beginAnimationOnly` and `endAnimationOnly`, in options you can define also the scene where it's rendered.
+
+```JavaScript
+this.loader.beginAnimationOnly({scene: 'main'});
+
+this.loader.addAnimation({
+    "light": {
+        "type": "Ambient",
+        "properties": { "intensity": 1.0 },
+    }
+  });
+  this.loader.addAnimation({
+    "light": {
+        "type": "Directional",
+        "properties": { "intensity": 10.0 },
+        "castShadow": true
+    },
+    position:[{x:-3,y:5,z:3}]
+  });
+
+this.loader.endAnimationOnly();
+```
+
 #### 2D image animation examples
 ```JavaScript
 //Move jml_fist.png from bottom-left to top-right in 10 seconds, show image for 60 seconds
