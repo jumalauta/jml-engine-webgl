@@ -743,6 +743,14 @@ function rewindTime(time) {
   }
 }
 
+function rewindToStart() {
+  timer.setTimePercent(0.0);
+}
+
+function rewindToEnd() {
+  timer.setTimePercent(0.99);
+}
+
 if (settings.engine.pauseOnInvisibility) {
   // Especially prevents audio from going onward in iOS or so if requestAnimationFrame is suspended by the OS/browser
   let timerPausedBeforeVisibilityChange = false;
@@ -793,9 +801,21 @@ document.addEventListener('keydown', (event) => {
     fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
   } else if (settings.engine.tool) {
     if (event.key === 'ArrowLeft') {
-      rewindTime(-1000);
+      if (event.metaKey) {
+        // macOS: Command+Left acts as Home
+        event.preventDefault();
+        rewindToStart();
+      } else {
+        rewindTime(-1000);
+      }
     } else if (event.key === 'ArrowRight') {
-      rewindTime(1000);
+      if (event.metaKey) {
+        // macOS: Command+Right acts as End
+        event.preventDefault();
+        rewindToEnd();
+      } else {
+        rewindTime(1000);
+      }
     } else if (event.key === 'ArrowDown') {
       rewindTime(-oneFrame);
     } else if (event.key === 'ArrowUp') {
@@ -830,9 +850,9 @@ document.addEventListener('keydown', (event) => {
 
       windowResize();
     } else if (event.key === 'End') {
-      timer.setTimePercent(0.99);
+      rewindToEnd();
     } else if (event.key === 'Home') {
-      timer.setTimePercent(0.0);
+      rewindToStart();
     } else if (event.key === 'p' && isStarted()) {
       if (!toolClient.isConnected()) {
         alert('Tool server not connected, cannot capture');
