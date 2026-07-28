@@ -48,6 +48,9 @@ Settings.prototype.init = function () {
     startTime: 0, // place of time when the demo starts
     loopAtTime: undefined, // place of time when the demo loops to startTime
     fps: 60, // target frames per second
+    debug: {
+      allowAnimationOnly: true // allows beginAnimationOnly / endAnimationOnly usage
+    },
     material: {
       mapTypes: ['map', 'envMap', 'bumpMap', 'normalMap'] // map types recognized by the engine in image loading
     },
