@@ -3,6 +3,9 @@ import { Utils } from './Utils';
 import { loggerDebug, loggerInfo, loggerWarning } from './Bindings';
 import { DemoRenderer } from './DemoRenderer';
 import { Fbo } from './Fbo';
+import { Settings } from './Settings';
+
+const settings = new Settings();
 
 /** @constructor */
 
@@ -113,49 +116,18 @@ Loader.prototype.addNotifyResource = function (name, promises) {
   return true;
 };
 
-Loader.prototype.setScene = function (name, settings) {
+Loader.prototype.setScene = function (name, options) {
   const renderScene = new DemoRenderer().setScene(name);
   if (this.scenes[name] === undefined) {
     // if scene doesn't exist, create one
     this.scenes[name] = new Scene(name, this);
     const scene = this.scenes[name];
 
-    if (settings) {
-      if (settings.fbo) {
+    if (options) {
+      if (options.fbo) {
         scene.fbo = Fbo.init(name);
       }
     }
-
-    /* var useFbo = true;
-        if (settings !== undefined) {
-            if (settings.useFbo !== undefined) {
-                useFbo = settings.useFbo;
-            }
-
-            scene.initFunction = settings.initFunction;
-        }
-
-        if (useFbo) {
-            //FIXME: FBO timing and layers should be determined - ALSO CRASHES
-            var fboStart = Utils.deepCopyJson(scene.fboStart);
-            if (fboStart !== undefined) {
-                scene.addAnimation(
-                {
-                     "start": 0, "duration": 9999, "layer": 0
-                    ,"fbo":fboStart
-                });
-            }
-
-            //FIXME: FBO timing and layers should be determined - ALSO CRASHES
-            var fboEnd = Utils.deepCopyJson(scene.fboEnd);
-            if (fboEnd !== undefined) {
-                scene.addAnimation(
-                {
-                     "start": 0, "duration": 9999, "layer": 99999
-                    ,"fbo":fboEnd
-                });
-            }
-        } */
   }
 
   this.activeScene = this.scenes[name];
@@ -166,6 +138,11 @@ Loader.prototype.setScene = function (name, settings) {
 };
 
 Loader.prototype.beginAnimationOnly = function (options) {
+  if (!settings.engine.debug.allowAnimationOnly) {
+    loggerInfo('Skipping starting animationOnly state');
+    return;
+  }
+
   loggerInfo('Starting animationOnly state');
   if (this.animationOnly === undefined) {
     this.animationOnlyScenes = [];
@@ -190,6 +167,11 @@ Loader.prototype.beginAnimationOnly = function (options) {
 };
 
 Loader.prototype.endAnimationOnly = function () {
+  if (!settings.engine.debug.allowAnimationOnly) {
+    loggerInfo('Skipping ending animationOnly state');
+    return;
+  }
+
   loggerInfo(
     `Ending animationOnly state${this.previousScene ? `, returning from scene ${this.activeScene?.name} to scene ${this.previousScene}` : ''}`
   );
