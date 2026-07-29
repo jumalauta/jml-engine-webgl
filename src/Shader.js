@@ -476,7 +476,6 @@ Shader.injectInlineShaderCode = function (shader, ref, options) {
 
   // Point every derived material at the same uniform so uniform update affects the color and shadow pass
   const shared = ref.getInlineUniforms();
-  shader.uniforms = THREE.UniformsUtils.merge([shader.uniforms, shared]);
   Object.keys(shared).forEach((name) => {
     shader.uniforms[name] = shared[name];
   });
@@ -580,18 +579,18 @@ Shader.enableShader = function (animation) {
         animation.shader.ref.material.uniforms ||
         animation.shader.ref.material.userData.shader.uniforms;
       animation.shader.variable.forEach((variable) => {
+        if (uniforms[variable.name] === undefined) {
+          loggerWarning(
+            `Uniform '${variable.name}' not found, cannot set value. Available uniforms: ${Object.keys(uniforms).join(', ')}`
+          );
+          return;
+        }
+
         if (variable.value !== undefined) {
           uniforms[variable.name].value = Shader.convertToThreeJsUniformValues([
             ...variable.value
           ]);
         } else {
-          if (uniforms[variable.name] === undefined) {
-            loggerWarning(
-              `Uniform '${variable.name}' not found, cannot set value. Available uniforms: ${Object.keys(uniforms).join(', ')}`
-            );
-            return;
-          }
-
           if (variable.name === 'texture0' && animation.ref.texture) {
             uniforms[variable.name].value = animation.ref.texture[0];
           } else if (
