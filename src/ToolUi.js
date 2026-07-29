@@ -17,7 +17,20 @@ import { loggerInfo, loggerWarning } from './Bindings';
 import { Utils } from './Utils';
 import { Fbo } from './Fbo';
 import { DemoRenderer } from './DemoRenderer';
+import { Fullscreen } from './Fullscreen';
+import { MidiManager } from './MidiManager';
+import { SceneHelpers } from './SceneHelpers';
 import { ToolClient } from './ToolClient';
+import {
+  deepReloadDemo,
+  logRendererInfo,
+  screenshot,
+  startVideoCapture,
+  stopDemo,
+  toggleFullscreen,
+  toggleMidiCaptureOverwrite,
+  toggleToolUi
+} from './main';
 import './ToolUi.css';
 
 const settings = new Settings();
@@ -356,12 +369,70 @@ ToolUi.prototype.getMenuItems = function () {
   const isPaused = timer.isPaused();
   const demoRenderer = new DemoRenderer();
   const isOrbitControlsEnabled = demoRenderer.isOrbitControlsEnabled();
+  const sceneHelpers = new SceneHelpers();
+  const isCameraHelpersEnabled = sceneHelpers.isCameraHelpersEnabled();
+  const isLightHelpersEnabled = sceneHelpers.isLightHelpersEnabled();
+  const isCameraDirectionIndicatorEnabled =
+    sceneHelpers.isCameraDirectionIndicatorEnabled();
+  const isGridEnabled = sceneHelpers.isGridEnabled();
+  const fullscreen = new Fullscreen();
+  const midiManager = new MidiManager();
 
   return [
     {
-      label: isPaused ? 'Resume' : 'Pause',
+      label: `${isPaused ? 'Resume' : 'Pause'} (Space)`,
       action: () => {
         timer.pause(!isPaused);
+      }
+    },
+    {
+      label: 'Stop demo (Esc)',
+      action: () => {
+        stopDemo();
+      }
+    },
+    {
+      label: 'Screenshot (S)',
+      action: () => {
+        screenshot();
+      }
+    },
+    {
+      label: 'Capture video (P)',
+      action: () => {
+        startVideoCapture();
+      }
+    },
+    {
+      label: 'Deep reload (R)',
+      action: () => {
+        deepReloadDemo();
+      }
+    },
+    {
+      label: `${fullscreen.isFullscreen() ? '✔ ' : ''}Fullscreen (F)`,
+      disabled: !fullscreen.isFullscreenSupported(),
+      action: () => {
+        toggleFullscreen();
+      }
+    },
+    {
+      label: `${this.isVisible() ? 'Hide' : 'Show'} tool (T)`,
+      action: () => {
+        toggleToolUi();
+      }
+    },
+    {
+      label: `${midiManager.isCaptureOverwrite() ? '✔ ' : ''}MIDI capture overwrite (Insert)`,
+      disabled: !midiManager.capture,
+      action: () => {
+        toggleMidiCaptureOverwrite();
+      }
+    },
+    {
+      label: 'Log renderer info to console (0)',
+      action: () => {
+        logRendererInfo();
       }
     },
     {
@@ -384,6 +455,46 @@ ToolUi.prototype.getMenuItems = function () {
           label: `${isOrbitControlsEnabled ? '✔ ' : ''}Orbit controls`,
           action: () => {
             demoRenderer.setOrbitControlsEnabled(true);
+          }
+        }
+      ]
+    },
+    {
+      label: 'View tools',
+      children: [
+        {
+          label: `${isCameraHelpersEnabled ? '✔ ' : ''}Cameras`,
+          action: () => {
+            sceneHelpers.setCameraHelpersEnabled(!isCameraHelpersEnabled);
+            if (!isCameraHelpersEnabled && !isOrbitControlsEnabled) {
+              loggerInfo(
+                'Demo camera is visible only when the view is rendered through orbit controls'
+              );
+            }
+            demoRenderer.setRenderNeedsUpdate(true);
+          }
+        },
+        {
+          label: `${isLightHelpersEnabled ? '✔ ' : ''}Lights`,
+          action: () => {
+            sceneHelpers.setLightHelpersEnabled(!isLightHelpersEnabled);
+            demoRenderer.setRenderNeedsUpdate(true);
+          }
+        },
+        {
+          label: `${isGridEnabled ? '✔ ' : ''}Grid`,
+          action: () => {
+            sceneHelpers.setGridEnabled(!isGridEnabled);
+            demoRenderer.setRenderNeedsUpdate(true);
+          }
+        },
+        {
+          label: `${isCameraDirectionIndicatorEnabled ? '✔ ' : ''}Camera direction indicator`,
+          action: () => {
+            sceneHelpers.setCameraDirectionIndicatorEnabled(
+              !isCameraDirectionIndicatorEnabled
+            );
+            demoRenderer.setRenderNeedsUpdate(true);
           }
         }
       ]

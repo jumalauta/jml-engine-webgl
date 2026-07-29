@@ -6,6 +6,7 @@ import { Fbo } from './Fbo';
 import { CubeMap } from './CubeMap';
 import { Effect } from './Effect';
 import { Settings } from './Settings';
+import { SceneHelpers } from './SceneHelpers';
 import { Spectogram } from './Spectogram';
 import { ToolUi } from './ToolUi';
 import { Timer } from './Timer';
@@ -71,6 +72,8 @@ export function clearThreeObject(obj) {
 }
 
 DemoRenderer.prototype.cleanScene = function (forceDispose) {
+  new SceneHelpers().clear();
+
   Object.values(this.scenes).forEach((scene) => {
     // console.log("removing scene " + scene.uuid);
     clearThreeObject(scene);
@@ -323,6 +326,8 @@ DemoRenderer.prototype.setOrbitControlsEnabled = function (enabled) {
       this.controls.dispose();
       this.controls = null;
     }
+  } else {
+    new SceneHelpers().releaseDemoCameraProxies();
   }
 
   this.updateOrbitControlsCamera();
@@ -382,6 +387,7 @@ DemoRenderer.prototype.restoreOrbitControlsTarget = function () {
 DemoRenderer.prototype.renderScene = function () {
   if (this.renderer) {
     this.renderer.render(scene, camera);
+    new SceneHelpers().render(this.renderer, scene, camera);
   }
 };
 
@@ -401,6 +407,8 @@ DemoRenderer.prototype.render = function () {
   this.updateMainViewOrbitControls();
 
   Effect.run('Demo');
+
+  new SceneHelpers().renderOverlay(this.renderer, this.demoCamera || camera);
 
   if (this.controls) {
     this.controls.update();

@@ -3,8 +3,15 @@ import { Utils } from './Utils';
 import { Shader } from './Shader';
 import { Timer } from './Timer';
 import { Settings } from './Settings';
-import { DemoRenderer, getScene, getCamera } from './DemoRenderer';
+import {
+  DemoRenderer,
+  getScene,
+  getCamera,
+  pushView,
+  popView
+} from './DemoRenderer';
 import { Input } from './Input';
+import { SceneHelpers } from './SceneHelpers';
 
 const settings = new Settings();
 
@@ -664,7 +671,16 @@ Player.prototype.drawCameraAnimation = function (time, animation) {
       perspective.zoom
     );
   }
-  if (!orbitControlsActive) {
+
+  const demoCameraProxy = orbitControlsActive
+    ? new SceneHelpers().getDemoCameraProxy(camera)
+    : undefined;
+
+  if (demoCameraProxy) {
+    pushView(getScene(), demoCameraProxy);
+  }
+
+  if (!orbitControlsActive || demoCameraProxy) {
     if (animation.position !== undefined) {
       const position = this.calculate3dCoordinateAnimation(
         time,
@@ -712,6 +728,10 @@ Player.prototype.drawCameraAnimation = function (time, animation) {
     if (animation.targetObject !== undefined) {
       animation.ref.setTargetObject(animation.targetObject.ptr);
     }
+  }
+
+  if (demoCameraProxy) {
+    popView();
   }
 
   animation.ref.update();

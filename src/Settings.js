@@ -80,6 +80,21 @@ Settings.prototype.init = function () {
       capture: true, // capture MIDI events
       playbackLogging: true, // enable playback logging
       recordingName: 'default' // name of the MIDI recording
+    },
+    helpers: {
+      cameras: false, // draw demo camera position and direction
+      lights: false, // draw light position and directions
+      cameraDirectionIndicator: false, // draw an indicator to the upper right corner of the screen showing towards which axis the camera is looking at
+      cameraDirectionIndicatorSize: 128, // size of the camera direction indicator in pixels
+      grid: false, // draw a horizontal grid plane to the origin
+      gridSize: 20.0, // width and depth of the grid in world units
+      gridDivisions: 20, // number of grid cells per grid axis
+      gridColor: 0x888888, // default color of the grid lines
+      gridOpacity: 0.5, // opacity of the grid lines
+      size: 1.0, // size of the light helper gizmo in world units
+      lightColor: undefined, // light helper color, undefined = the color of the light
+      alwaysOnTop: true, // true = helpers are drawn on top of geometry
+      overlay: true // true = helpers are drawn on the screen after the demo, false = drawn to the render target of the scene, i.e., demo's post-processing effects are applied to the helpers
     }
   };
 
