@@ -354,6 +354,8 @@ ToolUi.prototype.getMenuItems = function () {
   const timer = new Timer();
   const fbos = Fbo.getFbos();
   const isPaused = timer.isPaused();
+  const demoRenderer = new DemoRenderer();
+  const isOrbitControlsEnabled = demoRenderer.isOrbitControlsEnabled();
 
   return [
     {
@@ -368,6 +370,23 @@ ToolUi.prototype.getMenuItems = function () {
         const toolClient = new ToolClient();
         toolClient.showUnusedFiles();
       }
+    },
+    {
+      label: 'Camera',
+      children: [
+        {
+          label: `${!isOrbitControlsEnabled ? '✔ ' : ''}Demo camera`,
+          action: () => {
+            demoRenderer.setOrbitControlsEnabled(false);
+          }
+        },
+        {
+          label: `${isOrbitControlsEnabled ? '✔ ' : ''}Orbit controls`,
+          action: () => {
+            demoRenderer.setOrbitControlsEnabled(true);
+          }
+        }
+      ]
     },
     {
       label: 'Timer',

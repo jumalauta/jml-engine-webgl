@@ -573,7 +573,10 @@ Player.prototype.drawObjectAnimation = function (time, animation) {
 
 Player.prototype.drawFboAnimation = function (time, animation) {
   if (animation.fbo.debugCamera === true) {
-    new DemoRenderer().setOrbitControls(animation.ref.camera);
+    const demoRenderer = new DemoRenderer();
+    if (!demoRenderer.isOrbitControlsEnabled()) {
+      demoRenderer.setOrbitControls(animation.ref.camera);
+    }
   }
   if (animation.fbo.dimension !== undefined) {
     const obj = {
@@ -646,6 +649,11 @@ Player.prototype.drawLightAnimation = function (time, animation) {
 };
 
 Player.prototype.drawCameraAnimation = function (time, animation) {
+  const demoRenderer = new DemoRenderer();
+  const camera = getCamera();
+  demoRenderer.setDemoCamera(camera);
+  const orbitControlsActive = demoRenderer.applyOrbitControls(camera);
+
   if (animation.perspective !== undefined) {
     const perspective = this.calculatePerspectiveAnimation(time, animation);
     animation.ref.setPerspective(
@@ -656,48 +664,54 @@ Player.prototype.drawCameraAnimation = function (time, animation) {
       perspective.zoom
     );
   }
-  if (animation.position !== undefined) {
-    const position = this.calculate3dCoordinateAnimation(
-      time,
-      animation.position,
-      { x: 0, y: 0, z: 2 }
-    );
-    animation.ref.setPosition(position.x, position.y, position.z);
-  }
-  if (animation.angle !== undefined) {
-    const angle = this.calculateAngleAnimation(time, animation);
-    animation.ref.setRotation(
-      angle.degreesX,
-      angle.degreesY,
-      angle.degreesZ,
-      angle.order
-    );
-  }
-  if (animation.lookAt !== undefined) {
-    const lookAt = this.calculate3dCoordinateAnimation(time, animation.lookAt, {
-      x: 0,
-      y: 0,
-      z: 0
-    });
-    animation.ref.setLookAt(lookAt.x, lookAt.y, lookAt.z);
-  }
-  if (animation.up !== undefined) {
-    const up = this.calculate3dCoordinateAnimation(time, animation.up, {
-      x: 0,
-      y: 1,
-      z: 0
-    });
-    animation.ref.setUpVector(up.x, up.y, up.z);
-  }
+  if (!orbitControlsActive) {
+    if (animation.position !== undefined) {
+      const position = this.calculate3dCoordinateAnimation(
+        time,
+        animation.position,
+        { x: 0, y: 0, z: 2 }
+      );
+      animation.ref.setPosition(position.x, position.y, position.z);
+    }
+    if (animation.angle !== undefined) {
+      const angle = this.calculateAngleAnimation(time, animation);
+      animation.ref.setRotation(
+        angle.degreesX,
+        angle.degreesY,
+        angle.degreesZ,
+        angle.order
+      );
+    }
+    if (animation.lookAt !== undefined) {
+      const lookAt = this.calculate3dCoordinateAnimation(
+        time,
+        animation.lookAt,
+        {
+          x: 0,
+          y: 0,
+          z: 0
+        }
+      );
+      animation.ref.setLookAt(lookAt.x, lookAt.y, lookAt.z);
+    }
+    if (animation.up !== undefined) {
+      const up = this.calculate3dCoordinateAnimation(time, animation.up, {
+        x: 0,
+        y: 1,
+        z: 0
+      });
+      animation.ref.setUpVector(up.x, up.y, up.z);
+    }
 
-  animation.ref.setPositionObject();
-  if (animation.positionObject !== undefined) {
-    animation.ref.setPositionObject(animation.positionObject.ptr);
-  }
+    animation.ref.setPositionObject();
+    if (animation.positionObject !== undefined) {
+      animation.ref.setPositionObject(animation.positionObject.ptr);
+    }
 
-  animation.ref.setTargetObject();
-  if (animation.targetObject !== undefined) {
-    animation.ref.setTargetObject(animation.targetObject.ptr);
+    animation.ref.setTargetObject();
+    if (animation.targetObject !== undefined) {
+      animation.ref.setTargetObject(animation.targetObject.ptr);
+    }
   }
 
   animation.ref.update();
