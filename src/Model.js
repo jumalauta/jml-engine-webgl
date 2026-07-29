@@ -676,8 +676,8 @@ Model.prototype.setMaterial = function (material) {
         if (mat.map && material.uniforms && material.uniforms.texture0) {
           material.uniforms.texture0.value = mat.map;
         }
-        mat = material;
       });
+      obj.material = material;
     }
   });
 
