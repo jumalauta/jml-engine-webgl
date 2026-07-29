@@ -77,8 +77,20 @@ jobs:
         path: 'release-node/'
     - run: zip -r release-node.zip release-node
       if: github.event_name == 'release'
+    - name: Build Windows Release
+      run: ./release-windows.sh
+    - name: Upload Windows Release
+      uses: actions/upload-artifact@v7
+      if: github.event_name != 'release'
+      with:
+        name: release-windows
+        path: 'dist/release-windows/'
+    - run: cd dist && zip -r ../release-windows.zip release-windows
+      if: github.event_name == 'release'
     - name: Upload Release Asset
       uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
       if: github.event_name == 'release'
       with:
-        files: release-node.zip
+        files: |
+          release-node.zip
+          release-windows.zip
