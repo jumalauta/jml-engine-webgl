@@ -120,7 +120,7 @@ export default defineConfig(({ command }) => {
       appType: 'mpa', // proper 404 responses instead of index.html fallback
       server: {
         hmr: false,
-        host: '127.0.0.1',
+        host: true,
         open: true,
         headers: {
           'Cache-Control':
