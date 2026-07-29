@@ -1,5 +1,6 @@
+import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls';
-import { loggerTrace } from './Bindings';
+import { loggerInfo, loggerTrace } from './Bindings';
 import { LoadingBar } from './LoadingBar';
 import { Fbo } from './Fbo';
 import { CubeMap } from './CubeMap';
@@ -24,6 +25,8 @@ DemoRenderer.prototype.getInstance = function () {
 };
 
 let scene, camera;
+const orbitControlsMinimumDistance = 1.0;
+const orbitControlsDirection = new THREE.Vector3();
 let scenes = [];
 let cameras = [];
 let disposeList = {};
@@ -104,8 +107,9 @@ DemoRenderer.prototype.setupScene = function () {
   */
   settings.createLightsToScene(scene);
   camera = settings.createCamera();
+  this.mainCameraPlacement = undefined;
 
-  this.setOrbitControls(camera);
+  this.updateOrbitControlsCamera();
 };
 
 DemoRenderer.prototype.setScene = function (name) {
@@ -128,6 +132,14 @@ DemoRenderer.prototype.deinit = function () {
 
     this.clear();
     this.cleanScene(true);
+
+    if (this.controls) {
+      this.saveOrbitControlsTarget();
+      this.controls.dispose();
+      this.controls = null;
+    }
+
+    this.demoCamera = undefined;
 
     if (
       this.renderer.domElement &&
@@ -210,6 +222,7 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
       return;
     }
 
+    this.saveOrbitControlsTarget();
     this.controls.dispose();
     this.controls = null;
   }
@@ -224,13 +237,146 @@ DemoRenderer.prototype.setOrbitControls = function (camera) {
   }
 
   this.controls = new OrbitControls(camera, canvas);
-  //this.controls.target.set(0, 0, -10);
-  this.controls.update();
-  this.controls.enablePan = false;
+  this.controls.enablePan = this.isOrbitControlsEnabled();
   this.controls.enableDamping = true;
   this.controls.addEventListener('change', () => {
     this.renderNeedsUpdate = true;
   });
+
+  if (this.isOrbitControlsEnabled()) {
+    this.restoreOrbitControlsTarget();
+  }
+
+  this.controls.update();
+};
+
+// true = orbit controls override the camera animation of the demo
+DemoRenderer.prototype.isOrbitControlsEnabled = function () {
+  return this.orbitControlsEnabled === true;
+};
+
+DemoRenderer.prototype.isOrbitControlsActive = function () {
+  return this.isOrbitControlsEnabled() && !!this.controls;
+};
+
+DemoRenderer.prototype.getOrbitCamera = function () {
+  if (!this.orbitCamera) {
+    this.orbitCamera = settings.createCamera();
+  }
+
+  return this.orbitCamera;
+};
+
+DemoRenderer.prototype.updateOrbitControlsCamera = function () {
+  this.setOrbitControls(
+    this.isOrbitControlsEnabled() ? this.getOrbitCamera() : camera
+  );
+};
+
+DemoRenderer.prototype.setDemoCamera = function (demoCamera) {
+  this.demoCamera = demoCamera;
+};
+
+DemoRenderer.prototype.applyOrbitControls = function (followerCamera) {
+  if (!this.isOrbitControlsActive() || !followerCamera) {
+    return false;
+  }
+
+  const orbitCamera = this.controls.object;
+  if (followerCamera !== orbitCamera) {
+    followerCamera.position.copy(orbitCamera.position);
+    followerCamera.quaternion.copy(orbitCamera.quaternion);
+    followerCamera.up.copy(orbitCamera.up);
+  }
+
+  return true;
+};
+
+// demos that do not animate any camera of their own are viewed through the
+// camera of the main view, so the free camera controls it directly
+DemoRenderer.prototype.updateMainViewOrbitControls = function () {
+  if (this.isOrbitControlsActive() && !this.demoCamera && camera) {
+    if (!this.mainCameraPlacement) {
+      this.mainCameraPlacement = {
+        position: camera.position.clone(),
+        quaternion: camera.quaternion.clone(),
+        up: camera.up.clone()
+      };
+    }
+
+    this.applyOrbitControls(camera);
+  } else if (this.mainCameraPlacement) {
+    camera.position.copy(this.mainCameraPlacement.position);
+    camera.quaternion.copy(this.mainCameraPlacement.quaternion);
+    camera.up.copy(this.mainCameraPlacement.up);
+    this.mainCameraPlacement = undefined;
+  }
+};
+
+DemoRenderer.prototype.setOrbitControlsEnabled = function (enabled) {
+  this.orbitControlsEnabled = enabled === true;
+
+  if (this.orbitControlsEnabled) {
+    this.resetOrbitCameraToDemoCamera();
+
+    if (this.controls) {
+      this.controls.dispose();
+      this.controls = null;
+    }
+  }
+
+  this.updateOrbitControlsCamera();
+  this.updateMainViewOrbitControls();
+  this.renderNeedsUpdate = true;
+
+  loggerInfo(
+    `Camera controlled by ${this.orbitControlsEnabled ? 'orbit controls' : 'demo'}`
+  );
+};
+
+DemoRenderer.prototype.toggleOrbitControls = function () {
+  this.setOrbitControlsEnabled(!this.isOrbitControlsEnabled());
+};
+
+// start orbiting always from the placement of the camera of the demo
+DemoRenderer.prototype.resetOrbitCameraToDemoCamera = function () {
+  const orbitCamera = this.getOrbitCamera();
+  const demoCamera = this.demoCamera || camera;
+
+  const demoPlacement =
+    demoCamera === camera && this.mainCameraPlacement
+      ? this.mainCameraPlacement
+      : demoCamera;
+
+  if (!demoPlacement || demoCamera === orbitCamera) {
+    return;
+  }
+
+  orbitCamera.position.copy(demoPlacement.position);
+  orbitCamera.quaternion.copy(demoPlacement.quaternion);
+  orbitCamera.up.copy(demoPlacement.up);
+  orbitCamera.getWorldDirection(orbitControlsDirection);
+
+  const distance = Math.max(
+    orbitCamera.position.length(),
+    orbitControlsMinimumDistance
+  );
+
+  this.orbitTarget = orbitCamera.position
+    .clone()
+    .addScaledVector(orbitControlsDirection, distance);
+};
+
+DemoRenderer.prototype.saveOrbitControlsTarget = function () {
+  if (this.controls && this.controls.object === this.orbitCamera) {
+    this.orbitTarget = this.controls.target.clone();
+  }
+};
+
+DemoRenderer.prototype.restoreOrbitControlsTarget = function () {
+  if (this.controls && this.orbitTarget) {
+    this.controls.target.copy(this.orbitTarget);
+  }
 };
 
 DemoRenderer.prototype.renderScene = function () {
@@ -251,6 +397,8 @@ DemoRenderer.prototype.render = function () {
   new Spectogram().update();
 
   this.renderer.clear();
+
+  this.updateMainViewOrbitControls();
 
   Effect.run('Demo');
 
@@ -275,7 +423,6 @@ DemoRenderer.prototype.preload = function (percent) {
   });
 };
 
-// arry.slice(-1);
 function getScene() {
   return scenes.slice(-1)[0] || scene;
 }
@@ -308,7 +455,5 @@ window.DemoEngine = window.DemoEngine || {};
 window.DemoEngine.getRenderer = function () {
   return new DemoRenderer().renderer;
 };
-
-// alert(screenWidth + 'x' + screenHeight);
 
 export { DemoRenderer };

@@ -57,6 +57,7 @@ Tool controls are only enabled when tool mode (`settings.engine.tool`) is enable
 
 | Key               | Action                    |
 |-------------------|---------------------------|
+| Right click       | Open tool context menu    |
 | Left arrow        | Rewind demo -1 second     |
 | Right arrow       | Rewind demo +1 second     |
 | Down arrow        | Rewind demo -1 frame      |
