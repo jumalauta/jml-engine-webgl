@@ -67,10 +67,33 @@ Tool controls are only enabled when tool mode (`settings.engine.tool`) is enable
 | Space             | Pause/resume demo         |
 | Home or Cmd+Left  | Rewind demo to start      |
 | End or Cmd+Right  | Rewind demo to near end   |
+| Insert            | Toggle MIDI capture overwrite |
 | P                 | Capture demo to video |
 | R                 | Deep reload demo and dispose used memory |
 | S                 | Take a screenshot of the current rendered frame |
 | T                 | Hide/show tool |
+| 0                 | Log renderer info to browser console |
+
+### Context menu
+
+Right click opens the tool context menu. All keyboard shortcuts, except the rewinding ones, are available also in the context menu.
+
+| Menu item          | Action                    |
+|--------------------|---------------------------|
+| Pause / Resume     | Pause or resume the demo |
+| Stop demo          | Stop the demo and return to the start menu |
+| Screenshot         | Take a screenshot of the current rendered frame |
+| Capture video      | Capture the demo to video, requires tool server |
+| Deep reload        | Reload the demo and dispose used memory |
+| Fullscreen         | Toggle fullscreen |
+| Hide / Show tool   | Hide or show the tool panel |
+| MIDI capture overwrite | Toggle MIDI capture overwrite, requires MIDI capture |
+| Log renderer info to console | Log renderer statistics to browser console |
+| Check unused files | List files that the demo has not loaded |
+| Camera             | Select if the view is rendered through the demo camera or freely movable orbit controls |
+| View tools         | Show or hide camera, light, grid and camera direction visualizations, see [documentation](documentation.md#view-tools) |
+| Timer              | Set demo start and loop times |
+| FBO                | Preview the contents of an FBO |
 
 ### Query parameters
 

@@ -4,6 +4,7 @@
 
 * [Shader uniform autobinding](#shader-uniform-autobinding)
 * [Supported file formats](#supported-file-formats)
+* [View tools](#view-tools)
 * [Music spectogram](#music-spectogram)
 * [Demo scripting](#demo-scripting)
 * [Exporting animations from Blender](#exporting-animations)
@@ -84,6 +85,20 @@ When you save a file that has been previously loaded the engine attempts to hot 
 Shader file reloading is very efficient and fast. JavaScript and other assets may cause larger reload.
 
 Refresh cache (e.g., ctrl+F5) and restart the engine if you encounter issues.
+
+## View tools
+
+In tool mode `right click -> View tools` toggles tools that visualize where the cameras and the lights of the demo are and where they are pointing at, similarly to 3D modelling software.
+
+| View tool | Visualization |
+|-----------|---------------|
+| Cameras | Show demo camera's position and direction |
+| Lights  | Position and direction of the light |
+| Camera direction indicator | Axes of the world in the upper right corner of the screen, showing towards which axis the active camera is currently looking at |
+| Grid    | Horizontal grid plane in the origin |
+
+
+Appearance can be configured with settings `settings.tool.helpers`
 
 ## Assets processing tips and tricks
 

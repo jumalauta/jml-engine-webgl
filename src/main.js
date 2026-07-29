@@ -311,7 +311,7 @@ function canvasToDataUrl() {
   return dataUrl;
 }
 
-function screenshot() {
+export function screenshot() {
   const canvas = document.getElementById('canvas');
   Utils.takeCanvasScreenshot(canvas);
 }
@@ -707,7 +707,7 @@ function reloadDemo() {
   Effect.init('Demo');
 }
 
-function deepReloadDemo() {
+export function deepReloadDemo() {
   loggerInfo('Deep reload demo');
   const isPause = timer.isPaused();
   const time = timer.getTime();
@@ -749,6 +749,73 @@ function rewindToStart() {
 
 function rewindToEnd() {
   timer.setTimePercent(0.99);
+}
+
+export function toggleFullscreen() {
+  fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
+}
+
+export function toggleToolUi() {
+  if (toolUi.isVisible()) {
+    toolUi.hide();
+  } else {
+    toolUi.show();
+  }
+
+  windowResize();
+}
+
+export function toggleMidiCaptureOverwrite() {
+  const midiManager = new MidiManager();
+  if (midiManager.capture) {
+    midiManager.setCaptureOverwrite(!midiManager.isCaptureOverwrite());
+  }
+}
+
+export function logRendererInfo() {
+  console.log(demoRenderer.renderer.info);
+}
+
+export function startVideoCapture() {
+  if (!isStarted()) {
+    return;
+  }
+
+  if (!toolClient.isConnected()) {
+    alert('Tool server not connected, cannot capture');
+    return;
+  }
+
+  if (!confirm('Want to start video capture?')) {
+    return;
+  }
+
+  timer.pause(true);
+  timer.setTime(0);
+  captureStartTime = Date.now();
+  toolClient
+    .request('capture.start', {
+      fps: settings.engine.fps,
+      width: 1920,
+      height: 1080
+    })
+    .then((result) => {
+      loggerInfo('Capture started successfully');
+
+      setTimeout(() => {
+        frame = -1;
+        capture = true;
+        setWaitingForFrame(true);
+        captureFrame();
+      }, 1000);
+
+      return result;
+    })
+    .catch((err) => {
+      loggerError('Failed to start capture: ' + err.message);
+      alert('Failed to start video capture');
+      throw err;
+    });
 }
 
 if (settings.engine.pauseOnInvisibility) {
@@ -798,7 +865,7 @@ document.addEventListener('keydown', (event) => {
       startDemo();
     }
   } else if (event.key === 'f') {
-    fullscreen.toggleFullscreen(!fullscreen.isFullscreen());
+    toggleFullscreen();
   } else if (settings.engine.tool) {
     if (event.key === 'ArrowLeft') {
       if (event.metaKey) {
@@ -827,68 +894,21 @@ document.addEventListener('keydown', (event) => {
     } else if (event.code === 'Space') {
       timer.pause();
     } else if (event.key === 'Insert') {
-      const midiManager = new MidiManager();
-      if (midiManager.capture) {
-        midiManager.setCaptureOverwrite(!midiManager.isCaptureOverwrite());
-      }
+      toggleMidiCaptureOverwrite();
     } else if (event.key === '0') {
-      /* performance.measureUserAgentSpecificMemory().finally((result) => {
-        console.log(result);
-      }); */
-
-      console.log(demoRenderer.renderer.info);
+      logRendererInfo();
     } else if (event.key === 'r') {
       deepReloadDemo();
     } else if (event.key === 's') {
       screenshot();
     } else if (event.key === 't') {
-      if (toolUi.isVisible()) {
-        toolUi.hide();
-      } else {
-        toolUi.show();
-      }
-
-      windowResize();
+      toggleToolUi();
     } else if (event.key === 'End') {
       rewindToEnd();
     } else if (event.key === 'Home') {
       rewindToStart();
-    } else if (event.key === 'p' && isStarted()) {
-      if (!toolClient.isConnected()) {
-        alert('Tool server not connected, cannot capture');
-        return;
-      }
-
-      if (!confirm('Want to start video capture?')) {
-        return;
-      }
-
-      timer.pause(true);
-      timer.setTime(0);
-      captureStartTime = Date.now();
-      toolClient
-        .request('capture.start', {
-          fps: settings.engine.fps,
-          width: 1920,
-          height: 1080
-        })
-        .then((result) => {
-          loggerInfo('Capture started successfully');
-
-          setTimeout(() => {
-            frame = -1;
-            capture = true;
-            setWaitingForFrame(true);
-            captureFrame();
-          }, 1000);
-
-          return result;
-        })
-        .catch((err) => {
-          loggerError('Failed to start capture: ' + err.message);
-          alert('Failed to start video capture');
-          throw err;
-        });
+    } else if (event.key === 'p') {
+      startVideoCapture();
     }
   }
 });

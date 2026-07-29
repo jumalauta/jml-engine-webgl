@@ -7,6 +7,7 @@ import {
 } from './DemoRenderer';
 import { Image } from './Image';
 import { loggerDebug } from './Bindings';
+import { SceneHelpers } from './SceneHelpers';
 import { Settings } from './Settings';
 
 const settings = new Settings();
@@ -123,6 +124,7 @@ Fbo.prototype.bind = function () {
 
 Fbo.prototype.unbind = function () {
   demoRenderer.renderer.render(this.scene, this.camera);
+  new SceneHelpers().render(demoRenderer.renderer, this.scene, this.camera);
   demoRenderer.renderer.setRenderTarget(null);
 };
 
