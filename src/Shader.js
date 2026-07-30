@@ -143,31 +143,41 @@ Shader.prototype.extendVariables = function (data) {
       const type = match.split(' ')[1];
       const name = match.split(' ')[2].replace(';', '');
 
+      this.uniformTypes = this.uniformTypes || {};
+      this.uniformTypes[name] = type;
+
       // This tries to support the automatic variable assignments
       if (name === 'texture0' && type === 'sampler2D') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       } else if (name === 'texture1' && type === 'sampler2D') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       } else if (name === 'texture2' && type === 'sampler2D') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       } else if (name === 'texture3' && type === 'sampler2D') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       } else if (name === 'time' && type === 'float') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       } else if (name === 'timePercent' && type === 'float') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       } else if (name === 'color' && type === 'vec4') {
-        this.shaderDefinition.variable = this.shaderDefinition.variable || [];
-        this.shaderDefinition.variable.push({ name, value: undefined });
+        this.addAutoBoundVariable(name);
       }
     });
   }
+};
+
+Shader.prototype.addAutoBoundVariable = function (name) {
+  this.shaderDefinition.variable = this.shaderDefinition.variable || [];
+
+  // Inline shaders are parsed on every compile, do not add the same variable twice
+  const exists = this.shaderDefinition.variable.some(
+    (variable) => variable.name === name
+  );
+  if (exists) {
+    return;
+  }
+
+  this.shaderDefinition.variable.push({ name, value: undefined });
 };
 
 Shader.prototype.createMaterial = function (

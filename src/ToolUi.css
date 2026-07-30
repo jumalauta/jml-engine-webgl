@@ -102,6 +102,23 @@
   background: var(--timeline-background, #333);
 }
 
+.tweakpane-container {
+  display: none;
+}
+
+.tweakpane-container.visible {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 300px;
+  max-height: 85vh;
+  overflow-y: auto;
+  z-index: 9999;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
