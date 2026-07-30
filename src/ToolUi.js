@@ -30,7 +30,8 @@ import {
   stopDemo,
   toggleFullscreen,
   toggleMidiCaptureOverwrite,
-  toggleToolUi
+  toggleToolUi,
+  toggleViewTools
 } from './main';
 import './ToolUi.css';
 
@@ -530,6 +531,11 @@ ToolUi.prototype.getMenuItems = function () {
   const isCameraDirectionIndicatorEnabled =
     sceneHelpers.isCameraDirectionIndicatorEnabled();
   const isGridEnabled = sceneHelpers.isGridEnabled();
+  const isAllViewToolsEnabled =
+    isCameraHelpersEnabled &&
+    isLightHelpersEnabled &&
+    isGridEnabled &&
+    isCameraDirectionIndicatorEnabled;
   const fullscreen = new Fullscreen();
   const midiManager = new MidiManager();
   const shaderUiEntries = this.shaderUiEntries || [];
@@ -602,13 +608,13 @@ ToolUi.prototype.getMenuItems = function () {
       label: 'Camera',
       children: [
         {
-          label: `${!isOrbitControlsEnabled ? '✔ ' : ''}Demo camera`,
+          label: `${!isOrbitControlsEnabled ? '✔ ' : ''}Demo camera (C)`,
           action: () => {
             demoRenderer.setOrbitControlsEnabled(false);
           }
         },
         {
-          label: `${isOrbitControlsEnabled ? '✔ ' : ''}Orbit controls`,
+          label: `${isOrbitControlsEnabled ? '✔ ' : ''}Orbit controls (C)`,
           action: () => {
             demoRenderer.setOrbitControlsEnabled(true);
           }
@@ -618,6 +624,12 @@ ToolUi.prototype.getMenuItems = function () {
     {
       label: 'View tools',
       children: [
+        {
+          label: `${isAllViewToolsEnabled ? 'Disable' : 'Enable'} all (V)`,
+          action: () => {
+            toggleViewTools();
+          }
+        },
         {
           label: `${isCameraHelpersEnabled ? '✔ ' : ''}Cameras`,
           action: () => {
