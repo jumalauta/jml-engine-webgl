@@ -1,4 +1,4 @@
-//import * as THREE from 'three';
+import * as THREE from 'three';
 import Stats from 'stats.js';
 import { Pane } from 'tweakpane';
 // import ace from 'ace-builds';
@@ -16,7 +16,7 @@ import { loggerInfo, loggerWarning } from './Bindings';
 // import { Settings } from './Settings'
 import { Utils } from './Utils';
 import { Fbo } from './Fbo';
-import { DemoRenderer } from './DemoRenderer';
+import { DemoRenderer, getCamera } from './DemoRenderer';
 import { Fullscreen } from './Fullscreen';
 import { MidiManager } from './MidiManager';
 import { SceneHelpers } from './SceneHelpers';
@@ -36,6 +36,10 @@ import {
 import './ToolUi.css';
 
 const settings = new Settings();
+
+const cameraDirection = new THREE.Vector3();
+const cameraLookAtMinimumDistance = 1.0;
+const roundCoordinate = (value) => Math.round(value * 1000) / 1000;
 
 const ToolUi = function () {
   return this.getInstance();
@@ -479,15 +483,60 @@ ToolUi.prototype.updateShaderUi = function () {
   });
 };
 
-ToolUi.prototype.logShaderUiVariables = function (entry) {
-  const json = entry.shaderUi.toJsonString();
-  loggerInfo(`${entry.title} variables:\n${json}`);
+ToolUi.prototype.logJson = function (title, json) {
+  loggerInfo(`${title}:\n${json}`);
 
   if (navigator.clipboard) {
     navigator.clipboard.writeText(json).catch((error) => {
-      loggerWarning(`Could not copy variables to clipboard: ${error.message}`);
+      loggerWarning(`Could not copy ${title} to clipboard: ${error.message}`);
     });
   }
+};
+
+ToolUi.prototype.logShaderUiVariables = function (entry) {
+  this.logJson(`${entry.title} variables`, entry.shaderUi.toJsonString());
+};
+
+ToolUi.prototype.logCameraPosition = function () {
+  const demoRenderer = new DemoRenderer();
+  const controls = demoRenderer.isOrbitControlsActive()
+    ? demoRenderer.controls
+    : undefined;
+  const camera = controls ? controls.object : getCamera();
+
+  if (!camera) {
+    loggerWarning('No camera available');
+    return;
+  }
+
+  const lookAt = controls
+    ? controls.target.clone()
+    : camera.position
+        .clone()
+        .addScaledVector(
+          camera.getWorldDirection(cameraDirection),
+          Math.max(camera.position.length(), cameraLookAtMinimumDistance)
+        );
+
+  const toCoordinate = (vector) => ({
+    x: roundCoordinate(vector.x),
+    y: roundCoordinate(vector.y),
+    z: roundCoordinate(vector.z)
+  });
+
+  this.logJson(
+    'Camera position',
+    JSON.stringify(
+      {
+        camera: 'cam1',
+        position: [toCoordinate(camera.position)],
+        lookAt: [toCoordinate(lookAt)],
+        up: [toCoordinate(camera.up)]
+      },
+      undefined,
+      2
+    )
+  );
 };
 
 ToolUi.prototype.initContextMenu = function () {
@@ -617,6 +666,12 @@ ToolUi.prototype.getMenuItems = function () {
           label: `${isOrbitControlsEnabled ? '✔ ' : ''}Orbit controls (C)`,
           action: () => {
             demoRenderer.setOrbitControlsEnabled(true);
+          }
+        },
+        {
+          label: 'Log current position',
+          action: () => {
+            this.logCameraPosition();
           }
         }
       ]
