@@ -22,6 +22,7 @@ import { Utils } from './Utils';
 import { ToolClient } from './ToolClient';
 import { MidiManager } from './MidiManager';
 import { Video } from './Video';
+import { SceneHelpers } from './SceneHelpers';
 
 const toolClient = new ToolClient();
 toolClient.init();
@@ -765,6 +766,33 @@ export function toggleToolUi() {
   windowResize();
 }
 
+export function toggleViewTools() {
+  const sceneHelpers = new SceneHelpers();
+  const enabled = !(
+    sceneHelpers.isCameraHelpersEnabled() &&
+    sceneHelpers.isLightHelpersEnabled() &&
+    sceneHelpers.isGridEnabled() &&
+    sceneHelpers.isCameraDirectionIndicatorEnabled()
+  );
+
+  sceneHelpers.setCameraHelpersEnabled(enabled);
+  sceneHelpers.setLightHelpersEnabled(enabled);
+  sceneHelpers.setGridEnabled(enabled);
+  sceneHelpers.setCameraDirectionIndicatorEnabled(enabled);
+
+  if (enabled && !demoRenderer.isOrbitControlsEnabled()) {
+    loggerInfo(
+      'Demo camera is visible only when the view is rendered through orbit controls'
+    );
+  }
+
+  demoRenderer.setRenderNeedsUpdate(true);
+}
+
+export function toggleOrbitControls() {
+  demoRenderer.setOrbitControlsEnabled(!demoRenderer.isOrbitControlsEnabled());
+}
+
 export function toggleMidiCaptureOverwrite() {
   const midiManager = new MidiManager();
   if (midiManager.capture) {
@@ -903,6 +931,10 @@ document.addEventListener('keydown', (event) => {
       screenshot();
     } else if (event.key === 't') {
       toggleToolUi();
+    } else if (event.key === 'v') {
+      toggleViewTools();
+    } else if (event.key === 'c') {
+      toggleOrbitControls();
     } else if (event.key === 'End') {
       rewindToEnd();
     } else if (event.key === 'Home') {

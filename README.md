@@ -72,6 +72,8 @@ Tool controls are only enabled when tool mode (`settings.engine.tool`) is enable
 | R                 | Deep reload demo and dispose used memory |
 | S                 | Take a screenshot of the current rendered frame |
 | T                 | Hide/show tool |
+| V                 | Enable/disable all view tools |
+| C                 | Toggle between demo camera and orbit controls |
 | 0                 | Log renderer info to browser console |
 
 ### Context menu
@@ -91,7 +93,7 @@ Right click opens the tool context menu. All keyboard shortcuts, except the rewi
 | Log renderer info to console | Log renderer statistics to browser console |
 | Check unused files | List files that the demo has not loaded |
 | Camera             | Select if the view is rendered through the demo camera or freely movable orbit controls |
-| View tools         | Show or hide camera, light, grid and camera direction visualizations, see [documentation](documentation.md#view-tools) |
+| View tools         | Show or hide camera, light, grid and camera direction visualizations individually, or all at once, see [documentation](documentation.md#view-tools) |
 | Timer              | Set demo start and loop times |
 | FBO                | Preview the contents of an FBO |
 
