@@ -1,6 +1,6 @@
 //import * as THREE from 'three';
 import Stats from 'stats.js';
-// import { GUI } from 'dat.gui';
+import { Pane } from 'tweakpane';
 // import ace from 'ace-builds';
 // import 'ace-builds/src-noconflict/mode-javascript';
 // import 'ace-builds/src-noconflict/theme-monokai';
@@ -20,6 +20,7 @@ import { DemoRenderer } from './DemoRenderer';
 import { Fullscreen } from './Fullscreen';
 import { MidiManager } from './MidiManager';
 import { SceneHelpers } from './SceneHelpers';
+import { ShaderUi } from './ShaderUi';
 import { ToolClient } from './ToolClient';
 import {
   deepReloadDemo,
@@ -34,17 +35,6 @@ import {
 import './ToolUi.css';
 
 const settings = new Settings();
-
-/* const gui = new GUI()
-const cubeFolder = gui.addFolder('Cube')
-cubeFolder.add(cube.rotation, 'x', 0, Math.PI * 2)
-cubeFolder.add(cube.rotation, 'y', 0, Math.PI * 2)
-cubeFolder.add(cube.rotation, 'z', 0, Math.PI * 2)
-cubeFolder.open()
-*/
-// const cameraFolder = gui.addFolder('Camera')
-// cameraFolder.add(camera.position, 'z', 0, 10)
-// cameraFolder.open()
 
 const ToolUi = function () {
   return this.getInstance();
@@ -85,6 +75,8 @@ ToolUi.prototype.init = function () {
   document.body.appendChild(this.stats.dom);
   this.sceneState = {};
   this.activeFboPreviews = new Map();
+  this.shaderUiEntries = [];
+  this.shaderUiVisible = true;
 
   // const fileManager = new FileManager()
 
@@ -147,6 +139,7 @@ ToolUi.prototype.show = function () {
   this.panel.classList.add('tool-ui-panel', 'visible');
   this.stats.dom.style.display = 'block';
   this.timelineSlider.classList.add('tool-ui-timeline-slider', 'visible');
+  this.updateShaderUiVisibility();
 
   new Spectogram().show(true);
 };
@@ -158,6 +151,7 @@ ToolUi.prototype.hide = function () {
   this.timelineSlider.classList.remove('tool-ui-timeline-slider', 'visible');
   this.clearDebugText();
   this.setCustomMenuItems([]);
+  this.updateShaderUiVisibility();
 
   new Spectogram().show(false);
 };
@@ -233,6 +227,7 @@ ToolUi.prototype.addSceneToTimeline = function (sceneName, start, end) {
 
 ToolUi.prototype.clearScenes = function () {
   this.clearDebugText();
+  this.clearShaderUi();
   this.sceneState = {};
   const sceneElements = document.getElementsByClassName('scene');
   while (sceneElements.length > 0) {
@@ -242,6 +237,7 @@ ToolUi.prototype.clearScenes = function () {
 
 ToolUi.prototype.update = function () {
   this.markSliderLoopRange();
+  this.updateShaderUi();
 
   this.timelineSlider.value =
     new Timer().getTimePercent() * this.timelineSlider.max;
@@ -338,9 +334,168 @@ ToolUi.prototype.updateFboPreviews = function () {
   });
 };
 
+ToolUi.prototype.getShaderUiContainer = function () {
+  if (!this.shaderUiContainer) {
+    this.shaderUiContainer = document.createElement('div');
+    this.shaderUiContainer.id = 'shaderUiContainer';
+    this.shaderUiContainer.className = 'tweakpane-container';
+    document.body.appendChild(this.shaderUiContainer);
+  }
+
+  return this.shaderUiContainer;
+};
+
+ToolUi.prototype.updateShaderUiVisibility = function () {
+  if (!this.shaderUiContainer) {
+    return;
+  }
+
+  const visible =
+    settings.engine.tool && this.shaderUiVisible && this.isVisible();
+  this.shaderUiContainer.classList.toggle('visible', visible);
+};
+
+ToolUi.prototype.isShaderUiVisible = function () {
+  return this.shaderUiVisible;
+};
+
+ToolUi.prototype.setShaderUiVisible = function (visible) {
+  this.shaderUiVisible = visible;
+  this.updateShaderUiVisibility();
+};
+
+ToolUi.prototype.addShaderUi = function (shaderDefinition, options) {
+  if (!settings.engine.tool || !ShaderUi.isUiEnabled(shaderDefinition)) {
+    return;
+  }
+
+  this.shaderUiEntries = this.shaderUiEntries || [];
+
+  const alreadyAdded = this.shaderUiEntries.some(
+    (entry) => entry.shaderUi.shaderDefinition === shaderDefinition
+  );
+  if (alreadyAdded) {
+    return;
+  }
+
+  const shaderUi = new ShaderUi(shaderDefinition, options);
+  const entry = {
+    shaderUi,
+    title: this.createUniqueShaderUiTitle(shaderUi.title),
+    variableCount: -1
+  };
+
+  this.shaderUiEntries.push(entry);
+  this.createShaderUiPane(entry);
+};
+
+ToolUi.prototype.createUniqueShaderUiTitle = function (title) {
+  let uniqueTitle = title;
+  let index = 1;
+  while (this.shaderUiEntries.some((entry) => entry.title === uniqueTitle)) {
+    index++;
+    uniqueTitle = `${title} #${index}`;
+  }
+
+  return uniqueTitle;
+};
+
+ToolUi.prototype.createShaderUiPane = function (entry) {
+  this.disposeShaderUiPane(entry);
+
+  const fields = entry.shaderUi.createFields();
+  entry.variableCount = entry.shaderUi.getVariableCount();
+  if (fields.length === 0) {
+    return;
+  }
+
+  const pane = new Pane({
+    container: this.getShaderUiContainer(),
+    title: entry.title,
+    expanded: entry.expanded !== false
+  });
+
+  if (entry.shaderUi.source) {
+    pane.element.title = entry.shaderUi.source;
+  }
+
+  const values = {};
+  fields.forEach((field) => {
+    if (field.kind === 'readonly') {
+      Object.defineProperty(values, field.key, {
+        configurable: true,
+        enumerable: true,
+        get: field.read
+      });
+      pane.addBinding(values, field.key, field.params);
+      return;
+    }
+
+    values[field.key] = field.value;
+    pane.addBinding(values, field.key, field.params).on('change', () => {
+      field.write(values[field.key]);
+      new DemoRenderer().setRenderNeedsUpdate(true);
+    });
+  });
+
+  pane.addButton({ title: 'Log variables as JSON' }).on('click', () => {
+    this.logShaderUiVariables(entry);
+  });
+
+  entry.pane = pane;
+  entry.values = values;
+
+  this.updateShaderUiVisibility();
+};
+
+ToolUi.prototype.disposeShaderUiPane = function (entry) {
+  if (entry.pane) {
+    entry.expanded = entry.pane.expanded;
+    entry.pane.dispose();
+    entry.pane = undefined;
+    entry.values = undefined;
+  }
+};
+
+ToolUi.prototype.clearShaderUi = function () {
+  (this.shaderUiEntries || []).forEach((entry) => {
+    this.disposeShaderUiPane(entry);
+  });
+
+  this.shaderUiEntries = [];
+};
+
+ToolUi.prototype.updateShaderUi = function () {
+  if (!this.shaderUiEntries || this.shaderUiEntries.length === 0) {
+    return;
+  }
+
+  // Inline shaders extend their uniforms when the material is compiled, rebuild the dialog when that happens
+  this.shaderUiEntries.forEach((entry) => {
+    if (entry.shaderUi.getVariableCount() !== entry.variableCount) {
+      this.createShaderUiPane(entry);
+    }
+  });
+};
+
+ToolUi.prototype.logShaderUiVariables = function (entry) {
+  const json = entry.shaderUi.toJsonString();
+  loggerInfo(`${entry.title} variables:\n${json}`);
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(json).catch((error) => {
+      loggerWarning(`Could not copy variables to clipboard: ${error.message}`);
+    });
+  }
+};
+
 ToolUi.prototype.initContextMenu = function () {
   document.addEventListener('contextmenu', (e) => {
     if (!settings.engine.tool) {
+      return;
+    }
+
+    if (e.target.closest && e.target.closest('.tweakpane-container')) {
       return;
     }
 
@@ -377,6 +532,7 @@ ToolUi.prototype.getMenuItems = function () {
   const isGridEnabled = sceneHelpers.isGridEnabled();
   const fullscreen = new Fullscreen();
   const midiManager = new MidiManager();
+  const shaderUiEntries = this.shaderUiEntries || [];
 
   return [
     {
@@ -522,6 +678,24 @@ ToolUi.prototype.getMenuItems = function () {
           }
         }
       ]
+    },
+    {
+      label: 'Shader UI',
+      children:
+        shaderUiEntries.length > 0
+          ? [
+              {
+                label: `${this.isShaderUiVisible() ? '✔ ' : ''}Show shader variables`,
+                action: () => {
+                  this.setShaderUiVisible(!this.isShaderUiVisible());
+                }
+              },
+              ...shaderUiEntries.map((entry) => ({
+                label: `Log ${entry.title} variables`,
+                action: () => this.logShaderUiVariables(entry)
+              }))
+            ]
+          : [{ label: 'No shader UI available', disabled: true }]
     },
     {
       label: 'FBO',

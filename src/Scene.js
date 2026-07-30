@@ -863,6 +863,15 @@ Scene.prototype.getParentObject = function (
   return this.renderScene.at(-1);
 };
 
+Scene.prototype.getShaderTitle = function (animationDefinition) {
+  const name = animationDefinition.shader.name;
+  if (name) {
+    return (Utils.isArray(name) ? name : [name]).join(' + ');
+  }
+
+  return `${this.name} inline shader`;
+};
+
 Scene.prototype.processAnimation = function () {
   Utils.renderOrder = 1;
 
@@ -1275,6 +1284,13 @@ Scene.prototype.processAnimation = function () {
         }
 
         if (animationDefinition.shader !== undefined) {
+          new ToolUi().addShaderUi(animationDefinition.shader, {
+            title: this.getShaderTitle(animationDefinition),
+            source: animationDefinition._debug
+              ? animationDefinition._debug.src
+              : undefined
+          });
+
           // animationDefinition.shader.ref = Shader.load(animationDefinition.shader);
           if (
             animationDefinition.shader.ref &&

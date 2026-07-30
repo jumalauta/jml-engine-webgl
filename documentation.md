@@ -302,6 +302,29 @@ this.loader.addAnimation({
 this.loader.endAnimationOnly();
 ```
 
+##### Viewing/editing shader uniforms in tool mode
+
+In tool mode the shader uniforms can be exposed as a [Tweakpane](https://tweakpane.github.io/docs/) dialog with the `ui` attribute. 
+
+```JavaScript
+this.loader.addAnimation({
+  "image": ["_embedded/defaultTransparent.png"]
+  ,"shader":{"name":"rayMarcher.fs"
+    // expose all uniforms that the engine knows of
+    ,"ui": true
+    ,"variable":[
+      {"name":"MAX_STEPS","type":"float","value":[100.0]}
+      ,{"name":"inCamPos","type":"vec3","value":[[0.0,0.0,0.0]]}
+      // enable UI field with custom values (or show just individual field)
+      ,{"name":"fadeEnd","value":[0.8],"ui":{"name":"Fade end","min":0.0,"max":1.0}}
+      // disable UI field
+      ,{"name":"seed","value":[1.0],"ui":false}
+  ]}
+});
+```
+
+Note: Uniforms that have a JavaScript function as a value, are read-only fields that display the current value of the uniform.
+
 #### 2D image animation examples
 ```JavaScript
 //Move jml_fist.png from bottom-left to top-right in 10 seconds, show image for 60 seconds
