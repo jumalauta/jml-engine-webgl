@@ -29,6 +29,8 @@ const Model = function (animationDefinition) {
   }
 
   this.materialProperties = animationDefinition.material || {};
+  this.castShadow = animationDefinition.castShadow ?? true;
+  this.receiveShadow = animationDefinition.receiveShadow ?? this.castShadow;
   this.additive = animationDefinition.additive === true;
   this.instancer = new Instancer(this, animationDefinition.instancer);
 
@@ -686,7 +688,7 @@ Model.prototype.setMaterial = function (material) {
 
 Model.prototype.setDefaults = function () {
   this.cloneMaterials();
-  this.setShadow();
+  this.setShadow(this.castShadow, this.receiveShadow);
   this.setMaterialDefaults();
   // this.setColor(1,1,1,1);
   this.setPosition(0, 0, 0);
@@ -724,8 +726,8 @@ Model.prototype.setDefaults = function () {
 };
 
 Model.prototype.setShadow = function (castShadow, receiveShadow) {
-  castShadow = castShadow || true;
-  receiveShadow = receiveShadow || castShadow;
+  castShadow = castShadow ?? true;
+  receiveShadow = receiveShadow ?? castShadow;
   this.mesh.traverse((obj) => {
     if (obj.isMesh) {
       obj.castShadow = castShadow;
