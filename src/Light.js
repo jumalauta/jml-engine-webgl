@@ -83,6 +83,30 @@ const Light = function (animationDefinition) {
     light.shadow.mapSize.height = settings.demo.shadow.mapSize.height;
     light.shadow.camera.near = settings.demo.camera.near;
     light.shadow.camera.far = settings.demo.camera.far;
+
+    const shadowCamera = lightDefinition.shadowProperties?.camera;
+    if (shadowCamera) {
+      if (shadowCamera.left !== undefined) {
+        light.shadow.camera.left = shadowCamera.left;
+      }
+      if (shadowCamera.right !== undefined) {
+        light.shadow.camera.right = shadowCamera.right;
+      }
+      if (shadowCamera.top !== undefined) {
+        light.shadow.camera.top = shadowCamera.top;
+      }
+      if (shadowCamera.bottom !== undefined) {
+        light.shadow.camera.bottom = shadowCamera.bottom;
+      }
+      if (shadowCamera.near !== undefined) {
+        light.shadow.camera.near = shadowCamera.near;
+      }
+      if (shadowCamera.far !== undefined) {
+        light.shadow.camera.far = shadowCamera.far;
+      }
+      light.shadow.camera.updateProjectionMatrix();
+      delete lightDefinition.shadowProperties.camera;
+    }
   }
 
   if (lightDefinition.texture) {
