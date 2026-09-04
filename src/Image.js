@@ -31,6 +31,10 @@ const Image = function (animationDefinition) {
     animationDefinition = {};
   }
 
+  this.imageDefinitions = Array.isArray(animationDefinition.image)
+    ? animationDefinition.image
+    : [animationDefinition];
+
   this.textureProperties = animationDefinition.textureProperties || [];
   this.sprite = animationDefinition.sprite === true;
   this.additive = animationDefinition.additive === true;
@@ -218,6 +222,15 @@ Image.prototype.load = async function (filenames, noGenerate) {
   }
 };
 
+Image.prototype.getImageDefinition = function (textureI) {
+  const definition = this.imageDefinitions[textureI];
+  if (definition === undefined || typeof definition !== 'object') {
+    return {};
+  }
+
+  return definition;
+};
+
 Image.prototype.isFileSupported = function (filenames) {
   const files = filenames instanceof Array ? filenames : [filenames];
 
@@ -313,6 +326,7 @@ Image.prototype.loadTexture = function (filename) {
     });
   } else if (instance.filename.toUpperCase().endsWith('.MP4')) {
     const video = new Video();
+    video.setDefinition(instance.getImageDefinition(textureI).video);
     return video.load(filename, instance, (instance, video) => {
       instance.texture[textureI] = video.texture;
       instance.texture[textureI].video = video;
