@@ -10,6 +10,8 @@ import { Timer } from './Timer';
 
 let videos = [];
 
+const SEEK_TIMEOUT_MS = 2000;
+
 const Video = function () {
   this.ptr = undefined;
   this.id = undefined;
@@ -99,21 +101,28 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
       instance.texture = new THREE.VideoTexture(instance.videoElement);
       instance.ptr = instance.videoElement;
       instance.startTime = undefined;
+      instance.applyDefinition();
       videos.push(instance);
       loggerDebug(
         `Video file loaded: ${filename} (length ${instance.videoElement.duration} seconds)`
       );
       instance.videoElement.oncanplaythrough = null;
 
-      if (callback) {
-        if (callback(referenceInstance, instance)) {
-          resolve(instance);
-        } else {
-          reject(instance);
-        }
-      } else {
-        resolve(instance);
+      if (callback && !callback(referenceInstance, instance)) {
+        reject(instance);
+        return;
       }
+
+      instance
+        .seekToStartAt()
+        .then(() => {
+          resolve(instance);
+          return true;
+        })
+        .catch((error) => {
+          loggerWarning(`Video file could not be seeked: ${filename} ${error}`);
+          resolve(instance);
+        });
     };
     instance.videoElement.onerror = () => {
       loggerWarning(`Video file could not be loaded: ${filename}`);
@@ -130,6 +139,92 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
 Video.prototype.setStartTime = function (startTime) {
   // videoSetStartTime(this.ptr, startTime)
   this.animationStartTime = startTime;
+};
+
+Video.prototype.setDefinition = function (videoDefinition) {
+  // the "video" object of the animation, used to initialize the video already
+  // at load time, i.e. before the animation is played for the first time
+  this.definition = videoDefinition;
+};
+
+Video.prototype.applyDefinition = function () {
+  if (this.definition === undefined) {
+    return;
+  }
+
+  if (typeof this.definition.startAt === 'number') {
+    this.setStartAt(this.definition.startAt);
+  }
+
+  if (typeof this.definition.endAt === 'number') {
+    this.setEndAt(this.definition.endAt);
+  }
+};
+
+Video.prototype.seekToStartAt = function () {
+  return new Promise((resolve) => {
+    const startAt = this.getStartAt();
+    if (startAt <= 0 || this.videoElement.currentTime === startAt) {
+      resolve(this);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      loggerWarning(
+        `Video seeking to ${startAt} seconds timed out: ${this.filename}`
+      );
+      resolve(this);
+    }, SEEK_TIMEOUT_MS);
+
+    this.videoElement.addEventListener(
+      'seeked',
+      () => {
+        clearTimeout(timeout);
+        resolve(this);
+      },
+      { once: true }
+    );
+
+    this.videoElement.currentTime = startAt;
+  });
+};
+
+Video.prototype.setStartAt = function (startAt) {
+  if (this.startAt === startAt) {
+    return;
+  }
+  this.startAt = startAt;
+
+  if (
+    !this.playStarted &&
+    this.videoElement.currentTime !== this.getStartAt()
+  ) {
+    this.seekToStartAt();
+  }
+};
+
+Video.prototype.setEndAt = function (endAt) {
+  this.endAt = endAt;
+};
+
+Video.prototype.getStartAt = function () {
+  const duration = this.videoElement.duration || 0;
+  if (this.startAt === undefined) {
+    return 0;
+  }
+  return Math.min(Math.max(this.startAt, 0), duration);
+};
+
+Video.prototype.getEndAt = function () {
+  const duration = this.videoElement.duration || 0;
+  if (this.endAt === undefined) {
+    return duration;
+  }
+  return Math.min(Math.max(this.endAt, this.getStartAt()), duration);
+};
+
+Video.prototype.getLength = function () {
+  return this.getEndAt() - this.getStartAt();
 };
 
 Video.prototype.setFps = function () {
@@ -209,7 +304,7 @@ Video.prototype.stop = function () {
   if (!this.videoElement.paused) {
     this.videoElement.pause();
   }
-  this.videoElement.currentTime = 0;
+  this.videoElement.currentTime = this.getStartAt();
   this.startTime = undefined;
   this.playStarted = false;
 };
@@ -220,14 +315,19 @@ Video.prototype.setAnimationTime = function (time) {
 };
 
 Video.prototype.getDuration = function () {
-  return this.videoElement.duration * this.videoElement.playbackRate;
+  // playback duration in seconds, i.e. how long the video is visibly playing
+  const speed = this.videoElement.playbackRate;
+  return this.getLength() / (speed > 0 ? speed : 1);
 };
 
 Video.prototype.getTimeDelta = function () {
+  const startAt = this.getStartAt();
+
   if (this.startTime === undefined) {
-    return 0;
+    return startAt;
   }
 
+  const length = this.getLength();
   const timeNow = new Timer().getTimeInSeconds();
   let timeDelta = (timeNow - this.startTime) * this.videoElement.playbackRate;
 
@@ -235,20 +335,18 @@ Video.prototype.getTimeDelta = function () {
     timeDelta = this.currentTime;
   }
 
-  if (this.videoElement.loop) {
-    timeDelta = timeDelta % this.videoElement.duration;
+  if (this.videoElement.loop && length > 0) {
+    timeDelta = timeDelta % length;
   }
 
   if (timeDelta < 0) {
     timeDelta = 0;
-  } else if (
-    timeDelta > this.videoElement.duration &&
-    !this.videoElement.loop
-  ) {
-    timeDelta = this.videoElement.duration;
+  } else if (timeDelta > length && !this.videoElement.loop) {
+    timeDelta = length;
   }
 
-  return timeDelta;
+  // time delta is relative to the startAt point of the video
+  return startAt + timeDelta;
 };
 
 Video.prototype.rewind = function () {
@@ -256,6 +354,22 @@ Video.prototype.rewind = function () {
     return;
   }
   const timeDelta = this.getTimeDelta();
+
+  const endAt = this.getEndAt();
+  if (
+    !this.videoElement.loop &&
+    timeDelta >= endAt &&
+    endAt < this.videoElement.duration
+  ) {
+    loggerTrace(`Video reached endAt: ${this.filename} ${endAt} seconds`);
+    if (!this.videoElement.paused) {
+      this.videoElement.pause();
+    }
+    this.startTime = undefined;
+    this.playStarted = false;
+    this.playEnded = true;
+  }
+
   // videoSetTime(this.ptr, time)
   const oldTime = this.videoElement.currentTime;
   if (timeDelta === oldTime) {
