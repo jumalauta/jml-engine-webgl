@@ -486,6 +486,11 @@ function animate() {
     demoRenderer.setRenderNeedsUpdate(true);
   }
 
+  if (capture && settings.engine.tool && Video.isSeeking()) {
+    animationFrameId = requestAnimationFrame(animate);
+    return;
+  }
+
   if (demoRenderer.isRenderNeedsUpdate()) {
     demoRenderer.render();
 
