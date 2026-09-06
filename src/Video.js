@@ -11,6 +11,8 @@ import { Timer } from './Timer';
 let videos = [];
 
 const SEEK_TIMEOUT_MS = 2000;
+const SEEK_COMPLETION_TIMEOUT_MS = 1000;
+const MONOTONIC_TIME_TOLERANCE_SECONDS = 0.001;
 
 const Video = function () {
   this.ptr = undefined;
@@ -46,7 +48,7 @@ Video.rewind = function () {
 
 Video.isSeeking = function () {
   return videos.some((video) => {
-    return video.videoElement.seeking;
+    return video.isSeeking();
   });
 };
 
@@ -91,7 +93,10 @@ Video.prototype.load = function (filename, referenceInstance, callback) {
     };
     instance.videoElement.onseeked = () => {
       // console.log(`Video seeked: ${filename} ${event}`);
-      this.texture.update();
+      if (!instance.videoElement.seeking) {
+        instance.clearSeekPending();
+      }
+      instance.refreshTexture();
     };
     // instance.videoElement.ontimeupdate = () => {
     //   // console.log(`Video time update: ${filename} ${event} ${this.videoElement.currentTime}`);
@@ -161,6 +166,58 @@ Video.prototype.applyDefinition = function () {
   }
 };
 
+Video.prototype.isSeeking = function () {
+  return this.videoElement.seeking || this.seekPending === true;
+};
+
+Video.prototype.clearSeekPending = function () {
+  this.seekPending = false;
+  if (this.seekTimeout !== undefined) {
+    clearTimeout(this.seekTimeout);
+    this.seekTimeout = undefined;
+  }
+};
+
+Video.prototype.refreshTexture = function () {
+  // THREE.VideoTexture.update() is a no-op in browsers supporting
+  // requestVideoFrameCallback, i.e. the texture is then refreshed only whenever
+  // the browser happens to present a new frame. When the demo is stepped frame
+  // by frame (video capturing) the frame of the latest seek is the one that
+  // must end up in the rendered frame, so refresh the texture explicitly.
+  if (this.texture === undefined) {
+    return;
+  }
+
+  if (this.videoElement.readyState >= this.videoElement.HAVE_CURRENT_DATA) {
+    this.texture.needsUpdate = true;
+  } else {
+    this.texture.update();
+  }
+};
+
+Video.prototype.setCurrentTime = function (time) {
+  if (this.videoElement.currentTime === time && !this.isSeeking()) {
+    this.refreshTexture();
+    return;
+  }
+
+  this.seekPending = true;
+  if (this.seekTimeout !== undefined) {
+    clearTimeout(this.seekTimeout);
+  }
+  this.seekTimeout = setTimeout(() => {
+    this.seekTimeout = undefined;
+    if (this.seekPending) {
+      loggerWarning(
+        `Video seeking to ${time} seconds did not complete: ${this.filename}`
+      );
+      this.seekPending = false;
+    }
+  }, SEEK_COMPLETION_TIMEOUT_MS);
+
+  this.videoElement.currentTime = time;
+};
+
 Video.prototype.seekToStartAt = function () {
   return new Promise((resolve) => {
     const startAt = this.getStartAt();
@@ -185,7 +242,7 @@ Video.prototype.seekToStartAt = function () {
       { once: true }
     );
 
-    this.videoElement.currentTime = startAt;
+    this.setCurrentTime(startAt);
   });
 };
 
@@ -304,7 +361,8 @@ Video.prototype.stop = function () {
   if (!this.videoElement.paused) {
     this.videoElement.pause();
   }
-  this.videoElement.currentTime = this.getStartAt();
+  this.setCurrentTime(this.getStartAt());
+  this.monotonicState = undefined;
   this.startTime = undefined;
   this.playStarted = false;
 };
@@ -335,6 +393,8 @@ Video.prototype.getTimeDelta = function () {
     timeDelta = this.currentTime;
   }
 
+  timeDelta = this.getMonotonicTimeDelta(timeNow, timeDelta);
+
   if (this.videoElement.loop && length > 0) {
     timeDelta = timeDelta % length;
   }
@@ -347,6 +407,37 @@ Video.prototype.getTimeDelta = function () {
 
   // time delta is relative to the startAt point of the video
   return startAt + timeDelta;
+};
+
+Video.prototype.getMonotonicTimeDelta = function (timeNow, timeDelta) {
+  const parameters = {
+    startTime: this.startTime,
+    startAt: this.getStartAt(),
+    speed: this.videoElement.playbackRate
+  };
+  const state = this.monotonicState;
+
+  if (
+    state !== undefined &&
+    timeNow >= state.timeNow &&
+    timeDelta < state.timeDelta
+  ) {
+    const isSameCalculation =
+      parameters.startTime === state.parameters.startTime &&
+      parameters.startAt === state.parameters.startAt &&
+      parameters.speed === state.parameters.speed;
+
+    if (
+      isSameCalculation ||
+      state.timeDelta - timeDelta <= MONOTONIC_TIME_TOLERANCE_SECONDS
+    ) {
+      timeDelta = state.timeDelta;
+    }
+  }
+
+  this.monotonicState = { timeNow, timeDelta, parameters };
+
+  return timeDelta;
 };
 
 Video.prototype.rewind = function () {
@@ -378,10 +469,9 @@ Video.prototype.rewind = function () {
     this.stop();
   }
 
-  this.videoElement.currentTime = timeDelta;
+  this.setCurrentTime(timeDelta);
 
   // console.log(`Rewinding video '${this.filename}' from ${oldTime} to ${this.videoElement.currentTime} seconds (video start ${this.startTime})`);
-  this.texture.update();
 };
 
 Video.prototype.handleState = function () {
